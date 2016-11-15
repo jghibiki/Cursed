@@ -1,0 +1,51 @@
+#!/bin/env python3
+
+import json
+import click
+import os.path
+from utils import save, load
+from region import region
+
+
+@click.group()
+@click.option('--map-location', default="map.json")
+@click.pass_context
+def cli(ctx, map_location):
+    ctx.obj["map_location"] = map_location
+
+#####################
+# Initialization
+
+@click.command()
+@click.option('--map-title', default="Map Title")
+@click.option('--map-description', default="Map Description")
+@click.option('--overwrite', is_flag=True, default=False)
+@click.pass_context
+def init(ctx, map_title, map_description, overwrite):
+    default_map = {
+        "title": map_title,
+        "description": map_description,
+        "regions": {}
+    }
+
+    map_exists = os.path.exists(ctx.obj["map_location"])
+    if (map_exists and overwrite) or not map_exists:
+        save(ctx, default_map)
+        print("Map file created!")
+    elif map_exists and not overwrite:
+        print("Map file already exists. Use --overwrite to overwrite existing file.")
+
+######################
+# Region Manipulation
+
+
+##########################
+# Root group definition
+cli.add_command(init)
+cli.add_command(region)
+
+
+
+if __name__ == "__main__":
+    cli(obj={})
+
