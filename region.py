@@ -46,6 +46,9 @@ def _edit_region(scr, ctx, region_name):
 
     curses.start_color()
     curses.use_default_colors()
+    for i in range(0, curses.COLORS):
+        curses.init_pair(i + 1, i, -1)
+
     init()
     map = Map(map_obj["regions"][region_name])
     editor = Editor(scr, map, save_region(ctx, region_name, map_obj))

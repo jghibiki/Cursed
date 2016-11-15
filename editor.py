@@ -190,6 +190,10 @@ class Editor:
                 self.current_obj = FeatureType.gate
                 self.default_dirty = True
 
+            if ch == ord("W"):
+                self.current_obj = FeatureType.water
+                self.default_dirty = True
+
 
         # detect screen resize
         #if curses.KEY_RESIZE:
@@ -216,6 +220,7 @@ class FeatureType:
         FeatureType.chest = ord("#")
         FeatureType.point_of_interest = ord("*")
         FeatureType.gate = ord("G")
+        FeatureType.water = ord("~")
 
     def toName(char):
         if char == FeatureType.wall:
@@ -240,6 +245,8 @@ class FeatureType:
             return "Road"
         elif char == FeatureType.gate:
             return "Gate"
+        elif char == FeatureType.water:
+            return "Water"
 
     def fromName(name):
         if name == "Wall":
@@ -264,6 +271,8 @@ class FeatureType:
             return FeatureType.road
         elif name == "Gate":
             return FeatureType.gate
+        elif name == "Water":
+            return FeatureType.water
 
     def modFromName(name):
         if name == "Wall":
@@ -288,6 +297,8 @@ class FeatureType:
             return curses.color_pair(1)
         elif name == "Gate":
             return None
+        elif name == "Water":
+            return curses.color_pair(5)
 
 
 class FeatureSerializer:
