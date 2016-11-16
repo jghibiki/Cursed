@@ -10,36 +10,33 @@ from campaign import campaign
 
 
 @click.group()
-@click.option('--map-location', default="map.json")
+@click.option('--data-location', default="data.json")
 @click.pass_context
-def cli(ctx, map_location):
-    ctx.obj["map_location"] = map_location
+def cli(ctx, data_location):
+    ctx.obj["data_location"] = data_location
 
 #####################
 # Initialization
 
 @click.command()
-@click.option('--map-title', default="Map Title")
-@click.option('--map-description', default="Map Description")
+@click.option('--campaign-title', default="Campaign Title")
+@click.option('--campaign-description', default="Campaign Description")
 @click.option('--overwrite', is_flag=True, default=False)
 @click.pass_context
-def init(ctx, map_title, map_description, overwrite):
-    default_map = {
-        "title": map_title,
-        "description": map_description,
+def init(ctx, campaign_title, campaign_description, overwrite):
+    default_campaign= {
+        "title": campaign_title,
+        "description": campaign_description,
         "story": [],
         "regions": {}
     }
 
-    map_exists = os.path.exists(ctx.obj["map_location"])
+    campaign_exists = os.path.exists(ctx.obj["data_location"])
     if (map_exists and overwrite) or not map_exists:
-        save(ctx, default_map)
-        print("Map file created!")
+        save(ctx, default_campaign)
+        print("Campaign file created!")
     elif map_exists and not overwrite:
-        print("Map file already exists. Use --overwrite to overwrite existing file.")
-
-######################
-# Region Manipulation
+        print("Campaign file already exists. Use --overwrite to overwrite existing file.")
 
 
 ##########################

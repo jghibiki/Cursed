@@ -529,17 +529,17 @@ class Rectangle(Feature):
 
 class Map:
 
-    def __init__(self, map_obj, screen_max_x=None, screen_max_y=None):
-        self.map_obj = map_obj
+    def __init__(self, campaign_obj, screen_max_x=None, screen_max_y=None):
+        self.campaign_obj = campaign_obj
         self.features = []
 
-        for feature in map_obj["features"]:
+        for feature in campaign_obj["features"]:
             self.features.append(
                 FeatureSerializer.fromDict(feature)
             )
 
-        self.max_y = self.map_obj["max_y"]
-        self.max_x = self.map_obj["max_x"]
+        self.max_y = self.campaign_obj["max_y"]
+        self.max_x = self.campaign_obj["max_x"]
 
         self.screen_max_x = screen_max_x if screen_max_x else curses.COLS-1
         self.screen_max_y = screen_max_y if screen_max_y else curses.LINES-1
@@ -582,7 +582,7 @@ class Map:
 
 
     def add_feature(feature):
-        self.map_obj["features"].append(feature)
+        self.campaign_obj["features"].append(feature)
         self.dirty = True
 
     def move_viewport_pos_x(self):
@@ -631,8 +631,8 @@ class Map:
         features = []
         for feature in self.features:
             features.append(FeatureSerializer.toDict(feature))
-        self.map_obj["features"] = features
-        return self.map_obj
+        self.campaign_obj["features"] = features
+        return self.campaign_obj
 
 
 

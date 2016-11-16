@@ -123,11 +123,11 @@ def mv(ctx, name, up, down):
 @click.pass_context
 def list(ctx):
     map_obj = load(ctx)
-    intro = "%s Chapters" % map_obj["title"]
+    intro = "%s" % map_obj["title"]
     pad = len(intro)*"="
-    print("%s\n%s\n%s" % (pad, intro, pad))
+    print("%s\n%s\n%s\nChapters" % (pad, intro, pad))
     for idx, chapter in enumerate(map_obj["story"]):
-        print("Chapter %s: %s" % (idx+1, chapter["name"]))
+        print("|-> Chapter %s: %s" % (idx+1, chapter["name"]))
 
 
 campaign.add_command(add)
