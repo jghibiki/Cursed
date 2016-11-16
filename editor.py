@@ -227,10 +227,29 @@ class Editor:
                 self.current_obj = FeatureType.grass
                 self.default_dirty = True
 
+            if ch == ord(","):
+                self.current_obj = FeatureType.friendly_unit
+                self.default_dirty = True
+
+            if ch == ord("@"):
+                self.current_obj = FeatureType.enemy_unit
+                self.default_dirty = True
+
+            if ch == ord("$"):
+                self.current_obj = FeatureType.dead_unit
+                self.default_dirty = True
+
+            if ch == ord("^"):
+                self.current_obj = FeatureType.hill
+                self.default_dirty = True
+
             if ch == ord("p"):
                 for i in range(0, 255):
                     self.default_screen.addstr(str(i), curses.color_pair(i))
 
+            if ch == ord("P"):
+                for i in range(0, 1000):
+                    self.default_screen.addch(i)
 
 
             if ch == ord("n"):
@@ -278,6 +297,10 @@ class FeatureType:
         FeatureType.tree = 12
         FeatureType.bush = 13
         FeatureType.grass = 14
+        FeatureType.friendly_unit = 15
+        FeatureType.enemy_unit = 16
+        FeatureType.dead_unit = 17
+        FeatureType.hill = 18
 
     def toName(char):
         if char == FeatureType.wall:
@@ -310,12 +333,20 @@ class FeatureType:
             return "Bush"
         elif char == FeatureType.grass:
             return "Grass"
+        elif char == FeatureType.friendly_unit:
+            return "Friendly Unit"
+        elif char == FeatureType.enemy_unit:
+            return "Enemy Unit"
+        elif char == FeatureType.dead_unit:
+            return "Dead Unit"
+        elif char == FeatureType.hill:
+            return "Hill"
 
     def toSymbol(id):
         if id == FeatureType.wall:
             return curses.ACS_BOARD
         elif id == FeatureType.table:
-            return ord("t")
+            return curses.ACS_TTEE
         elif id == FeatureType.chair:
             return ord("c")
         elif id == FeatureType.door:
@@ -342,6 +373,14 @@ class FeatureType:
             return ord("o")
         elif id == FeatureType.grass:
             return ord(".")
+        elif id == FeatureType.friendly_unit:
+            return ord("@")
+        elif id == FeatureType.enemy_unit:
+            return ord("@")
+        elif id == FeatureType.dead_unit:
+            return ord("@")
+        elif id == FeatureType.hill:
+            return ord("^")
 
     def fromName(name):
         if name == "Wall":
@@ -374,6 +413,14 @@ class FeatureType:
             return FeatureType.bush
         elif name == "Grass":
             return FeatureType.grass
+        elif name == "Friendly Unit":
+            return FeatureType.friendly_unit
+        elif name == "Enemy Unit":
+            return FeatureType.enemy_unit
+        elif name == "Dead Unit":
+            return FeatureType.dead_unit
+        elif name == "Hill":
+            return FeatureType.hill
 
     def modFromName(name):
         if name == "Wall":
@@ -406,6 +453,14 @@ class FeatureType:
             return curses.color_pair(29)
         elif name == "Grass":
             return curses.color_pair(29)
+        elif name == "Friendly Unit":
+            return curses.color_pair(47)
+        elif name == "Enemy Unit":
+            return curses.color_pair(197)
+        elif name == "Dead Unit":
+            return curses.color_pair(8)
+        elif name == "Hill":
+            return None
 
 
 class FeatureSerializer:
@@ -463,7 +518,6 @@ class Feature:
                     self.pos_y,
                     self.pos_x,
                     FeatureType.toSymbol(self.char))
-
 
 
 class Rectangle(Feature):

@@ -2,6 +2,9 @@ import curses
 import click
 from utils import save, load
 from editor import Editor, Map, init
+import locale
+
+locale.setlocale(locale.LC_ALL, '')
 
 
 
