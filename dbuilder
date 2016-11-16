@@ -5,6 +5,7 @@ import click
 import os.path
 from utils import save, load
 from region import region
+from dice import roll
 
 
 @click.group()
@@ -43,6 +44,7 @@ def init(ctx, map_title, map_description, overwrite):
 # Root group definition
 cli.add_command(init)
 cli.add_command(region)
+cli.add_command(roll)
 
 
 
