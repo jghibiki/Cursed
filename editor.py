@@ -1,4 +1,5 @@
 import curses
+import curses.textpad
 
 class Editor:
 
@@ -45,6 +46,21 @@ class Editor:
     def set_status_line(self, msg):
         padded = msg.ljust(self.max_x)
         self.default_screen.addstr(0,0, padded)
+
+    def make_textbox(self, y, x, h, w, value="", deco=None, text_color_pair=0, deco_color=0):
+        nw = curses.newwin(h, w, y, x)
+        txtbox = curses.textpad.Textbox(nw)
+        if deco == "frame":
+            self.default_screen.attron(deco_color)
+            curses.textpad.rectangle(self.default_screen, y-1, x-1, y+h, x+w)
+            self.default_screen.attroff(deco_color)
+        elif deco == "underline":
+            self.default_screen.hline(y+1, x, curses.ACS_HLINE, deco_color)
+
+        nw.addstr(0,0,value,text_color_pair)
+        nw.attron(text_color_pair)
+        self.default_screen.refresh()
+        return txtbox
 
 
     def handle(self, ch):
@@ -139,11 +155,16 @@ class Editor:
 
             # detect place object
             if ch == ord(" "):
-                self.map.add_feature(self.cursor_y-1, self.cursor_x, self.current_obj)
+                self.map.add_feature(
+                        self.cursor_y - 1 + self.map.viewport_y,
+                        self.cursor_x + self.map.viewport_x,
+                        self.current_obj)
                 self.default_dirty = True
 
             if ch == ord("x"):
-                self.map.rm_feature(self.cursor_y-1, self.cursor_x)
+                self.map.rm_feature(
+                        self.cursor_y - 1 + self.map.viewport_y,
+                        self.cursor_x+self.map.viewport_x)
                 self.default_dirty = True
 
             if ch == ord("c"):
@@ -194,6 +215,25 @@ class Editor:
                 self.current_obj = FeatureType.water
                 self.default_dirty = True
 
+            if ch == ord("p"):
+                for i in range(0, 255):
+                    self.default_screen.addstr(str(i), curses.color_pair(i))
+
+            if ch == ord("n"):
+
+                # get feature a cursor
+                idx = self.map.get_feature_idx(
+                        self.cursor_y + self.map.viewport_y - 1,
+                        self.cursor_x + self.map.viewport_x)
+                if idx:
+                    notes = self.map.features[idx].notes
+
+                    textbox = self.make_textbox(5, 5, self.max_y-10, self.max_x-10, deco="frame", value=notes)
+                    text = textbox.edit()
+                    self.default_screen.refresh()
+                    self.map.features[idx].notes = text
+
+
 
         # detect screen resize
         #if curses.KEY_RESIZE:
@@ -209,18 +249,18 @@ def init():
 
 class FeatureType:
     def init():
-        FeatureType.wall = curses.ACS_BOARD
-        FeatureType.table = ord("t")
-        FeatureType.chair = ord("c")
-        FeatureType.door = ord("D")
-        FeatureType.up_stair = curses.ACS_UARROW
-        FeatureType.down_stair = curses.ACS_DARROW
-        FeatureType.lantern = ord("%")
-        FeatureType.road = curses.ACS_BOARD
-        FeatureType.chest = ord("#")
-        FeatureType.point_of_interest = ord("*")
-        FeatureType.gate = ord("G")
-        FeatureType.water = ord("~")
+        FeatureType.wall = 0
+        FeatureType.table = 1
+        FeatureType.chair = 2
+        FeatureType.door = 3
+        FeatureType.up_stair = 4
+        FeatureType.down_stair = 5
+        FeatureType.lantern = 6
+        FeatureType.road = 7
+        FeatureType.chest = 8
+        FeatureType.point_of_interest = 9
+        FeatureType.gate = 10
+        FeatureType.water = 11
 
     def toName(char):
         if char == FeatureType.wall:
@@ -247,6 +287,32 @@ class FeatureType:
             return "Gate"
         elif char == FeatureType.water:
             return "Water"
+
+    def toSymbol(id):
+        if id == FeatureType.wall:
+            return curses.ACS_BOARD
+        elif id == FeatureType.table:
+            return ord("t")
+        elif id == FeatureType.chair:
+            return ord("c")
+        elif id == FeatureType.door:
+            return ord("D")
+        elif id == FeatureType.up_stair:
+            return curses.ACS_UARROW
+        elif id == FeatureType.down_stair:
+            return curses.ACS_DARROW
+        elif id == FeatureType.lantern:
+            return ord("%")
+        elif id == FeatureType.road:
+            return curses.ACS_BOARD
+        elif id == FeatureType.chest:
+            return ord("#")
+        elif id == FeatureType.point_of_interest:
+            return ord("*")
+        elif id == FeatureType.gate:
+            return ord("G")
+        elif id == FeatureType.water:
+            return ord("~")
 
     def fromName(name):
         if name == "Wall":
@@ -276,7 +342,7 @@ class FeatureType:
 
     def modFromName(name):
         if name == "Wall":
-            return None
+            return curses.color_pair(95)
         elif name == "Table":
             return None
         elif name == "Chair":
@@ -286,17 +352,17 @@ class FeatureType:
         elif name == "Down Stair":
             return None
         elif name == "Door":
-            return None
+            return curses.color_pair(95)
         elif name == "Lantern":
-            return None
+            return curses.color_pair(4)
         elif name == "Chest":
             return None
         elif name == "Point of Interest":
-            return None
+            return curses.color_pair(197)
         elif name == "Road":
-            return curses.color_pair(1)
+            return curses.color_pair(12)
         elif name == "Gate":
-            return None
+            return curses.color_pair(95)
         elif name == "Water":
             return curses.color_pair(5)
 
@@ -306,7 +372,8 @@ class FeatureSerializer:
         return {
                 "y": obj.pos_y,
                 "x": obj.pos_x,
-                "type": FeatureType.toName(obj.char)
+                "type": FeatureType.toName(obj.char),
+                "notes": obj.notes
         }
 
     def fromDict(obj):
@@ -318,28 +385,30 @@ class FeatureSerializer:
                 ),
                 mod=FeatureType.modFromName(
                     obj["type"]
-                ))
+                ),
+                notes=obj["notes"])
 
 
 class Feature:
-    def __init__(self, pos_y, pos_x, char, mod=None):
+    def __init__(self, pos_y, pos_x, char, mod=None, notes=""):
         self.pos_y = pos_y
         self.pos_x = pos_x
         self.char=char
         self.mod = mod
+        self.notes = notes
 
     def draw(self, screen):
         if self.mod:
             screen.addch(
                     self.pos_y,
                     self.pos_x,
-                    self.char,
+                    FeatureType.toSymbol(self.char),
                     self.mod)
         else:
             screen.addch(
                     self.pos_y,
                     self.pos_x,
-                    self.char)
+                    FeatureType.toSymbol(self.char))
 
 
 class Rectangle(Feature):
@@ -440,6 +509,11 @@ class Map:
             if feature.pos_y is y and feature.pos_x is x:
                 self.features.remove(feature)
                 break
+
+    def get_feature_idx(self, y, x):
+        for feature in self.features:
+            if feature.pos_y == y and feature.pos_x == x:
+                return self.features.index(feature)
 
     def serialize(self):
         features = []
