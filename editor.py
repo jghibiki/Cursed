@@ -215,9 +215,23 @@ class Editor:
                 self.current_obj = FeatureType.water
                 self.default_dirty = True
 
+            if ch == ord("T"):
+                self.current_obj = FeatureType.tree
+                self.default_dirty = True
+
+            if ch == ord("o"):
+                self.current_obj = FeatureType.bush
+                self.default_dirty = True
+
+            if ch == ord("."):
+                self.current_obj = FeatureType.grass
+                self.default_dirty = True
+
             if ch == ord("p"):
                 for i in range(0, 255):
                     self.default_screen.addstr(str(i), curses.color_pair(i))
+
+
 
             if ch == ord("n"):
 
@@ -261,6 +275,9 @@ class FeatureType:
         FeatureType.point_of_interest = 9
         FeatureType.gate = 10
         FeatureType.water = 11
+        FeatureType.tree = 12
+        FeatureType.bush = 13
+        FeatureType.grass = 14
 
     def toName(char):
         if char == FeatureType.wall:
@@ -287,6 +304,12 @@ class FeatureType:
             return "Gate"
         elif char == FeatureType.water:
             return "Water"
+        elif char == FeatureType.tree:
+            return "Tree"
+        elif char == FeatureType.bush:
+            return "Bush"
+        elif char == FeatureType.grass:
+            return "Grass"
 
     def toSymbol(id):
         if id == FeatureType.wall:
@@ -313,6 +336,12 @@ class FeatureType:
             return ord("G")
         elif id == FeatureType.water:
             return ord("~")
+        elif id == FeatureType.tree:
+            return ord("O")
+        elif id == FeatureType.bush:
+            return ord("o")
+        elif id == FeatureType.grass:
+            return ord(".")
 
     def fromName(name):
         if name == "Wall":
@@ -339,6 +368,12 @@ class FeatureType:
             return FeatureType.gate
         elif name == "Water":
             return FeatureType.water
+        elif name == "Tree":
+            return FeatureType.tree
+        elif name == "Bush":
+            return FeatureType.bush
+        elif name == "Grass":
+            return FeatureType.grass
 
     def modFromName(name):
         if name == "Wall":
@@ -365,6 +400,12 @@ class FeatureType:
             return curses.color_pair(95)
         elif name == "Water":
             return curses.color_pair(5)
+        elif name == "Tree":
+            return curses.color_pair(95)
+        elif name == "Bush":
+            return curses.color_pair(29)
+        elif name == "Grass":
+            return curses.color_pair(29)
 
 
 class FeatureSerializer:
@@ -398,17 +439,31 @@ class Feature:
         self.notes = notes
 
     def draw(self, screen):
-        if self.mod:
+        if self.mod and self.notes == "":
             screen.addch(
                     self.pos_y,
                     self.pos_x,
                     FeatureType.toSymbol(self.char),
                     self.mod)
-        else:
+        elif self.mod and not self.notes == "":
+            screen.addch(
+                    self.pos_y,
+                    self.pos_x,
+                    FeatureType.toSymbol(self.char),
+                    self.mod |
+                    curses.A_BLINK)
+        elif not self.mod and not self.notes == "":
+            screen.addch(
+                    self.pos_y,
+                    self.pos_x,
+                    FeatureType.toSymbol(self.char),
+                    curses.A_BLINK)
+        elif not self.mod and self.notes == "":
             screen.addch(
                     self.pos_y,
                     self.pos_x,
                     FeatureType.toSymbol(self.char))
+
 
 
 class Rectangle(Feature):
@@ -497,12 +552,15 @@ class Map:
             self.dirty = True
 
     def add_feature(self, y, x, char):
-        self.features.append(
-            Feature(y, x, char, mod=FeatureType.modFromName(
-                                    FeatureType.toName(char)
-                                ))
-        )
-        self.dirty = True
+
+
+        if x < self.max_x and y < self.max_y:
+            self.features.append(
+                Feature(y, x, char, mod=FeatureType.modFromName(
+                                        FeatureType.toName(char)
+                                    ))
+            )
+            self.dirty = True
 
     def rm_feature(self, y, x):
         for feature in self.features:
