@@ -6,6 +6,7 @@ import os.path
 from utils import save, load
 from region import region
 from dice import roll
+from campaign import campaign
 
 
 @click.group()
@@ -26,6 +27,7 @@ def init(ctx, map_title, map_description, overwrite):
     default_map = {
         "title": map_title,
         "description": map_description,
+        "story": [],
         "regions": {}
     }
 
@@ -45,6 +47,7 @@ def init(ctx, map_title, map_description, overwrite):
 cli.add_command(init)
 cli.add_command(region)
 cli.add_command(roll)
+cli.add_command(campaign)
 
 
 
