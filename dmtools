@@ -8,6 +8,7 @@ from campaign_map import campaign_map
 from dice import roll
 from story import story
 from reference import ref
+from share import share
 
 
 @click.group()
@@ -47,6 +48,7 @@ cli.add_command(campaign_map)
 cli.add_command(roll)
 cli.add_command(story)
 cli.add_command(ref)
+cli.add_command(share)
 
 
 
