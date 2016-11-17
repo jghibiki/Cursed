@@ -75,7 +75,7 @@ def _edit_map(scr, ctx, map_name):
 
 def save_map(ctx, cmap, campaign_obj):
     def _save_map_callback(map_object):
-        campaign_obj["campaign_maps"][cmap] = map_object
+        campaign_obj["maps"][cmap] = map_object
         save(ctx, campaign_obj)
     return _save_map_callback
 
