@@ -4,7 +4,7 @@ import json
 import click
 import os.path
 from utils import save, load
-from region import region
+from campaign_map import campaign_map
 from dice import roll
 from story import story
 from reference import ref
@@ -29,7 +29,7 @@ def init(ctx, campaign_title, campaign_description, overwrite):
         "title": campaign_title,
         "description": campaign_description,
         "story": [],
-        "regions": {}
+        "campaign_maps": {}
     }
 
     campaign_exists = os.path.exists(ctx.obj["data_location"])
@@ -43,7 +43,7 @@ def init(ctx, campaign_title, campaign_description, overwrite):
 ##########################
 # Root group definition
 cli.add_command(init)
-cli.add_command(region)
+cli.add_command(campaign_map)
 cli.add_command(roll)
 cli.add_command(story)
 cli.add_command(ref)
