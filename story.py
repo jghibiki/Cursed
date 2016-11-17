@@ -7,7 +7,7 @@ EDITOR = os.environ.get('EDITOR','vim')
 
 @click.group("story")
 @click.pass_context
-def campaign(ctx):
+def story(ctx):
     pass
 
 @click.command()
@@ -90,8 +90,8 @@ def rename(ctx, name, new_name):
 
     # no existing name to move from/to
     for idx in enumerate(map_obj["story"]):
-        if map_obj[idx]["name"] == name:
-            map_obj[idx]["name"] == new_name
+        if map_obj["story"][idx]["name"] == name:
+            map_obj["story"][idx]["name"] = new_name
             save(ctx, map_obj)
             break
 
@@ -130,13 +130,13 @@ def list(ctx):
         print("|-> Chapter %s: %s" % (idx+1, chapter["name"]))
 
 
-campaign.add_command(add)
-campaign.add_command(edit)
-campaign.add_command(view)
-campaign.add_command(list)
-campaign.add_command(rm)
-campaign.add_command(rename)
-campaign.add_command(mv)
+story.add_command(add)
+story.add_command(edit)
+story.add_command(view)
+story.add_command(list)
+story.add_command(rm)
+story.add_command(rename)
+story.add_command(mv)
 
 
 

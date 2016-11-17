@@ -6,7 +6,8 @@ import os.path
 from utils import save, load
 from region import region
 from dice import roll
-from campaign import campaign
+from story import story
+from reference import ref
 
 
 @click.group()
@@ -32,7 +33,7 @@ def init(ctx, campaign_title, campaign_description, overwrite):
     }
 
     campaign_exists = os.path.exists(ctx.obj["data_location"])
-    if (map_exists and overwrite) or not map_exists:
+    if (campaign_exists and overwrite) or not campaign_exists:
         save(ctx, default_campaign)
         print("Campaign file created!")
     elif map_exists and not overwrite:
@@ -44,7 +45,8 @@ def init(ctx, campaign_title, campaign_description, overwrite):
 cli.add_command(init)
 cli.add_command(region)
 cli.add_command(roll)
-cli.add_command(campaign)
+cli.add_command(story)
+cli.add_command(ref)
 
 
 
