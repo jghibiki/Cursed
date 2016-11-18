@@ -53,9 +53,12 @@ def list(ctx):
 @click.argument("map_name")
 @click.pass_context
 def edit_map(ctx, map_name):
-    curses.wrapper(_edit_map, ctx, map_name)
+    launch_map_editor(ctx, map_name)
 
-def _edit_map(scr, ctx, map_name):
+def launch_map_editor(ctx, map_name, queue=None, client=None):
+    curses.wrapper(_edit_map, ctx, map_name, queue, client)
+
+def _edit_map(scr, ctx, map_name, queue, client):
     campaign_obj = load(ctx)
 
     curses.start_color()
@@ -72,6 +75,17 @@ def _edit_map(scr, ctx, map_name):
         ch = scr.getch()
         editor.handle(ch)
         editor.draw()
+        if client:
+            c = client()
+            c.connect()
+            c.send({"command": "get"})
+            map_data = c.read()
+            new_map = Map(map_data["data"])
+            editor.map = new_map
+        if queue:
+            map_data = editor.map.serialize()
+            queue.put_nowait({"name": map_name, "data": map_data})
+            editor.draw()
 
 def save_map(ctx, cmap, campaign_obj):
     def _save_map_callback(map_object):

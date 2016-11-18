@@ -37,8 +37,17 @@ class JsonSocket:
                 raise RuntimeError("socket conection broken")
         return data
 
+    def _read_hdr(self, size):
+        data = b''
+        while len(data) < size:
+            dataTmp = self.conn.recv(size-len(data))
+            data += dataTmp
+            if dataTmp == '':
+                raise RuntimeError("socket conection broken")
+        return data
+
     def _msgLength(self):
-        d = self._read(4).encode("UTF-8")
+        d = self._read_hdr(4)
         s = struct.unpack('=I', d)
         return s[0]
 
@@ -93,7 +102,7 @@ class JsonServer(JsonSocket):
         self.socket.bind( (self.address, self.port) )
 
     def _listen(self):
-        self.socket.listen(1)
+        self.socket.listen(20)
 
     def _accept(self):
         return self.socket.accept()
@@ -114,10 +123,10 @@ class JsonClient(JsonSocket):
             try:
                 self.socket.connect((self.address, self.port))
             except socket.error as msg:
-                print("SocketError: %s" % msg)
+                #print("SocketError: %s" % msg)
                 time.sleep(3)
                 continue
-            print("Socket Connected")
+            #print("Socket Connected")
             return True
         return False
 
@@ -132,25 +141,32 @@ class ThreadedJsonServer(threading.Thread, JsonServer):
         """ Virtual method """
         pass
 
+    def _each_iteration(self):
+        """ Virtual method """
+        pass
+
     def run(self):
         while self._isAlive:
+            self._each_iteration()
             try:
                 self.acceptConnection()
             except socket.timeout as e:
-                print("socket.timeout %s" % e)
+                #print("socket.timeout %s" % e)
                 continue
             except Exception as e:
-                print(e)
+                #print(e)
                 continue
 
             while self._isAlive:
+                self._each_iteration()
                 try:
                     obj = self.read()
                     self._processMessages(obj)
                 except socket.timeout as e:
-                    print("socket.timeout %s" % e)
+                    #print("socket.timeout %s" % e)
+                    pass
                 except Exception as e:
-                    print(e)
+                    #print(e)
                     self._closeConnection()
                     break
 
@@ -163,21 +179,33 @@ class ThreadedJsonServer(threading.Thread, JsonServer):
 
 
 class DmToolsServer(ThreadedJsonServer):
-    def __init__(self):
+    def __init__(self, queue):
         super(DmToolsServer, self).__init__()
         self.timeout = 2.0
+        self.queue = queue
+        self.map_data = None
+
+    def _each_iteration(self):
+        try:
+            q_data = self.queue.get_nowait()
+            if q_data:
+                self.map_data = q_data
+        except:
+            pass
 
     def _processMessages(self, obj):
         if obj != '':
-            if "type" in obj:
+            #print(obj)
+            if "command" in obj:
 
-                if obj["type"] == "command":
-
-                    if obj["command"] == "kill":
-                        print("Killing server...")
-                        self.stop()
-                        print("Exiting...")
-                        exit()
+                if obj["command"] == "get":
+                    self.send(self.map_data)
+                    self.run()
+                elif obj["command"] == "kill":
+                    print("Killing server...")
+                    self.stop()
+                    print("Exiting...")
+                    exit()
 
 
 

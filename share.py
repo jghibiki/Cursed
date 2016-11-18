@@ -1,5 +1,7 @@
 import click
 from socket_server import DmToolsServer, JsonClient
+from campaign_map import launch_map_editor
+import queue
 
 
 @click.group()
@@ -17,13 +19,16 @@ def server(ctx):
     pass
 
 @click.command("start")
+@click.argument("map_name")
 @click.pass_context
-def start_server(ctx):
+def start_server(ctx, map_name):
     """
     Starts a server, controlled by the GM.
     """
-    c = DmToolsServer()
+    q = queue.Queue()
+    c = DmToolsServer(q)
     c.start()
+    launch_map_editor(ctx, map_name, queue=q)
 
 server.add_command(start_server)
 
@@ -46,10 +51,10 @@ def client_join(ctx, host, port):
     """
     c = JsonClient()
     c.connect()
-    #call c.read() to get data
-    c.send({"msg": "test!"})
-    c.send({"type": "command", "command": "kill"})
-    c.close() # close for now since we don't do anything yet
+    c.send({"command": "get"})
+    data = c.read()
+    print(data.keys())
+    launch_map_editor(ctx, data["name"], client=JsonClient)
 
 
 

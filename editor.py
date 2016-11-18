@@ -688,9 +688,7 @@ class Map:
         self.viewport_w = self.screen_max_x
 
         self.pad = curses.newpad(self.max_y+2, self.max_x+2)
-        self.dirty = True
-
-
+        self.dirty = False
 
 
     def draw(self, force=False):
