@@ -3,11 +3,14 @@ import json
 import struct
 import time
 import threading
+import logging
 
+log = logging.getLogger('simple_example')
 
 class JsonSocket:
     def __init__(self, address='127.0.0.1', port=5489):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.conn = self.socket
         self._timeout = None,
         self._address = address
@@ -172,15 +175,17 @@ class ThreadedJsonServer(threading.Thread, JsonServer):
 
     def start(self):
         self._isAlive = True
+        log.debug("server started")
         super(ThreadedJsonServer, self).start()
 
     def stop(self):
+        log.debug("server stopped")
         self._isAlive = False
 
 
-class DmToolsServer(ThreadedJsonServer):
+class Server(ThreadedJsonServer):
     def __init__(self, queue):
-        super(DmToolsServer, self).__init__()
+        super(Server, self).__init__()
         self.timeout = 2.0
         self.queue = queue
         self.map_data = None
@@ -194,6 +199,7 @@ class DmToolsServer(ThreadedJsonServer):
             pass
 
     def _processMessages(self, obj):
+        log.debug("server tick")
         if obj != '':
             #print(obj)
             if "command" in obj:

@@ -1,5 +1,6 @@
 #!/bin/env python3
 
+import logging
 import json
 import click
 import os.path
@@ -9,6 +10,17 @@ from dice import roll
 from story import story
 from reference import ref
 from share import share
+
+# configure logging
+logger = logging.getLogger('simple_example')
+
+ch = logging.FileHandler("example.log")
+
+
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+logger.setLevel(logging.DEBUG)
 
 
 @click.group()

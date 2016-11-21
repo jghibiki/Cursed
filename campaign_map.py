@@ -1,7 +1,6 @@
 import curses
 import click
 from utils import save, load
-from editor import Editor, Map, init
 import locale
 
 locale.setlocale(locale.LC_ALL, '')
@@ -66,26 +65,28 @@ def _edit_map(scr, ctx, map_name, queue, client):
     for i in range(0, curses.COLORS):
         curses.init_pair(i + 1, i, -1)
 
-    init()
-    campaign_map = Map(campaign_obj["maps"][map_name])
-    editor = Editor(scr, campaign_map, save_map(ctx, map_name, campaign_obj))
+    from features import init_features
+    from features import load_features
+    from screen import Screen
+    from viewport import Viewport
+    from viewer import Viewer
+    from gm import GM
 
-    zz = False
-    while True:
-        ch = scr.getch()
-        editor.handle(ch)
-        editor.draw()
-        if client:
-            c = client()
-            c.connect()
-            c.send({"command": "get"})
-            map_data = c.read()
-            new_map = Map(map_data["data"])
-            editor.map = new_map
-        if queue:
-            map_data = editor.map.serialize()
-            queue.put_nowait({"name": map_name, "data": map_data})
-            editor.draw()
+    init_features()
+    features = load_features(campaign_obj["maps"][map_name])
+
+    viewport = Viewport(features,
+            campaign_obj["maps"][map_name]["max_y"],
+            campaign_obj["maps"][map_name]["max_x"])
+    screen = Screen(scr)
+    gm = GM()
+    viewer = Viewer(scr, map_name)
+
+    viewer.register_submodule(viewport)
+    viewer.register_submodule(screen)
+    viewer.register_submodule(gm)
+
+    viewer.run()
 
 def save_map(ctx, cmap, campaign_obj):
     def _save_map_callback(map_object):

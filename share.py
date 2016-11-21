@@ -1,7 +1,10 @@
+from utils import load
+import curses
 import click
-from socket_server import DmToolsServer, JsonClient
-from campaign_map import launch_map_editor
 import queue
+import logging
+
+log = logging.getLogger('simple_example')
 
 
 @click.group()
@@ -25,10 +28,43 @@ def start_server(ctx, map_name):
     """
     Starts a server, controlled by the GM.
     """
-    q = queue.Queue()
-    c = DmToolsServer(q)
-    c.start()
-    launch_map_editor(ctx, map_name, queue=q)
+    curses.wrapper(_start_server, ctx, map_name)
+
+def _start_server(scr, ctx, map_name):
+    log.debug("Starting server")
+    campaign_obj = load(ctx)
+
+    curses.start_color()
+    curses.use_default_colors()
+    for i in range(0, curses.COLORS):
+        curses.init_pair(i + 1, i, -1)
+
+    from features import init_features
+    from features import load_features
+    from screen import Screen
+    from viewport import Viewport
+    from viewer import Viewer
+    from gm import GM
+    from server import Server
+
+    init_features()
+    features = load_features(campaign_obj["maps"][map_name])
+
+    viewport = Viewport(features,
+            campaign_obj["maps"][map_name]["max_y"],
+            campaign_obj["maps"][map_name]["max_x"])
+    screen = Screen(scr)
+    gm = GM()
+    server = Server()
+    viewer = Viewer(scr, map_name)
+
+    viewer.register_submodule(viewport)
+    viewer.register_submodule(screen)
+    viewer.register_submodule(gm)
+    viewer.register_submodule(server)
+
+    log.debug("running viewer")
+    viewer.run()
 
 server.add_command(start_server)
 
@@ -43,19 +79,43 @@ def client(ctx):
 
 @click.command("join")
 @click.option("--host", default="127.0.0.1")
-@click.option("--port", default="5489")
+@click.option("--port", default=5489)
 @click.pass_context
 def client_join(ctx, host, port):
     """
     Join a dmtools server.
     """
-    c = JsonClient()
-    c.connect()
-    c.send({"command": "get"})
-    data = c.read()
-    print(data.keys())
-    launch_map_editor(ctx, data["name"], client=JsonClient)
+    curses.wrapper(_client_join, ctx, host, port)
 
+def _client_join(scr, ctx, host, port):
+    curses.start_color()
+    curses.use_default_colors()
+    for i in range(0, curses.COLORS):
+        curses.init_pair(i + 1, i, -1)
+
+    from features import init_features
+    from features import load_features
+    from screen import Screen
+    from viewport import Viewport
+    from viewer import Viewer
+    from gm import GM
+    from client import Client
+
+    init_features()
+
+    features = []
+    viewport = Viewport(features, 0, 0)
+    screen = Screen(scr)
+    gm = GM()
+    client = Client()
+    viewer = Viewer(scr, "")
+
+    viewer.register_submodule(viewport)
+    viewer.register_submodule(screen)
+    viewer.register_submodule(gm)
+    viewer.register_submodule(client)
+
+    viewer.run()
 
 
 client.add_command(client_join)
