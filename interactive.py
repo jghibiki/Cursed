@@ -15,6 +15,17 @@ class VisibleModule:
     def draw(self):
         raise Exception("draw has not been implemented.")
 
+    def up(self):
+        raise Exception("up not been implemented.")
+
+    def down(self):
+        raise Exception("down not been implemented.")
+
+    def left(self):
+        raise Exception("left not been implemented.")
+
+    def right(self):
+        raise Exception("right not been implemented.")
 
 
 class FeatureModule:

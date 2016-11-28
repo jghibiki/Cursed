@@ -13,7 +13,8 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
 
         self._features = features
 
-        self.draw_priority =1
+        self.initial_draw_priority = 0
+        self.draw_priority = 1
 
         self.x = 0
         self.y = 0
@@ -23,8 +24,10 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
         self._screen = curses.newpad(self.h, self.w)
         self._dirty = True
 
-    def draw(self, viewer):
-        if self._dirty:
+    def draw(self, viewer, force=False):
+        if self._dirty or force:
+            if force: log.debug("viewport.draw forced")
+            if self._dirty: log.debug("viewport is dirty")
             self._screen.clear()
             self._screen.border(
                     curses.ACS_BOARD,
@@ -46,47 +49,48 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
                     1,0,
                     ViewerConstants.max_y,
                     ViewerConstants.max_x)
+            self._dirty = False
             return True
         return False
 
-    def move_vp_right(self):
+    def right(self):
         if self.w - self.x > ViewerConstants.max_x-1:
             self.x += 1
-            self.dirty = True
+            self._dirty = True
 
-    def move_vp_down(self):
+    def down(self):
         if (self.h - self.y) > ViewerConstants.max_y-2:
             self.y += 1
-            self.dirty = True
+            self._dirty = True
 
-    def move_vp_up(self):
+    def up(self):
         if self.y-1 >= 0:
             self.y -= 1
-            self.dirty = True
+            self._dirty = True
 
-    def move_vp_left(self):
+    def left(self):
         if self.x-1 >= 0:
             self.x -= 1
-            self.dirty = True
+            self._dirty = True
 
     def add_feature(self, y, x, char):
         if x < self.w and y < self.h:
             # if there is already a feature here don't add another
-            for feature in self.features:
+            for feature in self._features:
                 if feature.pos_y == y and feature.pos_x == x:
                     return
 
-            self._features.append(
-                Feature(y, x, char,
+            new_feature = Feature(y, x, char,
                     mod=FeatureType.modFromName(
-                        FeatureType.toName(char))))
-            self.dirty = True
+                    FeatureType.toName(char)))
+            self._features.append(new_feature)
+            self._dirty = True
 
     def rm_feature(self, y, x):
         for feature in self._features:
             if feature.pos_y is y and feature.pos_x is x:
-                self.features.remove(feature)
-                self.dirty = True
+                self._features.remove(feature)
+                self._dirty = True
                 break
 
     def get_feature_idx(self, y, x):
@@ -113,9 +117,14 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
                     FeatureSerializer.fromDict(
                         feature_dict))
 
+        if len(feature_dicts):
+            self._dirty = True
+
     def update_screen(self, max_y, max_x):
         self.h = max_y + 1
         self.w = max_x + 2
 
         del self._screen
         self._screen = curses.newpad(self.h, self.w)
+
+

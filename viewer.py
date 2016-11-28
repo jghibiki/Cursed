@@ -3,6 +3,9 @@ import curses.textpad
 import os
 from features import Feature, FeatureType, FeatureSerializer
 from interactive import *
+import logging
+
+log = logging.getLogger('simple_example')
 
 os.environ.setdefault('ESCDELAY', '25')
 
@@ -12,13 +15,14 @@ class Viewer(InteractiveModule, VisibleModule):
     def __init__(self, screen, map_name):
 
         self.screen = screen
-        self.screen.timeout(5000)
+        self.screen.timeout(100)
 
         self.map_name = map_name
 
         self._submodules = []
 
         self._combo_buffer = ""
+        self._initial_draw = True
 
 
     def run(self):
@@ -28,8 +32,10 @@ class Viewer(InteractiveModule, VisibleModule):
        while True:
             ch = self.screen.getch()
 
+            client = False
             for mod in self._submodules:
                 if isinstance(mod, ClientModule):
+                    client = True
                     mod.connect()
                     mod.update(self)
                     mod.disconnect()
@@ -38,7 +44,7 @@ class Viewer(InteractiveModule, VisibleModule):
                 self._handle(ch)
             changes = self._draw()
 
-            if changes:
+            if changes or client:
                 curses.doupdate()
 
                 for mod in self._submodules:
@@ -53,10 +59,17 @@ class Viewer(InteractiveModule, VisibleModule):
             if isinstance(module, VisibleModule):
                 visible_modules.append(module)
 
-        visible_modules = sorted(visible_modules, key=lambda x: x.draw_priority, reverse=True)
+        if self._initial_draw:
+            visible_modules = sorted(visible_modules, key=lambda x: x.initial_draw_priority, reverse=True)
+            self._initial_draw = False
+        else:
+            visible_modules = sorted(visible_modules, key=lambda x: x.draw_priority, reverse=True)
+
         for module in visible_modules:
             mod_changed = module.draw(self)
-            if mod_changed: changes = True
+            if mod_changed:
+                log.debug("module %s has updated." % module)
+                changes = True
 
         return changes
 

@@ -70,6 +70,7 @@ def _edit_map(scr, ctx, map_name, queue, client):
     from screen import Screen
     from viewport import Viewport
     from viewer import Viewer
+    from editor import Editor
     from gm import GM
 
     init_features()
@@ -79,20 +80,27 @@ def _edit_map(scr, ctx, map_name, queue, client):
             campaign_obj["maps"][map_name]["max_y"],
             campaign_obj["maps"][map_name]["max_x"])
     screen = Screen(scr)
-    gm = GM()
+    editor = Editor(
+            campaign_obj["maps"][map_name]["max_y"],
+            campaign_obj["maps"][map_name]["max_x"])
+
+
+    def save_map(ctx, cmap, campaign_obj):
+        def _save_map_callback(map_object):
+            campaign_obj["maps"][cmap]["features"] = map_object
+            save(ctx, campaign_obj)
+        return _save_map_callback
+    gm = GM(save_map(ctx, map_name, campaign_obj))
+
     viewer = Viewer(scr, map_name)
 
     viewer.register_submodule(viewport)
     viewer.register_submodule(screen)
+    viewer.register_submodule(editor)
     viewer.register_submodule(gm)
 
     viewer.run()
 
-def save_map(ctx, cmap, campaign_obj):
-    def _save_map_callback(map_object):
-        campaign_obj["maps"][cmap] = map_object
-        save(ctx, campaign_obj)
-    return _save_map_callback
 
 
 campaign_map.add_command(add_map)

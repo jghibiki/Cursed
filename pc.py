@@ -2,26 +2,16 @@ from interactive import InteractiveModule, UserModule
 from viewer import ViewerConstants
 from screen import Screen
 from viewport import Viewport
-from editor import Editor
-from status_line import StatusLine
 
-class GM(InteractiveModule, UserModule):
 
-    def __init__(self, save_handler):
-        super(GM, self).__init__()
-        self._save_handler = save_handler
+class PC(InteractiveModule, UserModule):
+    def __init__(self):
+        super(PC, self).__init__()
 
     def _handle_combo(self, viewer, buf):
-        vp = viewer.get_submodule(Viewport)
-        if "w" in buf:
-            json_map = vp.serialize_features()
-            self._save_handler(json_map)
-
-    def _handle_help(self, viewer, buf):
         pass
 
     def _handle(self, viewer, ch):
-
         screen = viewer.get_submodule(Screen)
         viewport = viewer.get_submodule(Viewport)
 
@@ -50,87 +40,54 @@ class GM(InteractiveModule, UserModule):
             self.vp_right(viewer)
 
         elif ch == ord("n"):
-            self.edit_note(viewer)
-
-        # some simple utilities
-        elif ch == ord("p"):
-            for i in range(0, 255):
-                self.default_screen.addstr(str(i), curses.color_pair(i))
-
-        elif ch == ord("P"):
-            for i in range(0, 1000):
-                self.default_screen.addch(i)
+            self.view_note(viewer)
 
 
     def up(self, viewer):
         screen = viewer.get_submodule(Screen)
-        sl = viewer.get_submodule(StatusLine)
         if screen.y - 1 >= ViewerConstants.min_y+2:
             screen.up()
-            sl.mark_dirty()
 
     def down(self, viewer):
         screen = viewer.get_submodule(Screen)
-        sl = viewer.get_submodule(StatusLine)
         if screen.y + 1 <= ViewerConstants.max_y-1:
             screen.down()
-            sl.mark_dirty()
 
     def left(self, viewer):
         screen = viewer.get_submodule(Screen)
-        sl = viewer.get_submodule(StatusLine)
         if screen.x - 1 >= ViewerConstants.min_x+1:
             screen.left()
-            sl.mark_dirty()
 
     def right(self, viewer):
         screen = viewer.get_submodule(Screen)
-        sl = viewer.get_submodule(StatusLine)
         if screen.x + 1 <= ViewerConstants.max_x-1:
             screen.right()
-            sl.mark_dirty()
 
     def vp_down(self, viewer):
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
-        editor = viewer.get_submodule(Editor)
-        sl = viewer.get_submodule(StatusLine)
         vp.down()
-        editor.down()
-        sl.mark_dirty()
         screen.fix_cursor()
 
     def vp_up(self, viewer):
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
-        editor = viewer.get_submodule(Editor)
-        sl = viewer.get_submodule(StatusLine)
         vp.up()
-        editor.up()
-        sl.mark_dirty()
         screen.fix_cursor()
 
     def vp_right(self, viewer):
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
-        editor = viewer.get_submodule(Editor)
-        sl = viewer.get_submodule(StatusLine)
         vp.right()
-        editor.right()
-        sl.mark_dirty()
         screen.fix_cursor()
 
     def vp_left(self, viewer):
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
-        editor = viewer.get_submodule(Editor)
-        sl = viewer.get_submodule(StatusLine)
         vp.left()
-        editor.left()
-        sl.mark_dirty()
         screen.fix_cursor()
 
-    def edit_note(self, viewer):
+    def view_note(self, viewer):
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
 
@@ -150,6 +107,3 @@ class GM(InteractiveModule, UserModule):
             text = textbox.edit()
             feature.notes = text
             vp.update_feature(idx, feature)
-
-
-

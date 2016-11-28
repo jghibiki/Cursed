@@ -2,31 +2,267 @@ import curses
 import curses.textpad
 import os
 from features import Feature, FeatureType, FeatureSerializer
+from viewer import ViewerConstants
+from interactive import VisibleModule, InteractiveModule
+from viewport import Viewport
+from status_line import StatusLine
+from screen import Screen
 
 
-class Editor:
+class Editor(VisibleModule, InteractiveModule):
 
-    def __init__(self, screen, save_handler, min_y=None, min_x=None, max_y=None, max_x=None):
-
-        self.map = map
-
-        self.save_handler = save_handler
+    def __init__(self, max_y, max_x):
 
         self.x_block = None
         self.block = None
 
+        self.initial_draw_priority = 5
+        self.draw_priority = 5
+
+        self.x = 0
+        self.y = 0
+        self.h = max_y + 1
+        self.w = max_x + 2
+
+        self._dirty = True
+        self._screen = curses.newpad(self.h, self.w)
+
         self.current_obj = FeatureType.wall
 
 
-    def draw(self):
-        if self.block:
-            self.default_screen.addch(self.block[0], self.block[1], ord("B"), curses.A_BLINK)
-        if self.x_block:
-            self.default_screen.addch(self.x_block[0], self.x_block[1], ord("X"), curses.A_BLINK)
+    def draw(self, viewer, force=False):
+        # TODO: Fix overlaying
+        #vp = viewer.get_submodule(Viewport)
+        #if self.block:
+        #    vp._screen.addstr(self.block[0], self.block[1], "B", curses.A_BLINK)
+        #if self.x_block:
+        #    vp._screen.addstr(self.x_block[0], self.x_block[1], "X", curses.A_BLINK)
+
+        #self._screen.noutrefresh(
+        #        self.y,
+        #        self.x,
+        #        1,0,
+        #        ViewerConstants.max_y,
+        #        ViewerConstants.max_x)
+
+        self._dirty = False
+        return False
 
 
-    def help(self, parent, buf):
-        help_text = """DM Tools Editor Help:
+    def _handle_combo(self, viewer, buf):
+        pass
+
+
+
+    def _handle(self, viewer, ch):
+
+        vp = viewer.get_submodule(Viewport)
+        screen = viewer.get_submodule(Screen)
+        sl = viewer.get_submodule(StatusLine)
+        # detect place object
+        if ch == ord(" "):
+            vp.add_feature(
+                    screen.y - 1 + vp.y,
+                    screen.x + vp.x,
+                    self.current_obj)
+            screen.fix_cursor()
+
+        # remove feature
+        elif ch == ord("x"):
+            vp.rm_feature(
+                    screen.y - 1 + vp.y,
+                    screen.x + vp.x)
+            screen.fix_cursor()
+
+        # edit/view note
+
+        # add block
+        elif ch == ord("b"):
+            if not self.block:
+                self.block = (screen.y + vp.y,
+                              screen.x + vp.x)
+                self._dirty = True
+            else:
+                yx2 = (screen.y + vp.y,
+                       screen.x + vp.x)
+
+
+                if self.block[0] == yx2[0] and self.block[1] == yx2[1]:
+                    vp.add_feature(
+                            yx2[0]-1,
+                            yx2[1],
+                            self.current_obj)
+                    self._dirty = True
+
+                else:
+                    y_max = max([self.block[0], yx2[0]])
+                    y_min = min([self.block[0], yx2[0]])
+
+                    x_max = max([self.block[1], yx2[1]])
+                    x_min = min([self.block[1], yx2[1]])
+
+                    y_diff = (y_max - y_min) + 1
+                    x_diff = (x_max - x_min) + 1
+
+
+                    for y in range(y_diff):
+                        for x in range(x_diff):
+                            vp.add_feature(
+                                    y+y_min-1,
+                                    x+x_min,
+                                    self.current_obj)
+
+                    screen.move_cursor(screen.y, screen.x)
+                self._dirty = True
+                self.block = None
+
+        # remove block
+        elif ch == ord("X"):
+            if not self.x_block:
+                self.x_block = (screen.y + vp.y,
+                                screen.x + vp.x)
+                self._dirty = True
+            else:
+                yx2 = (screen.y + vp.y,
+                       screen.x + vp.x)
+
+
+                if self.x_block[0] == yx2[0] and self.x_block[1] == yx2[1]:
+                    vp.add_feature(
+                            yx2[0]-1,
+                            yx2[1],
+                            self.current_obj)
+                    self._dirty = True
+
+                else:
+                    y_max = max([self.x_block[0], yx2[0]])
+                    y_min = min([self.x_block[0], yx2[0]])
+
+                    x_max = max([self.x_block[1], yx2[1]])
+                    x_min = min([self.x_block[1], yx2[1]])
+
+                    y_diff = (y_max - y_min) + 1
+                    x_diff = (x_max - x_min) + 1
+
+
+                    for y in range(y_diff):
+                        for x in range(x_diff):
+                            vp.rm_feature(
+                                    y+y_min-1,
+                                    x+x_min)
+
+                    screen.move_cursor(screen.y, screen.x)
+                self._dirty = True
+                self.x_block = None
+
+        elif ch == 27: # escape
+            if self.block:
+                self.block = None
+                self._dirty = True
+            if self.x_block:
+                self.x_block = None
+                self._dirty = True
+
+
+        # catch object type
+        elif ch == ord("c"):
+            self.current_obj = FeatureType.chair
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("d"):
+            self.current_obj = FeatureType.door
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("w"):
+            self.current_obj = FeatureType.wall
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("t"):
+            self.current_obj = FeatureType.table
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord(">"):
+            self.current_obj = FeatureType.up_stair
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("<"):
+            self.current_obj = FeatureType.down_stair
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("%"):
+            self.current_obj = FeatureType.lantern
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("#"):
+            self.current_obj = FeatureType.chest
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("*"):
+            self.current_obj = FeatureType.point_of_interest
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("r"):
+            self.current_obj = FeatureType.road
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("G"):
+            self.current_obj = FeatureType.gate
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("W"):
+            self.current_obj = FeatureType.water
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("T"):
+            self.current_obj = FeatureType.tree
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("o"):
+            self.current_obj = FeatureType.bush
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("."):
+            self.current_obj = FeatureType.grass
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord(","):
+            self.current_obj = FeatureType.friendly_unit
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("@"):
+            self.current_obj = FeatureType.enemy_unit
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("$"):
+            self.current_obj = FeatureType.dead_unit
+            sl.mark_dirty()
+            self._dirty = True
+
+        elif ch == ord("^"):
+            self.current_obj = FeatureType.hill
+            sl.mark_dirty()
+            self._dirty = True
+
+        # show help
+        elif ch == ord("?"):
+            help_text = """DM Tools Editor Help:
 Controls:
 <spacebar> : Add feature at cursor
          x : Remove feature at cursor
@@ -62,198 +298,28 @@ Feature Types:
 
  ** Ctrl+G to Exit **
                 """
-        textbox = parent.make_textbox(5, 5, self.max_y-10, self.max_x-10, deco="frame", value=help_text)
-        textbox.edit()
-        del textbox # explicitly dispose
-        parent.mark_dirty()
+            textbox = viewer.make_textbox(5, 5, self.max_y-10, self.max_x-10, deco="frame", value=help_text)
+            textbox.edit()
+            del textbox # explicitly dispose
+            viewer._dirty = True
 
 
+    def right(self):
+        if self.w - self.x > ViewerConstants.max_x-1:
+            self.x += 1
+            self._dirty = True
 
-    def handle(self, viewer, viewport, ch):
+    def down(self):
+        if (self.h - self.y) > ViewerConstants.max_y-2:
+            self.y += 1
+            self._dirty = True
 
-            # detect place object
-            if ch == ord(" "):
-                viewport.add_feature(
-                        viewer.cursor_y - 1 + viewport.y,
-                        viewer.cursor_x + viewport.x,
-                        self.current_obj)
+    def up(self):
+        if self.y-1 >= 0:
+            self.y -= 1
+            self._dirty = True
 
-            # remove feature
-            elif ch == ord("x"):
-                parent.rm_feature(
-                        parent.cursor_y - 1 + parent.viewport.y,
-                        parent.cursor_x + parent.viewport.x)
-                parent.mark_dirty()
-
-            # edit/view note
-
-            # add block
-            elif ch == ord("b"):
-                if not self.block:
-                    self.block = (self.cursor_y + self.map.viewport_y,
-                                  self.cursor_x + self.map.viewport_x)
-                    self.default_dirty = True
-                else:
-                    yx2 = ( self.cursor_y + self.map.viewport_y,
-                            self.cursor_x + self.map.viewport_x)
-
-
-                    if self.block[0] == yx2[0] and self.block[1] == yx2[1]:
-                        self.map.add_feature(
-                                yx2[0]-1,
-                                yx2[1],
-                                self.current_obj)
-                        self.default_dirty = True
-
-                    else:
-                        y_max = max([self.block[0], yx2[0]])
-                        y_min = min([self.block[0], yx2[0]])
-
-                        x_max = max([self.block[1], yx2[1]])
-                        x_min = min([self.block[1], yx2[1]])
-
-                        y_diff = (y_max - y_min) + 1
-                        x_diff = (x_max - x_min) + 1
-
-
-                        for y in range(y_diff):
-                            for x in range(x_diff):
-                                self.map.add_feature(
-                                        y+y_min-1,
-                                        x+x_min,
-                                        self.current_obj)
-
-                        self.default_screen.move(self.cursor_y, self.cursor_x)
-                    self.default_dirty = True
-                    self.block = None
-
-            # remove block
-            elif ch == ord("X"):
-                if not self.x_block:
-                    self.x_block = (self.cursor_y + self.map.viewport_y,
-                                  self.cursor_x + self.map.viewport_x)
-                    self.default_dirty = True
-                else:
-                    yx2 = ( self.cursor_y + self.map.viewport_y,
-                            self.cursor_x + self.map.viewport_x)
-
-
-                    if self.x_block[0] == yx2[0] and self.x_block[1] == yx2[1]:
-                        self.map.add_feature(
-                                yx2[0]-1,
-                                yx2[1],
-                                self.current_obj)
-                        self.default_dirty = True
-
-                    else:
-                        y_max = max([self.x_block[0], yx2[0]])
-                        y_min = min([self.x_block[0], yx2[0]])
-
-                        x_max = max([self.x_block[1], yx2[1]])
-                        x_min = min([self.x_block[1], yx2[1]])
-
-                        y_diff = (y_max - y_min) + 1
-                        x_diff = (x_max - x_min) + 1
-
-
-                        for y in range(y_diff):
-                            for x in range(x_diff):
-                                self.map.rm_feature(
-                                        y+y_min-1,
-                                        x+x_min)
-
-                        self.default_screen.move(self.cursor_y, self.cursor_x)
-                    self.default_dirty = True
-                    self.x_block = None
-
-            elif ch == 27: # escape
-                if self.block:
-                    self.block = None
-                    self.default_dirty = True
-                if self.x_block:
-                    self.x_block = None
-                    self.default_dirty = True
-
-
-            # catch object type
-            elif ch == ord("c"):
-                self.current_obj = FeatureType.chair
-                self.default_dirty = True
-
-            elif ch == ord("d"):
-                self.current_obj = FeatureType.door
-                self.default_dirty = True
-
-            elif ch == ord("w"):
-                self.current_obj = FeatureType.wall
-                self.default_dirty = True
-
-            elif ch == ord("t"):
-                self.current_obj = FeatureType.table
-                self.default_dirty = True
-
-            elif ch == ord(">"):
-                self.current_obj = FeatureType.up_stair
-                self.default_dirty = True
-
-            elif ch == ord("<"):
-                self.current_obj = FeatureType.down_stair
-                self.default_dirty = True
-
-            elif ch == ord("%"):
-                self.current_obj = FeatureType.lantern
-                self.default_dirty = True
-
-            elif ch == ord("#"):
-                self.current_obj = FeatureType.chest
-                self.default_dirty = True
-
-            elif ch == ord("*"):
-                self.current_obj = FeatureType.point_of_interest
-                self.default_dirty = True
-
-            elif ch == ord("r"):
-                self.current_obj = FeatureType.road
-                self.default_dirty = True
-
-            elif ch == ord("G"):
-                self.current_obj = FeatureType.gate
-                self.default_dirty = True
-
-            elif ch == ord("W"):
-                self.current_obj = FeatureType.water
-                self.default_dirty = True
-
-            elif ch == ord("T"):
-                self.current_obj = FeatureType.tree
-                self.default_dirty = True
-
-            elif ch == ord("o"):
-                self.current_obj = FeatureType.bush
-                self.default_dirty = True
-
-            elif ch == ord("."):
-                self.current_obj = FeatureType.grass
-                self.default_dirty = True
-
-            elif ch == ord(","):
-                self.current_obj = FeatureType.friendly_unit
-                self.default_dirty = True
-
-            elif ch == ord("@"):
-                self.current_obj = FeatureType.enemy_unit
-                self.default_dirty = True
-
-            elif ch == ord("$"):
-                self.current_obj = FeatureType.dead_unit
-                self.default_dirty = True
-
-            elif ch == ord("^"):
-                self.current_obj = FeatureType.hill
-                self.default_dirty = True
-
-
-            # show help
-            elif ch == ord("?"):
-                self.help()
-
+    def left(self):
+        if self.x-1 >= 0:
+            self.x -= 1
+            self._dirty = True

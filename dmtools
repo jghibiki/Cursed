@@ -12,22 +12,24 @@ from reference import ref
 from share import share
 
 # configure logging
-logger = logging.getLogger('simple_example')
-
-ch = logging.FileHandler("example.log")
-
-
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
-logger.setLevel(logging.DEBUG)
 
 
 @click.group()
 @click.option('--data-location', default="data.json")
+@click.option('--logfile', default="log.txt")
 @click.pass_context
-def cli(ctx, data_location):
+def cli(ctx, data_location, logfile):
     ctx.obj["data_location"] = data_location
+
+
+    logger = logging.getLogger('simple_example')
+
+    ch = logging.FileHandler(logfile)
+
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    logger.setLevel(logging.DEBUG)
 
 #####################
 # Initialization

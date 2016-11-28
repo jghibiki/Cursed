@@ -2,6 +2,9 @@ from interactive import ServerModule
 from socket_server import Server as ThreadedJsonServer
 from viewport import Viewport
 import queue
+import logging
+
+log = logging.getLogger('simple_example')
 
 class Server(ServerModule):
 
@@ -11,6 +14,7 @@ class Server(ServerModule):
         self._server.start()
 
     def update(self, viewer):
+        log.debug("server.update called")
         vp = viewer.get_submodule(Viewport)
         feature_data = vp.serialize_features()
         try:
@@ -25,3 +29,6 @@ class Server(ServerModule):
 
     def stop(self):
         self._server.stop()
+
+
+

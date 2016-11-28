@@ -6,9 +6,9 @@ code = locale.getpreferredencoding()
 def init_features():
     FeatureType.init()
 
-def load_features(map):
+def load_features(map_obj):
     features = []
-    for feature in map["features"]:
+    for feature in map_obj["features"]:
         features.append(
             FeatureSerializer.fromDict(feature))
     return features

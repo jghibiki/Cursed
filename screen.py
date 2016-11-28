@@ -3,11 +3,15 @@ from interactive import VisibleModule
 from viewport import Viewport
 from viewer import ViewerConstants
 import curses
+import logging
+
+log = logging.getLogger('simple_example')
 
 class Screen(VisibleModule):
     def __init__(self, screen):
         self.screen = screen
 
+        self.initial_draw_priority = 1
         self.draw_priority = 0
 
         self.y = int(ViewerConstants.max_y/2)
@@ -15,28 +19,18 @@ class Screen(VisibleModule):
 
         self._dirty = True
 
-        self.current_obj = "Wall"
-
-    def draw(self, viewer):
-        if self._dirty:
-            vp = viewer.get_submodule(Viewport)
-            self.set_status_line(
-                    "CUR(%s, %s), VP(%s, %s), MODE(%s)" %
-                    (self.y,
-                        self.x,
-                        vp.y,
-                        vp.x,
-                        FeatureType.toName(self.current_obj)))
+    def draw(self, viewer, force=False):
+        from editor import Editor
+        editor = viewer.get_submodule(Editor)
+        if self._dirty or force:
+            if force: log.debug("screen.draw forced")
 
             self.screen.move(self.y, self.x)
             self.screen.noutrefresh()
+            self._dirty = False
             return True
         return False
 
-    def set_status_line(self, msg):
-        """ This should probably be refactored out"""
-        padded = msg.ljust(ViewerConstants.max_x)
-        self.screen.addstr(0,0, padded)
 
     def up(self):
         self.y -= 1
@@ -59,6 +53,13 @@ class Screen(VisibleModule):
         self._dirty = True
 
     def fix_cursor(self):
+        self.screen.move(self.y, self.x)
+        self.screen.cursyncup()
+        self._dirty = True
+
+    def move_cursor(self, y, x):
+        self.y = y
+        self.x = x
         self.screen.move(self.y, self.x)
         self._dirty = True
 
