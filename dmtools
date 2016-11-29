@@ -52,7 +52,7 @@ def init(ctx, campaign_title, campaign_description, overwrite):
     if (campaign_exists and overwrite) or not campaign_exists:
         save(ctx, default_campaign)
         print("Campaign file created!")
-    elif map_exists and not overwrite:
+    elif campaign_exists and not overwrite:
         print("Campaign file already exists. Use --overwrite to overwrite existing file.")
 
 
