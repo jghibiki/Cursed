@@ -4,6 +4,7 @@ from viewport import Viewport
 from viewer import ViewerConstants
 import curses
 import logging
+import math
 
 log = logging.getLogger('simple_example')
 
@@ -11,11 +12,11 @@ class Screen(VisibleModule):
     def __init__(self, screen):
         self.screen = screen
 
-        self.initial_draw_priority = 1
-        self.draw_priority = 0
+        self.initial_draw_priority = 100
+        self.draw_priority = -100
 
         self.y = int(ViewerConstants.max_y/2)
-        self.x = int(ViewerConstants.max_x/2)
+        self.x = math.floor(ViewerConstants.max_x/3) + math.floor(math.floor(ViewerConstants.max_x/2)/2)
 
         self._dirty = True
 

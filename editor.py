@@ -8,6 +8,10 @@ from viewport import Viewport
 from status_line import StatusLine
 from screen import Screen
 from client import Client
+import math
+import logging
+
+log = logging.getLogger('simple_example')
 
 
 class Editor(VisibleModule, InteractiveModule):
@@ -63,24 +67,23 @@ class Editor(VisibleModule, InteractiveModule):
         c = viewer.get_submodule(Client)
         # detect place object
         if ch == ord(" "):
-            feature = Feature(screen.y - 1 + vp.y,
-                              screen.x + vp.x,
+            feature = Feature(screen.y + vp.y ,
+                              screen.x + vp.x - math.floor(ViewerConstants.max_x/3),
                               self.current_obj)
             raw_feature = FeatureSerializer.toDict(feature)
+            log.error(raw_feature)
             c.make_request("/map/add", payload=raw_feature)
-
-            # TODO: remove below
-            #vp.add_feature(
-            #        screen.y - 1 + vp.y,
-            #        screen.x + vp.x,
-            #        self.current_obj)
-            screen.fix_cursor()
+            vp.add_feature(
+                    screen.y - 1 + vp.y,
+                    screen.x + vp.x,
+                    self.current_obj)
+            viewer._draw(force=True)
 
         # remove feature
         elif ch == ord("x"):
             c.make_request("/map/rm", payload={
-                "y": screen.y - 1 + vp.y,
-                "x": screen.x + vp.x
+                "y": screen.y + vp.y,
+                "x": screen.x + vp.x - math.floor(ViewerConstants.max_x/3)
             })
             #vp.rm_feature(
             #        screen.y - 1 + vp.y,
