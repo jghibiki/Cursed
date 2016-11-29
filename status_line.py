@@ -2,6 +2,9 @@ from interactive import VisibleModule, InteractiveModule
 from features import FeatureType
 from viewer import ViewerConstants
 import curses
+import logging
+
+log = logging.getLogger('simple_example')
 
 
 class StatusLine(VisibleModule):

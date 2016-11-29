@@ -126,6 +126,37 @@ def set_map_name():
 def get_map_name():
     return jsonify({"map_name": current_map})
 
+
+@app.route("/narrative", methods=["GET"])
+@requires_gm_auth
+def get_narratives():
+    narratives = [ nar["name"] for nar in game_data["story"] ]
+
+    return jsonify({"chapters": narratives})
+
+@app.route("/narrative/<int:index>", methods=["GET"])
+@requires_gm_auth
+def get_narrative_by_index(index):
+    return jsonify(game_data["story"][index])
+
+@app.route("/narrative/<int:index>", methods=["POST"])
+@requires_gm_auth
+def update_narrative_by_index(index):
+    data = request.json
+
+    if data is None:
+        return 'No payload recieved', 400
+    if "name" not in data:
+        return 'Payload missing field "name"', 400
+    if "text" not in data :
+        return 'Payload missing field "text"', 400
+
+    global game_data
+    game_data["story"][index] = data
+
+    return jsonify({})
+
+
 def run(data, port, host, gm_passwd, passwd):
     global game_data
     game_data = data

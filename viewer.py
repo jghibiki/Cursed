@@ -51,7 +51,7 @@ class Viewer(InteractiveModule, VisibleModule):
                         mod.update(self)
 
 
-    def _draw(self):
+    def _draw(self, force=False):
         changes = False
         visible_modules = []
         for module in self._submodules:
@@ -65,7 +65,7 @@ class Viewer(InteractiveModule, VisibleModule):
             visible_modules = sorted(visible_modules, key=lambda x: x.draw_priority, reverse=True)
 
         for module in visible_modules:
-            mod_changed = module.draw(self)
+            mod_changed = module.draw(self, force=force)
             if mod_changed:
                 log.debug("module %s has updated." % module)
                 changes = True

@@ -7,14 +7,14 @@ from status_line import StatusLine
 
 class GM(InteractiveModule, UserModule):
 
-    def __init__(self, save_handler):
+    def __init__(self):
         super(GM, self).__init__()
-        self._save_handler = save_handler
 
     def _handle_combo(self, viewer, buf):
         vp = viewer.get_submodule(Viewport)
         if "w" in buf:
             json_map = vp.serialize_features()
+            # TODO: update save method
             self._save_handler(json_map)
 
     def _handle_help(self, viewer, buf):
@@ -53,9 +53,11 @@ class GM(InteractiveModule, UserModule):
             self.edit_note(viewer)
 
         # some simple utilities
+        # TODO: Move these utilities to a dev module
         elif ch == ord("p"):
             for i in range(0, 255):
-                self.default_screen.addstr(str(i), curses.color_pair(i))
+                import curses
+                viewer.screen.addstr(str(i), curses.color_pair(i))
 
         elif ch == ord("P"):
             for i in range(0, 1000):
@@ -131,6 +133,10 @@ class GM(InteractiveModule, UserModule):
         screen.fix_cursor()
 
     def edit_note(self, viewer):
+        import sys, tempfile, os
+        import subprocess
+
+
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
 
@@ -142,14 +148,21 @@ class GM(InteractiveModule, UserModule):
             feature = vp.get_feature(idx)
             notes = feature.notes
 
-            textbox = screen.make_textbox(
-                    5, 5,
-                    ViewerConstants.max_y-10,
-                    ViewerConstants.max_x-10,
-                    deco="frame", value=notes)
-            text = textbox.edit()
-            feature.notes = text
-            vp.update_feature(idx, feature)
+            EDITOR = os.environ.get('EDITOR','vim')
+            with tempfile.NamedTemporaryFile(suffix=".tmp") as tf:
+                text = notes.encode("UTF-8")
+                tf.write(text)
+                tf.flush()
+                subprocess.call([EDITOR, tf.name])
+
+                # do the parsing with `tf` using regular File operations.
+                # for instance:
+                tf.seek(0)
+                text = tf.read().decode("UTF-8")
+
+                # TODO: add a way to upload edited note to server
+                feature.notes = text
+                vp.update_feature(idx, feature)
 
 
 
