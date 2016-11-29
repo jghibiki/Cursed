@@ -7,6 +7,7 @@ from interactive import VisibleModule, InteractiveModule
 from viewport import Viewport
 from status_line import StatusLine
 from screen import Screen
+from client import Client
 
 
 class Editor(VisibleModule, InteractiveModule):
@@ -59,19 +60,31 @@ class Editor(VisibleModule, InteractiveModule):
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
         sl = viewer.get_submodule(StatusLine)
+        c = viewer.get_submodule(Client)
         # detect place object
         if ch == ord(" "):
-            vp.add_feature(
-                    screen.y - 1 + vp.y,
-                    screen.x + vp.x,
-                    self.current_obj)
+            feature = Feature(screen.y - 1 + vp.y,
+                              screen.x + vp.x,
+                              self.current_obj)
+            raw_feature = FeatureSerializer.toDict(feature)
+            c.make_request("/map/add", payload=raw_feature)
+
+            # TODO: remove below
+            #vp.add_feature(
+            #        screen.y - 1 + vp.y,
+            #        screen.x + vp.x,
+            #        self.current_obj)
             screen.fix_cursor()
 
         # remove feature
         elif ch == ord("x"):
-            vp.rm_feature(
-                    screen.y - 1 + vp.y,
-                    screen.x + vp.x)
+            c.make_request("/map/rm", payload={
+                "y": screen.y - 1 + vp.y,
+                "x": screen.x + vp.x
+            })
+            #vp.rm_feature(
+            #        screen.y - 1 + vp.y,
+            #        screen.x + vp.x)
             screen.fix_cursor()
 
         # edit/view note

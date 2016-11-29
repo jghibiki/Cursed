@@ -1,13 +1,13 @@
 
 
 class InteractiveModule:
-    def _handle(self):
+    def _handle(self, viewer, ch):
         raise Exception("_handle has not been implemented.")
 
-    def _handle_help(self):
+    def _handle_help(self, viewer, buf):
         raise Exception("_handle_help has not been implemented.")
 
-    def _handle_combo(self):
+    def _handle_combo(self, viewer, buf):
         raise Exception("_handle_como has not been implemented.")
 
 

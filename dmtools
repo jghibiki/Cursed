@@ -1,4 +1,5 @@
 #!/bin/env python3
+# -*- coding: utf-8 -*-
 
 import logging
 import json
@@ -29,7 +30,7 @@ def cli(ctx, data_location, logfile):
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     ch.setFormatter(formatter)
     logger.addHandler(ch)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
 #####################
 # Initialization

@@ -1,4 +1,4 @@
-from interactive import VisibleModule
+from interactive import VisibleModule, InteractiveModule
 from features import FeatureType
 from viewer import ViewerConstants
 import curses
@@ -11,12 +11,14 @@ class StatusLine(VisibleModule):
         self.draw_priority = 99
 
         self.x = 0
-        self.y = 0
-        self.h = 1
+        self.y = ViewerConstants.max_y-2
+        self.h = 3
         self.w = max_x
 
+        self._buffer = ""
+        self._msg = ""
         self._dirty = True
-        self._screen = curses.newpad(self.h, self.w)
+        self._screen = curses.newwin(self.h, self.w, self.y, self.x)
 
 
     def draw(self, viewer, force=False):
@@ -29,38 +31,32 @@ class StatusLine(VisibleModule):
 
         if self._dirty or force:
             if force: log.debug("status_line.draw forced")
-            if editor:
-                self.set_status_line(
-                        "CUR(%s, %s), VP(%s, %s), MODE(%s)" %
-                        (screen.y,
-                            screen.x,
-                            vp.y,
-                            vp.x,
-                            FeatureType.toName(editor.current_obj)))
-            else:
-                self.set_status_line(
-                        "CUR(%s, %s), VP(%s, %s)" %
-                        (self.y,
-                            self.x,
-                            vp.y,
-                            vp.x))
 
-            self._screen.noutrefresh(
-                    self.y,
-                    self.x,
-                    0,0,
-                    ViewerConstants.max_y,
-                    ViewerConstants.max_x)
+            padded_ln1 = self._buffer.ljust(ViewerConstants.max_x)
+            padded_ln2 = self._msg.ljust(ViewerConstants.max_x)
+            self._screen.addstr(0,0, "▒"*ViewerConstants.max_x, curses.color_pair(179))
+            self._screen.addstr(1,0, padded_ln1, curses.color_pair(179))
+            self._screen.addstr(2,0, padded_ln2)
+
+            self._screen.noutrefresh()
 
             self._dirty = False
             return True
         return False
 
-
-    def set_status_line(self, msg):
-        """ This should probably be refactored out"""
-        padded = msg.ljust(ViewerConstants.max_x)
-        self._screen.addstr(0,0, padded)
-
     def mark_dirty(self):
         self._dirty = True
+
+    def set_buff(self, buff):
+        self._buffer = buff
+        self._dirty = True
+
+    def clear_buff(self):
+        self._buffer = ""
+        self._dirty = True
+
+    def set_msg(self, msg):
+        self._msg = msg
+
+    def clear_msg(self):
+        self._msg = ""

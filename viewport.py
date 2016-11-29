@@ -3,6 +3,7 @@ from viewer import ViewerConstants
 from interactive import VisibleModule, FeatureModule, SavableModule
 import curses
 import logging
+import math
 
 log = logging.getLogger('simple_example')
 
@@ -29,6 +30,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
             if force: log.debug("viewport.draw forced")
             if self._dirty: log.debug("viewport is dirty")
             self._screen.clear()
+            self._screen.attrset(curses.color_pair(17))
             self._screen.border(
                     curses.ACS_BOARD,
                     curses.ACS_BOARD,
@@ -39,6 +41,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
                     curses.ACS_BOARD,
                     curses.ACS_BOARD
             )
+            self._screen.attroff(curses.color_pair(17))
 
             for feature in self._features:
                 feature.draw(self._screen)
@@ -46,15 +49,15 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
             self._screen.noutrefresh(
                     self.y,
                     self.x,
-                    1,0,
-                    ViewerConstants.max_y,
-                    ViewerConstants.max_x)
+                    0, math.floor(ViewerConstants.max_x/3),
+                    ViewerConstants.max_y-3,
+                    math.floor(ViewerConstants.max_x/2)+math.floor(ViewerConstants.max_x/3))
             self._dirty = False
             return True
         return False
 
     def right(self):
-        if self.w - self.x > ViewerConstants.max_x-1:
+        if self.w - self.x > math.floor(ViewerConstants.max_x/2)+1:
             self.x += 1
             self._dirty = True
 

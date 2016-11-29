@@ -1,5 +1,6 @@
 import curses
 import curses.textpad
+import curses.ascii
 import os
 from features import Feature, FeatureType, FeatureSerializer
 from interactive import *
@@ -15,7 +16,7 @@ class Viewer(InteractiveModule, VisibleModule):
     def __init__(self, screen, map_name):
 
         self.screen = screen
-        self.screen.timeout(100)
+        self.screen.timeout(500)
 
         self.map_name = map_name
 
@@ -32,19 +33,17 @@ class Viewer(InteractiveModule, VisibleModule):
        while True:
             ch = self.screen.getch()
 
-            client = False
+            changes = False
+
             for mod in self._submodules:
                 if isinstance(mod, ClientModule):
-                    client = True
-                    mod.connect()
-                    mod.update(self)
-                    mod.disconnect()
+                    changes = mod.update(self)
 
             if ch is not -1:
                 self._handle(ch)
-            changes = self._draw()
+            changes = self._draw() or changes
 
-            if changes or client:
+            if changes:
                 curses.doupdate()
 
                 for mod in self._submodules:
@@ -74,11 +73,14 @@ class Viewer(InteractiveModule, VisibleModule):
         return changes
 
     def _handle_combo(self, ch):
-            if ch == 27: # escape
-                self._combo_buffer = ""
-                self.dirty = True
+            if ch == 27 or ch == curses.ascii.ESC: # escape
+                self._combo_buffer = None
 
-            if ch == curses.KEY_ENTER or ch == 10 or ch == 13:
+                from status_line import StatusLine
+                sl = self.get_submodule(StatusLine)
+                sl.clear_buff()
+
+            elif ch == curses.KEY_ENTER or ch == 10 or ch == 13:
 
                 if self._combo_buffer[0] == ":":
                     for module in self._submodules:
@@ -95,10 +97,27 @@ class Viewer(InteractiveModule, VisibleModule):
 
                 # reset buffer
                 self._combo_buffer = ""
-                self.dirty = True
+
+                from status_line import StatusLine
+                sl = self.get_submodule(StatusLine)
+                sl.clear_buff()
+
+
+            elif ch == curses.KEY_BACKSPACE or ch == 127 or ch == 8 or ch == curses.ascii.BS:
+                self._combo_buffer = self._combo_buffer[:len(self._combo_buffer)-1]
+
+                from status_line import StatusLine
+                sl = self.get_submodule(StatusLine)
+                sl.set_buff(self._combo_buffer)
+
             else:
                 self._combo_buffer += chr(ch)
-                self.screen.addstr(ViewerConstants.max_y,0, self._combo_buffer)
+
+                from status_line import StatusLine
+                sl = self.get_submodule(StatusLine)
+                sl.set_buff(self._combo_buffer)
+
+                #self.screen.addstr(ViewerConstants.max_y,0, self._combo_buffer)
 
     def _handle_help(self, buf):
         for mod in self._submodules:
@@ -112,8 +131,11 @@ class Viewer(InteractiveModule, VisibleModule):
 
         else:
             if ch == ord(":"):
-                self._combo_buffer += ":"
-                self.screen.addstr(ViewerConstants.max_y, 0, self._combo_buffer)
+                self._combo_buffer = ":"
+                from status_line import StatusLine
+                sl = self.get_submodule(StatusLine)
+                sl.set_buff(self._combo_buffer)
+                #self.screen.addstr(ViewerConstants.max_y, 0, self._combo_buffer)
 
             for mod in self._submodules:
                 if isinstance(mod, InteractiveModule):
