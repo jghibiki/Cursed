@@ -25,6 +25,8 @@ class Viewer(InteractiveModule, VisibleModule):
         self._combo_buffer = ""
         self._initial_draw = True
 
+        curses.curs_set(0)
+
 
     def run(self):
        self._draw()

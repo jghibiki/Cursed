@@ -53,8 +53,8 @@ class Editor(VisibleModule, InteractiveModule):
         c = viewer.get_submodule(Client)
         # detect place object
         if ch == ord(" "):
-            feature = Feature(screen.y + vp.y ,
-                              screen.x + vp.x - math.floor(ViewerConstants.max_x/3),
+            feature = Feature(vp.cursor_y,
+                              vp.cursor_x,
                               self.current_obj)
             raw_feature = FeatureSerializer.toDict(feature)
             c.make_request("/map/add", payload=raw_feature)
@@ -62,8 +62,8 @@ class Editor(VisibleModule, InteractiveModule):
         # remove feature
         elif ch == ord("x"):
             c.make_request("/map/rm", payload={
-                "y": screen.y + vp.y,
-                "x": screen.x + vp.x - math.floor(ViewerConstants.max_x/3)
+                "y": vp.cursor_y,
+                "x": vp.cursor_x
             })
 
 

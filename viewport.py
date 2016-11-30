@@ -19,8 +19,11 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
 
         self.x = 0
         self.y = 0
-        self.h = max_y + 1
-        self.w = max_x + 2
+        self.h = 100
+        self.w = 100
+
+        self.cursor_y = math.floor(self.h/4)
+        self.cursor_x = math.floor(self.w/2)
 
         self._screen = curses.newpad(self.h, self.w)
         self._dirty = True
@@ -46,6 +49,8 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
             for feature in self._features:
                 feature.draw(self._screen)
 
+            self._screen.addch(self.cursor_y, self.cursor_x, ord('X'), curses.color_pair(260))
+
             self._screen.noutrefresh(
                     self.y,
                     self.x,
@@ -59,21 +64,47 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
     def right(self):
         if self.w - self.x > math.floor(ViewerConstants.max_x/2)+1:
             self.x += 1
+            self.cursor_right()
             self._dirty = True
 
     def down(self):
         if (self.h - self.y) > ViewerConstants.max_y-2:
             self.y += 1
+            self.cursor_down()
             self._dirty = True
 
     def up(self):
         if self.y-1 >= 0:
             self.y -= 1
+            self.cursor_up()
             self._dirty = True
 
     def left(self):
         if self.x-1 >= 0:
             self.x -= 1
+            self.cursor_left()
+            self._dirty = True
+
+    def cursor_up(self):
+        if self.cursor_y-1 >= 1:
+            self.cursor_y -= 1
+            self._dirty = True
+
+    def cursor_down(self):
+        if ( self.cursor_y + 1 < ViewerConstants.max_y-2 + self.y and
+             self.cursor_y + 1 < self.h-1 ):
+            self.cursor_y +=1
+            self._dirty = True
+
+    def cursor_right(self):
+        if ( self.cursor_x + 1 < math.floor(ViewerConstants.max_x/2) +1 + self.x and
+             self.cursor_x + 1 < self.w-1 ):
+            self.cursor_x +=1
+            self._dirty = True
+
+    def cursor_left(self):
+        if self.cursor_x-1 >= 1:
+            self.cursor_x -= 1
             self._dirty = True
 
     def add_feature(self, y, x, char):
@@ -129,5 +160,4 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
 
         del self._screen
         self._screen = curses.newpad(self.h, self.w)
-
 

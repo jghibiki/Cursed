@@ -4,10 +4,15 @@ from screen import Screen
 from viewport import Viewport
 from editor import Editor
 from status_line import StatusLine
+import logging
+
+log = logging.getLogger('simple_example')
 
 class GM(InteractiveModule, UserModule):
 
-    def __init__(self):
+    def __init__(self, vim, wsad):
+        self._vim = vim
+        self._wsad = wsad
         super(GM, self).__init__()
 
     def _handle_combo(self, viewer, buf):
@@ -25,39 +30,69 @@ class GM(InteractiveModule, UserModule):
         screen = viewer.get_submodule(Screen)
         viewport = viewer.get_submodule(Viewport)
 
-        if ch == ord("j"):
-            self.down(viewer)
+        if self._vim and not self._wsad:
+            if ch == ord("j"):
+                self.down(viewer)
 
-        elif ch == ord("k"):
-            self.up(viewer)
+            elif ch == ord("k"):
+                self.up(viewer)
 
-        elif ch == ord("h"):
-            self.left(viewer)
+            elif ch == ord("h"):
+                self.left(viewer)
 
-        elif ch == ord("l"):
-            self.right(viewer)
+            elif ch == ord("l"):
+                self.right(viewer)
 
-        elif ch == ord("J"):
-            self.vp_down(viewer)
+            elif ch == ord("J"):
+                self.vp_down(viewer)
 
-        elif ch == ord("K"):
-            self.vp_up(viewer)
+            elif ch == ord("K"):
+                self.vp_up(viewer)
 
-        elif ch == ord("H"):
-            self.vp_left(viewer)
+            elif ch == ord("H"):
+                self.vp_left(viewer)
 
-        elif ch == ord("L"):
-            self.vp_right(viewer)
+            elif ch == ord("L"):
+                self.vp_right(viewer)
+        elif self._wsad:
+            if ch == ord("s"):
+                self.down(viewer)
 
-        elif ch == ord("n"):
+            elif ch == ord("w"):
+                self.up(viewer)
+
+            elif ch == ord("a"):
+                self.left(viewer)
+
+            elif ch == ord("d"):
+                self.right(viewer)
+
+            elif ch == ord("S"):
+                self.vp_down(viewer)
+
+            elif ch == ord("W"):
+                self.vp_up(viewer)
+
+            elif ch == ord("A"):
+                self.vp_left(viewer)
+
+            elif ch == ord("D"):
+                self.vp_right(viewer)
+
+
+        if ch == ord("n"):
             self.edit_note(viewer)
 
         # some simple utilities
         # TODO: Move these utilities to a dev module
         elif ch == ord("p"):
-            for i in range(0, 255):
-                import curses
-                viewer.screen.addstr(str(i), curses.color_pair(i))
+            import curses
+            try:
+                for i in range(0, curses.COLORS*curses.COLORS):
+                    viewer.screen.addstr(str(i), curses.color_pair(i))
+            except:
+                pass
+
 
         elif ch == ord("P"):
             for i in range(0, 1000):
@@ -65,32 +100,20 @@ class GM(InteractiveModule, UserModule):
 
 
     def up(self, viewer):
-        screen = viewer.get_submodule(Screen)
-        sl = viewer.get_submodule(StatusLine)
-        if screen.y - 1 >= ViewerConstants.min_y+2:
-            screen.up()
-            sl.mark_dirty()
+        vp = viewer.get_submodule(Viewport)
+        vp.cursor_up()
 
     def down(self, viewer):
-        screen = viewer.get_submodule(Screen)
-        sl = viewer.get_submodule(StatusLine)
-        if screen.y + 1 <= ViewerConstants.max_y-1:
-            screen.down()
-            sl.mark_dirty()
+        vp = viewer.get_submodule(Viewport)
+        vp.cursor_down()
 
     def left(self, viewer):
-        screen = viewer.get_submodule(Screen)
-        sl = viewer.get_submodule(StatusLine)
-        if screen.x - 1 >= ViewerConstants.min_x+1:
-            screen.left()
-            sl.mark_dirty()
+        vp = viewer.get_submodule(Viewport)
+        vp.cursor_left()
 
     def right(self, viewer):
-        screen = viewer.get_submodule(Screen)
-        sl = viewer.get_submodule(StatusLine)
-        if screen.x + 1 <= ViewerConstants.max_x-1:
-            screen.right()
-            sl.mark_dirty()
+        vp = viewer.get_submodule(Viewport)
+        vp.cursor_right()
 
     def vp_down(self, viewer):
         vp = viewer.get_submodule(Viewport)

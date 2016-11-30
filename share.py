@@ -34,16 +34,18 @@ def server(ctx, port, host, map_name, gm_password, password):
 @click.command("gm")
 @click.option("--host", default="127.0.0.1")
 @click.option("--port", default=8080)
+@click.option("--vim", is_flag=True, default=True)
+@click.option("--wsad", is_flag=True, default=False)
 @click.argument("password")
 @click.argument("map_name")
 @click.pass_context
-def gm(ctx, host, port, password, map_name):
+def gm(ctx, host, port, vim, wsad, password, map_name):
     """
     Join a dmtools server.
     """
-    curses.wrapper(_gm_join,ctx, host, port, password, map_name)
+    curses.wrapper(_gm_join,ctx, host, port, vim, wsad, password, map_name)
 
-def _gm_join(scr, ctx, host, port, password, map_name):
+def _gm_join(scr, ctx, host, port, vim, wsad, password, map_name):
     log.debug("Starting gm client")
 
     # initialize curses colors
@@ -74,7 +76,7 @@ def _gm_join(scr, ctx, host, port, password, map_name):
     editor = Editor(0, 0)
     status_line = StatusLine(curses.LINES, curses.COLS)
     client = Client(password, map_name, host=host, port=port)
-    gm = GM()
+    gm = GM(vim, wsad)
     cw = CommandWindow()
     narrative = Narrative()
     viewer = Viewer(scr, map_name)
