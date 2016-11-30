@@ -18,8 +18,6 @@ class Editor(VisibleModule, InteractiveModule):
 
     def __init__(self, max_y, max_x):
 
-        self.x_block = None
-        self.block = None
 
         self.initial_draw_priority = 5
         self.draw_priority = 5
@@ -36,21 +34,9 @@ class Editor(VisibleModule, InteractiveModule):
 
 
     def draw(self, viewer, force=False):
-        # TODO: Fix overlaying
-        #vp = viewer.get_submodule(Viewport)
-        #if self.block:
-        #    vp._screen.addstr(self.block[0], self.block[1], "B", curses.A_BLINK)
-        #if self.x_block:
-        #    vp._screen.addstr(self.x_block[0], self.x_block[1], "X", curses.A_BLINK)
-
-        #self._screen.noutrefresh(
-        #        self.y,
-        #        self.x,
-        #        1,0,
-        #        ViewerConstants.max_y,
-        #        ViewerConstants.max_x)
-
-        self._dirty = False
+        if self._dirty or force:
+            self._dirty = False
+            return True
         return False
 
 
@@ -71,13 +57,7 @@ class Editor(VisibleModule, InteractiveModule):
                               screen.x + vp.x - math.floor(ViewerConstants.max_x/3),
                               self.current_obj)
             raw_feature = FeatureSerializer.toDict(feature)
-            log.error(raw_feature)
             c.make_request("/map/add", payload=raw_feature)
-            vp.add_feature(
-                    screen.y - 1 + vp.y,
-                    screen.x + vp.x,
-                    self.current_obj)
-            viewer._draw(force=True)
 
         # remove feature
         elif ch == ord("x"):
@@ -85,99 +65,6 @@ class Editor(VisibleModule, InteractiveModule):
                 "y": screen.y + vp.y,
                 "x": screen.x + vp.x - math.floor(ViewerConstants.max_x/3)
             })
-            #vp.rm_feature(
-            #        screen.y - 1 + vp.y,
-            #        screen.x + vp.x)
-            screen.fix_cursor()
-
-        # edit/view note
-
-        # add block
-        elif ch == ord("b"):
-            if not self.block:
-                self.block = (screen.y + vp.y,
-                              screen.x + vp.x)
-                self._dirty = True
-            else:
-                yx2 = (screen.y + vp.y,
-                       screen.x + vp.x)
-
-
-                if self.block[0] == yx2[0] and self.block[1] == yx2[1]:
-                    vp.add_feature(
-                            yx2[0]-1,
-                            yx2[1],
-                            self.current_obj)
-                    self._dirty = True
-
-                else:
-                    y_max = max([self.block[0], yx2[0]])
-                    y_min = min([self.block[0], yx2[0]])
-
-                    x_max = max([self.block[1], yx2[1]])
-                    x_min = min([self.block[1], yx2[1]])
-
-                    y_diff = (y_max - y_min) + 1
-                    x_diff = (x_max - x_min) + 1
-
-
-                    for y in range(y_diff):
-                        for x in range(x_diff):
-                            vp.add_feature(
-                                    y+y_min-1,
-                                    x+x_min,
-                                    self.current_obj)
-
-                    screen.move_cursor(screen.y, screen.x)
-                self._dirty = True
-                self.block = None
-
-        # remove block
-        elif ch == ord("X"):
-            if not self.x_block:
-                self.x_block = (screen.y + vp.y,
-                                screen.x + vp.x)
-                self._dirty = True
-            else:
-                yx2 = (screen.y + vp.y,
-                       screen.x + vp.x)
-
-
-                if self.x_block[0] == yx2[0] and self.x_block[1] == yx2[1]:
-                    vp.add_feature(
-                            yx2[0]-1,
-                            yx2[1],
-                            self.current_obj)
-                    self._dirty = True
-
-                else:
-                    y_max = max([self.x_block[0], yx2[0]])
-                    y_min = min([self.x_block[0], yx2[0]])
-
-                    x_max = max([self.x_block[1], yx2[1]])
-                    x_min = min([self.x_block[1], yx2[1]])
-
-                    y_diff = (y_max - y_min) + 1
-                    x_diff = (x_max - x_min) + 1
-
-
-                    for y in range(y_diff):
-                        for x in range(x_diff):
-                            vp.rm_feature(
-                                    y+y_min-1,
-                                    x+x_min)
-
-                    screen.move_cursor(screen.y, screen.x)
-                self._dirty = True
-                self.x_block = None
-
-        elif ch == 27: # escape
-            if self.block:
-                self.block = None
-                self._dirty = True
-            if self.x_block:
-                self.x_block = None
-                self._dirty = True
 
 
         # catch object type
