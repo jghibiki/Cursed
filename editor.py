@@ -5,8 +5,9 @@ from features import Feature, FeatureType, FeatureSerializer
 from viewer import ViewerConstants
 from interactive import VisibleModule, InteractiveModule
 from viewport import Viewport
-from status_line import StatusLine
+from colon_line import ColonLine
 from screen import Screen
+from status_line import StatusLine
 from client import Client
 import math
 import logging
@@ -67,101 +68,101 @@ class Editor(VisibleModule, InteractiveModule):
             })
 
 
-        # catch object type
-        elif ch == ord("c"):
-            self.current_obj = FeatureType.chair
-            sl.mark_dirty()
-            self._dirty = True
+        ## catch object type
+        #elif ch == ord("c"):
+        #    self.current_obj = FeatureType.chair
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("d"):
-            self.current_obj = FeatureType.door
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("d"):
+        #    self.current_obj = FeatureType.door
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("w"):
-            self.current_obj = FeatureType.wall
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("w"):
+        #    self.current_obj = FeatureType.wall
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("t"):
-            self.current_obj = FeatureType.table
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("t"):
+        #    self.current_obj = FeatureType.table
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord(">"):
-            self.current_obj = FeatureType.up_stair
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord(">"):
+        #    self.current_obj = FeatureType.up_stair
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("<"):
-            self.current_obj = FeatureType.down_stair
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("<"):
+        #    self.current_obj = FeatureType.down_stair
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("%"):
-            self.current_obj = FeatureType.lantern
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("%"):
+        #    self.current_obj = FeatureType.lantern
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("#"):
-            self.current_obj = FeatureType.chest
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("#"):
+        #    self.current_obj = FeatureType.chest
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("*"):
-            self.current_obj = FeatureType.point_of_interest
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("*"):
+        #    self.current_obj = FeatureType.point_of_interest
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("r"):
-            self.current_obj = FeatureType.road
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("r"):
+        #    self.current_obj = FeatureType.road
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("G"):
-            self.current_obj = FeatureType.gate
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("G"):
+        #    self.current_obj = FeatureType.gate
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("W"):
-            self.current_obj = FeatureType.water
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("W"):
+        #    self.current_obj = FeatureType.water
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("T"):
-            self.current_obj = FeatureType.tree
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("T"):
+        #    self.current_obj = FeatureType.tree
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("o"):
-            self.current_obj = FeatureType.bush
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("o"):
+        #    self.current_obj = FeatureType.bush
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("."):
-            self.current_obj = FeatureType.grass
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("."):
+        #    self.current_obj = FeatureType.grass
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord(","):
-            self.current_obj = FeatureType.friendly_unit
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord(","):
+        #    self.current_obj = FeatureType.friendly_unit
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("@"):
-            self.current_obj = FeatureType.enemy_unit
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("@"):
+        #    self.current_obj = FeatureType.enemy_unit
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("$"):
-            self.current_obj = FeatureType.dead_unit
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("$"):
+        #    self.current_obj = FeatureType.dead_unit
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
-        elif ch == ord("^"):
-            self.current_obj = FeatureType.hill
-            sl.mark_dirty()
-            self._dirty = True
+        #elif ch == ord("^"):
+        #    self.current_obj = FeatureType.hill
+        #    sl.mark_dirty()
+        #    self._dirty = True
 
         # show help
         elif ch == ord("?"):

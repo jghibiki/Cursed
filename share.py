@@ -5,6 +5,7 @@ import logging
 import curses
 import requests
 import json
+import os
 from app_server import run as start_app_server
 
 log = logging.getLogger('simple_example')
@@ -34,18 +35,19 @@ def server(ctx, port, host, map_name, gm_password, password):
 @click.command("gm")
 @click.option("--host", default="127.0.0.1")
 @click.option("--port", default=8080)
-@click.option("--vim", is_flag=True, default=True)
+@click.option("--username", default="")
 @click.option("--wsad", is_flag=True, default=False)
 @click.argument("password")
 @click.argument("map_name")
 @click.pass_context
-def gm(ctx, host, port, vim, wsad, password, map_name):
+def gm(ctx, host, port, username, wsad, password, map_name):
     """
     Join a dmtools server.
     """
-    curses.wrapper(_gm_join,ctx, host, port, vim, wsad, password, map_name)
+    os.environ.setdefault('ESCDELAY', '5')
+    curses.wrapper(_gm_join,ctx, host, port, username, wsad, password, map_name)
 
-def _gm_join(scr, ctx, host, port, vim, wsad, password, map_name):
+def _gm_join(scr, ctx, host, port, username, wsad, password, map_name):
     log.debug("Starting gm client")
 
     # initialize curses colors
@@ -63,12 +65,13 @@ def _gm_join(scr, ctx, host, port, vim, wsad, password, map_name):
     from gm import GM
     from pc import PC
     from editor import Editor
-    from status_line import StatusLine
+    from colon_line import ColonLine
     from client import Client
     from narrative import Narrative
     from command_window import CommandWindow
     from state import State
     from chat import Chat
+    from status_line import StatusLine
 
     init_features()
     features = []
@@ -77,20 +80,24 @@ def _gm_join(scr, ctx, host, port, vim, wsad, password, map_name):
     viewport = Viewport(features, 0, 0)
     screen = Screen(scr)
     editor = Editor(0, 0)
-    status_line = StatusLine(curses.LINES, curses.COLS)
+    colon_line = ColonLine(curses.LINES, curses.COLS)
     client = Client(password, map_name, host=host, port=port)
-    gm = GM(vim, wsad)
+    gm = GM()
     cw = CommandWindow()
     narrative = Narrative()
     tb = TextBox()
     state = State()
     chat = Chat()
+    sl = StatusLine(curses.LINES, curses.COLS)
     viewer = Viewer(scr, map_name)
 
     state.set_state("role", "gm")
+    state.set_state("direction_scheme", "wsad" if wsad else "vim")
+    state.set_state("username", username)
 
     # registering modules with viewer module
     viewer.register_submodule(state)
+    viewer.register_submodule(sl)
     viewer.register_submodule(chat)
     viewer.register_submodule(tb)
     viewer.register_submodule(viewport)
@@ -99,7 +106,7 @@ def _gm_join(scr, ctx, host, port, vim, wsad, password, map_name):
     viewer.register_submodule(gm)
     viewer.register_submodule(cw)
     viewer.register_submodule(narrative)
-    viewer.register_submodule(status_line)
+    viewer.register_submodule(colon_line)
     viewer.register_submodule(client)
 
     # set current map
@@ -142,14 +149,14 @@ def _pc_join(scr, ctx, host, port, password):
     from viewport import Viewport
     from viewer import Viewer
     from pc import PC
-    from status_line import StatusLine
+    from colon_line import ColonLine
     from client import Client
 
     init_features()
 
     features = []
     viewport = Viewport(features, 0, 0)
-    status_line = StatusLine(curses.LINES, curses.COLS)
+    colon_line = ColonLine(curses.LINES, curses.COLS)
     screen = Screen(scr)
     pc = PC()
     client = Client(password, host=host, port=port)
@@ -158,7 +165,7 @@ def _pc_join(scr, ctx, host, port, password):
     viewer.register_submodule(viewport)
     viewer.register_submodule(screen)
     viewer.register_submodule(pc)
-    viewer.register_submodule(status_line)
+    viewer.register_submodule(colon_line)
     viewer.register_submodule(client)
 
     viewer.run()

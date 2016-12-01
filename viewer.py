@@ -9,8 +9,9 @@ import random
 
 log = logging.getLogger('simple_example')
 
-os.environ.setdefault('ESCDELAY', '25')
-
+NUMBERS = [ ord("0"), ord("1"), ord("2"), ord("3"), ord("4"), ord("5"), ord("6"), ord("7"), ord("8"), ord("9") ]
+VIM_DIRECTIONS = [ ord("j"), ord("k"), ord("h"), ord("l"), ord("J"), ord("K"), ord("H"), ord("L")]
+WSAD_DIRECTIONS = [ ord("w"), ord("s"), ord("a"), ord("d"), ord("W"), ord("S"), ord("A"), ord("D") ]
 
 class Viewer(InteractiveModule, VisibleModule):
 
@@ -22,6 +23,9 @@ class Viewer(InteractiveModule, VisibleModule):
         self.map_name = map_name
 
         self._submodules = []
+
+        self._motion_buffer_count = ""
+        self._motion_buffer = ""
 
         self._combo_buffer = ""
         self._initial_draw = True
@@ -35,7 +39,10 @@ class Viewer(InteractiveModule, VisibleModule):
         curses.doupdate()
 
         while True:
+            # hacks to fix terminal state
             curses.curs_set(0)
+
+            # get ch
             ch = self.screen.getch()
 
 
@@ -91,9 +98,9 @@ class Viewer(InteractiveModule, VisibleModule):
             if ch == 27 or ch == curses.ascii.ESC: # escape
                 self._combo_buffer = None
 
-                from status_line import StatusLine
-                sl = self.get_submodule(StatusLine)
-                sl.clear_buff()
+                from colon_line import ColonLine
+                cl = self.get_submodule(ColonLine)
+                cl.clear_buff()
 
             elif ch == curses.KEY_ENTER or ch == 10 or ch == 13:
 
@@ -106,14 +113,14 @@ class Viewer(InteractiveModule, VisibleModule):
                         exit()
 
                     if "easter_egg" == self._combo_buffer[1:]:
-                        from status_line import StatusLine
-                        sl = self.get_submodule(StatusLine)
-                        sl.set_msg("Created by Jordan Goetze! Thanks for using!")
+                        from colon_line import ColonLine
+                        cl = self.get_submodule(ColonLine)
+                        cl.set_msg("Created by Jordan Goetze! Thanks for using!")
 
                     if "super_easter_egg" == self._combo_buffer[1:]:
-                        from status_line import StatusLine
-                        sl = self.get_submodule(StatusLine)
-                        sl.set_msg("Created by Jordan Goetze! Thanks for using!")
+                        from colon_line import ColonLine
+                        cl = self.get_submodule(ColonLine)
+                        cl.set_msg("Created by Jordan Goetze! Thanks for using!")
                         import subprocess, os
                         FNULL = open(os.devnull, 'w')
                         try: # lazily handle failure
@@ -132,24 +139,24 @@ class Viewer(InteractiveModule, VisibleModule):
                 # reset buffer
                 self._combo_buffer = ""
 
-                from status_line import StatusLine
-                sl = self.get_submodule(StatusLine)
-                sl.clear_buff()
+                from colon_line import ColonLine
+                cl = self.get_submodule(ColonLine)
+                cl.clear_buff()
 
 
             elif ch == curses.KEY_BACKSPACE or ch == 127 or ch == 8 or ch == curses.ascii.BS:
                 self._combo_buffer = self._combo_buffer[:len(self._combo_buffer)-1]
 
-                from status_line import StatusLine
-                sl = self.get_submodule(StatusLine)
-                sl.set_buff(self._combo_buffer)
+                from colon_line import ColonLine
+                cl = self.get_submodule(ColonLine)
+                cl.set_buff(self._combo_buffer)
 
             else:
                 self._combo_buffer += chr(ch)
 
-                from status_line import StatusLine
-                sl = self.get_submodule(StatusLine)
-                sl.set_buff(self._combo_buffer)
+                from colon_line import ColonLine
+                cl = self.get_submodule(ColonLine)
+                cl.set_buff(self._combo_buffer)
 
                 #self.screen.addstr(ViewerConstants.max_y,0, self._combo_buffer)
 
@@ -163,17 +170,69 @@ class Viewer(InteractiveModule, VisibleModule):
         if self._combo_buffer:
                 self._handle_combo(ch)
 
+        elif self._motion_buffer_count != "":
+
+            from state import State
+            state = self.get_submodule(State)
+            # check direction scheme
+            valid_direction = False
+            if state.get_state("direction_scheme") == "wsad":
+                if ch in WSAD_DIRECTIONS:
+                    valid_direction = True
+            elif state.get_state("direction_scheme") == "vim":
+                if ch in VIM_DIRECTIONS:
+                    valid_direction = True
+
+
+            if ch == 27 or ch == curses.ascii.ESC: # escape
+                self._motion_buffer_count = ""
+                self._motion_buffer = ""
+            elif ch in NUMBERS:
+                self._motion_buffer_count += chr(ch)
+
+            elif self._motion_buffer == "" and not valid_direction:
+                self._motion_buffer = ch
+            else:
+
+                if valid_direction:
+                    valid_count = True
+                    try:
+                        count = int(self._motion_buffer_count)
+                    except:
+                        log.warn("bad motion buffer count %s" % self._motion_buffer_count)
+                        valid_count = False
+
+                    direction = None
+                    if self._motion_buffer != "":
+                        char = self._motion_buffer
+                        direction = ch
+                    else:
+                        char = ch
+
+                    # clear these so we don't enter a motion loop
+                    self._motion_buffer = ''
+                    self._motion_buffer_count = ""
+                    if valid_count:
+                        for x in range(0, count): #send key then direction
+                            self._handle(char)
+                            if direction:
+                                self._handle(direction)
+
         else:
             if ch == ord(":"):
                 self._combo_buffer = ":"
-                from status_line import StatusLine
-                sl = self.get_submodule(StatusLine)
-                sl.set_buff(self._combo_buffer)
+                from colon_line import ColonLine
+                cl = self.get_submodule(ColonLine)
+                cl.set_buff(self._combo_buffer)
                 #self.screen.addstr(ViewerConstants.max_y, 0, self._combo_buffer)
 
-            for mod in self._submodules:
-                if isinstance(mod, InteractiveModule):
-                    mod._handle(self, ch)
+            elif ch in NUMBERS:
+                self._motion_buffer_count += chr(ch)
+
+            else:
+                for mod in self._submodules:
+                    if isinstance(mod, InteractiveModule):
+                        mod._handle(self, ch)
 
     def register_submodule(self, submodule):
         self._submodules.append(submodule)

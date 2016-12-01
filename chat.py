@@ -2,7 +2,7 @@ from interactive import  InteractiveModule
 from client import Client
 from narrative import Narrative
 from state import State
-from status_line import StatusLine
+from colon_line import ColonLine
 from text_box import TextBox
 import logging
 
@@ -98,12 +98,37 @@ class Chat(InteractiveModule):
                         tb.set_text(text)
 
             else:
-                sl = viewer.get_submodule(StatusLine)
-                sl.set_msg("No username set. Set one with :set username <username>")
+                cl = viewer.get_submodule(ColonLine)
+                cl.set_msg("No username set. Set one with :set username <username>")
 
 
     def _handle_help(self, viewer, buf):
         pass
+
+    def show(self, viewer):
+        state = viewer.get_submodule(State)
+        username = state.get_state("username")
+
+        if username:
+            c = viewer.get_submodule(Client)
+            tb = viewer.get_submodule(TextBox)
+            data = c.make_request("/chat/%s" % username)
+            text = "Chat:\n"
+            for message in data["messages"]:
+                if message["recipient"] is not None:
+                    text += ("<private> %s to %s: %s\n" % (
+                        message["sender"],
+                        message["recipient"],
+                        message["message"]))
+                else:
+                    text += ("%s: %s\n" % (
+                        message["sender"],
+                        message["message"]))
+            tb.set_text(text)
+
+        else:
+            cl = viewer.get_submodule(ColonLine)
+            cl.set_msg("No username set. Set one with :set username <username>")
 
 
 

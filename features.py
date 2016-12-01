@@ -161,19 +161,19 @@ class FeatureType:
         if name == "Wall":
             return curses.color_pair(95)
         elif name == "Table":
-            return None
+            return curses.A_NORMAL
         elif name == "Chair":
-            return None
+            return curses.A_NORMAL
         elif name == "Up Stair":
-            return None
+            return curses.A_NORMAL
         elif name == "Down Stair":
-            return None
+            return curses.A_NORMAL
         elif name == "Door":
             return curses.color_pair(95)
         elif name == "Lantern":
             return curses.color_pair(4)
         elif name == "Chest":
-            return None
+            return curses.A_NORMAL
         elif name == "Point of Interest":
             return curses.color_pair(197)
         elif name == "Road":
@@ -195,7 +195,7 @@ class FeatureType:
         elif name == "Dead Unit":
             return curses.color_pair(8)
         elif name == "Hill":
-            return None
+            return curses.A_NORMAL
 
 
 class FeatureSerializer:

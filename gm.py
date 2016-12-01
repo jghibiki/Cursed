@@ -3,7 +3,8 @@ from viewer import ViewerConstants
 from screen import Screen
 from viewport import Viewport
 from editor import Editor
-from status_line import StatusLine
+from colon_line import ColonLine
+from state import State
 import logging
 import curses
 
@@ -11,9 +12,7 @@ log = logging.getLogger('simple_example')
 
 class GM(InteractiveModule, UserModule):
 
-    def __init__(self, vim, wsad):
-        self._vim = vim
-        self._wsad = wsad
+    def __init__(self):
         super(GM, self).__init__()
 
     def _handle_combo(self, viewer, buf):
@@ -26,8 +25,10 @@ class GM(InteractiveModule, UserModule):
 
         screen = viewer.get_submodule(Screen)
         viewport = viewer.get_submodule(Viewport)
-
-        if self._vim and not self._wsad:
+        state = viewer.get_submodule(State)
+        wsad = state.get_state("direction_scheme")
+        wsad = True if wsad is not None and wsad is True else False
+        if not wsad:
             if ch == ord("j"):
                 self.down(viewer)
 
@@ -51,7 +52,7 @@ class GM(InteractiveModule, UserModule):
 
             elif ch == ord("L"):
                 self.vp_right(viewer)
-        elif self._wsad:
+        else:
             if ch == ord("s"):
                 self.down(viewer)
 
@@ -115,40 +116,40 @@ class GM(InteractiveModule, UserModule):
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
         editor = viewer.get_submodule(Editor)
-        sl = viewer.get_submodule(StatusLine)
+        cl = viewer.get_submodule(ColonLine)
         vp.down()
         editor.down()
-        sl.mark_dirty()
+        cl.mark_dirty()
         screen.fix_cursor()
 
     def vp_up(self, viewer):
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
         editor = viewer.get_submodule(Editor)
-        sl = viewer.get_submodule(StatusLine)
+        cl = viewer.get_submodule(ColonLine)
         vp.up()
         editor.up()
-        sl.mark_dirty()
+        cl.mark_dirty()
         screen.fix_cursor()
 
     def vp_right(self, viewer):
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
         editor = viewer.get_submodule(Editor)
-        sl = viewer.get_submodule(StatusLine)
+        cl = viewer.get_submodule(ColonLine)
         vp.right()
         editor.right()
-        sl.mark_dirty()
+        cl.mark_dirty()
         screen.fix_cursor()
 
     def vp_left(self, viewer):
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
         editor = viewer.get_submodule(Editor)
-        sl = viewer.get_submodule(StatusLine)
+        cl = viewer.get_submodule(ColonLine)
         vp.left()
         editor.left()
-        sl.mark_dirty()
+        cl.mark_dirty()
         screen.fix_cursor()
 
     def edit_note(self, viewer):
