@@ -41,6 +41,8 @@ class StatusLine(VisibleModule):
             self._screen.addstr(1,0, padded_ln1, curses.color_pair(179))
             self._screen.addstr(2,0, padded_ln2)
 
+            self._msg = ""
+
             self._screen.noutrefresh()
 
             self._dirty = False
@@ -60,6 +62,8 @@ class StatusLine(VisibleModule):
 
     def set_msg(self, msg):
         self._msg = msg
+        self._dirty = True
 
     def clear_msg(self):
         self._msg = ""
+        self._dirty = True

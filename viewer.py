@@ -29,10 +29,11 @@ class Viewer(InteractiveModule, VisibleModule):
 
 
     def run(self):
-       self._draw()
-       curses.doupdate()
+        self._draw()
+        curses.doupdate()
 
-       while True:
+        while True:
+            curses.curs_set(0)
             ch = self.screen.getch()
 
             changes = False

@@ -59,6 +59,7 @@ def _gm_join(scr, ctx, host, port, vim, wsad, password, map_name):
     from screen import Screen
     from viewport import Viewport
     from viewer import Viewer
+    from text_box import TextBox
     from gm import GM
     from pc import PC
     from editor import Editor
@@ -66,6 +67,8 @@ def _gm_join(scr, ctx, host, port, vim, wsad, password, map_name):
     from client import Client
     from narrative import Narrative
     from command_window import CommandWindow
+    from state import State
+    from chat import Chat
 
     init_features()
     features = []
@@ -79,9 +82,17 @@ def _gm_join(scr, ctx, host, port, vim, wsad, password, map_name):
     gm = GM(vim, wsad)
     cw = CommandWindow()
     narrative = Narrative()
+    tb = TextBox()
+    state = State()
+    chat = Chat()
     viewer = Viewer(scr, map_name)
 
+    state.set_state("role", "gm")
+
     # registering modules with viewer module
+    viewer.register_submodule(state)
+    viewer.register_submodule(chat)
+    viewer.register_submodule(tb)
     viewer.register_submodule(viewport)
     viewer.register_submodule(screen)
     viewer.register_submodule(editor)

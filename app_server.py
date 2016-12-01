@@ -157,6 +157,41 @@ def update_narrative_by_index(index):
     return jsonify({})
 
 
+@app.route('/chat', methods=["POST"])
+@requires_auth
+def add_chat_message():
+    data = request.json
+
+    if data is None:
+        return 'No payload recieved', 400
+    if "sender" not in data:
+        return 'Payload missing field "sender"', 400
+    if "recipient" not in data:
+        return 'Payload missing field "recipient"', 400
+    if "message" not in data:
+        return 'Payload missing field "message"', 400
+
+    global game_data
+    game_data["chat"].append(data)
+
+    return jsonify({})
+
+@app.route('/chat/<username>', methods=["GET"])
+@requires_auth
+def get_chat_messages(username):
+    all_messages = game_data["chat"]
+    messages = []
+
+    for message in all_messages:
+        if ( message["recipient"] == username or
+             message["sender"] == username or
+             message["recipient"] == None ):
+            messages.append(message)
+
+    return jsonify({ "messages": messages })
+
+
+
 def run(data, port, host, gm_passwd, passwd):
     global game_data
     game_data = data

@@ -45,7 +45,8 @@ def init(ctx, campaign_title, campaign_description, overwrite):
         "title": campaign_title,
         "description": campaign_description,
         "story": [],
-        "maps": {}
+        "maps": {},
+        "chat": []
     }
 
     campaign_exists = os.path.exists(ctx.obj["data_location"])

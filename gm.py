@@ -5,6 +5,7 @@ from viewport import Viewport
 from editor import Editor
 from status_line import StatusLine
 import logging
+import curses
 
 log = logging.getLogger('simple_example')
 
@@ -16,11 +17,7 @@ class GM(InteractiveModule, UserModule):
         super(GM, self).__init__()
 
     def _handle_combo(self, viewer, buf):
-        vp = viewer.get_submodule(Viewport)
-        if "w" in buf:
-            json_map = vp.serialize_features()
-            # TODO: update save method
-            self._save_handler(json_map)
+        pass
 
     def _handle_help(self, viewer, buf):
         pass
@@ -78,7 +75,6 @@ class GM(InteractiveModule, UserModule):
 
             elif ch == ord("D"):
                 self.vp_right(viewer)
-
 
         if ch == ord("n"):
             self.edit_note(viewer)
@@ -160,12 +156,13 @@ class GM(InteractiveModule, UserModule):
         import subprocess
 
 
+        log.error("opening notes")
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
 
         idx = vp.get_feature_idx(
-                screen.y + vp.y - 1,
-                screen.x + vp.x)
+                vp.cursor_y,
+                vp.cursor_x)
 
         if idx:
             feature = vp.get_feature(idx)
@@ -183,9 +180,14 @@ class GM(InteractiveModule, UserModule):
                 tf.seek(0)
                 text = tf.read().decode("UTF-8")
 
+                # fix cursor after opening editor
+                curses.curs_set(1)
+                curses.curs_set(0)
+
                 # TODO: add a way to upload edited note to server
                 feature.notes = text
                 vp.update_feature(idx, feature)
+            viewer._draw(force=True) # force redraw after closing vim
 
 
 
