@@ -29,7 +29,9 @@ def server(ctx, port, host, map_name, gm_password, password):
     Starts a server
     """
     game_data = load(ctx)
-    start_app_server(game_data, port, host,gm_password, password)
+    def save_callback(data):
+        save(ctx, data)
+    start_app_server(game_data, port, host,gm_password, password, save_callback)
 
 
 @click.command("gm")

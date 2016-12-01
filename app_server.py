@@ -10,6 +10,7 @@ from authentication import requires_auth, requires_gm_auth
 app = Flask(__name__)
 
 game_data = None
+save_callback = None
 current_map = None
 feature_hashes = []
 
@@ -103,6 +104,34 @@ def rm_feature_from_map(name=None):
 
     return '', 500
 
+@app.route('/map/update/', methods=["POST"])
+@app.route('/map/update/<name>', methods=["POST"])
+def update_feature(name=None):
+    data = request.json
+
+    # validate request data
+    if data is None:
+        return 'No payload recieved', 400
+    if "y" not in data:
+        return 'Payload missing field "y"', 400
+    if "x" not in data :
+        return 'Payload missing field "x"', 400
+    if "type" not in data:
+        return 'Playload missing field "type"', 400
+    if "notes" not in data:
+        return ('Payload midding field "notes"', 400)
+
+    if not name:
+        name = current_map
+
+    features = game_data["maps"][name]["features"]
+    for idx, feature in enumerate(features):
+        if feature["y"] == data["y"] and feature["x"] == data["x"]:
+            game_data["maps"][name]["features"][idx] = data
+
+    return jsonify({})
+
+
 
 @app.route("/map", methods=["POST"])
 def set_map_name():
@@ -190,12 +219,18 @@ def get_chat_messages(username):
 
     return jsonify({ "messages": messages })
 
+@app.route('/save', methods=["GET"])
+def save_data():
+    save_callback(game_data)
+    return jsonify({})
 
 
-def run(data, port, host, gm_passwd, passwd):
+def run(data, port, host, gm_passwd, passwd, save):
     global game_data
     game_data = data
 
+    global save_callback
+    save_callback = save
 
     tmp = "%s%s%s%s" % (random.randint(0, 9), random.randint(0, 9), random.randint(0, 9), random.randint(0, 9))
     authentication.gm_password = gm_passwd if gm_passwd else tmp

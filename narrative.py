@@ -109,3 +109,14 @@ class Narrative(InteractiveModule):
     def _handle_help(self, viewer, buff):
         pass
 
+    def show(self, viewer):
+        tb = viewer.get_submodule(TextBox)
+
+        c = viewer.get_submodule(Client)
+        data = c.make_request("/narrative")
+        text = "Chapters:\n"
+        for idx, chapter in enumerate(data["chapters"]):
+            text += ("%02d. %s\n" % (idx+1, chapter))
+        tb.set_text(text)
+
+

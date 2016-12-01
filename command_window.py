@@ -85,6 +85,11 @@ class CommandWindow(VisibleModule, InteractiveModule):
                 chat = viewer.get_submodule(Chat)
                 chat.show(viewer)
 
+            if ch == ord("n"):
+                from narrative import Narrative
+                narrative = viewer.get_submodule(Narrative)
+                narrative.show(viewer)
+
         elif self._mode is CommandMode.build:
             if ch == 27 or ch == curses.ascii.ESC: # escape
                 self._mode = CommandMode.default
@@ -280,6 +285,10 @@ class CommandWindow(VisibleModule, InteractiveModule):
         # show chat
         self._screen.addstr(3, 2, "c", curses.color_pair(179))
         self._screen.addstr(3, 3, ": Chat", )
+
+        # show narrative
+        self._screen.addstr(4, 2, "n", curses.color_pair(179))
+        self._screen.addstr(4, 3, ": Narrative", )
 
     def _draw_build_screen(self):
         self._screen.addstr(1, 2, "Build:", curses.color_pair(179))

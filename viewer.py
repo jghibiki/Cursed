@@ -112,6 +112,13 @@ class Viewer(InteractiveModule, VisibleModule):
                     if "q" == self._combo_buffer[1]:
                         exit()
 
+                    if "save" == self._combo_buffer[1:] or "w" == self._combo_buffer[1:]:
+                        from client import Client
+                        client = self.get_submodule(Client)
+                        log.info("Saving Data")
+                        client.make_request("/save")
+                        log.info("Saved Data")
+
                     if "easter_egg" == self._combo_buffer[1:]:
                         from colon_line import ColonLine
                         cl = self.get_submodule(ColonLine)

@@ -1,3 +1,4 @@
+from features import FeatureSerializer
 from interactive import InteractiveModule, UserModule
 from viewer import ViewerConstants
 from screen import Screen
@@ -5,6 +6,7 @@ from viewport import Viewport
 from editor import Editor
 from colon_line import ColonLine
 from state import State
+from client import Client
 import logging
 import curses
 
@@ -77,7 +79,7 @@ class GM(InteractiveModule, UserModule):
             elif ch == ord("D"):
                 self.vp_right(viewer)
 
-        if ch == ord("n"):
+        if ch == ord("N"):
             self.edit_note(viewer)
 
         # some simple utilities
@@ -187,7 +189,9 @@ class GM(InteractiveModule, UserModule):
 
                 # TODO: add a way to upload edited note to server
                 feature.notes = text
-                vp.update_feature(idx, feature)
+                client = viewer.get_submodule(Client)
+                feature_dict = FeatureSerializer.toDict(feature)
+                client.make_request("/map/update/", payload=feature_dict)
             viewer._draw(force=True) # force redraw after closing vim
 
 
