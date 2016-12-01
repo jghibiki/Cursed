@@ -5,6 +5,7 @@ import os
 from features import Feature, FeatureType, FeatureSerializer
 from interactive import *
 import logging
+import random
 
 log = logging.getLogger('simple_example')
 
@@ -24,6 +25,7 @@ class Viewer(InteractiveModule, VisibleModule):
 
         self._combo_buffer = ""
         self._initial_draw = True
+        self._mind_blown = False
 
         curses.curs_set(0)
 
@@ -36,6 +38,7 @@ class Viewer(InteractiveModule, VisibleModule):
             curses.curs_set(0)
             ch = self.screen.getch()
 
+
             changes = False
 
             for mod in self._submodules:
@@ -45,6 +48,15 @@ class Viewer(InteractiveModule, VisibleModule):
             if ch is not -1:
                 self._handle(ch)
             changes = self._draw() or changes
+
+
+            if self._mind_blown and changes:
+
+                curses.start_color()
+                curses.use_default_colors()
+                for i in range(1, curses.COLORS):
+                    color = random.randint(1, curses.COLORS-1)
+                    curses.init_pair(i + 1, color, -1)
 
             if changes:
                 curses.doupdate()
@@ -92,6 +104,25 @@ class Viewer(InteractiveModule, VisibleModule):
 
                     if "q" == self._combo_buffer[1]:
                         exit()
+
+                    if "easter_egg" == self._combo_buffer[1:]:
+                        from status_line import StatusLine
+                        sl = self.get_submodule(StatusLine)
+                        sl.set_msg("Created by Jordan Goetze! Thanks for using!")
+
+                    if "super_easter_egg" == self._combo_buffer[1:]:
+                        from status_line import StatusLine
+                        sl = self.get_submodule(StatusLine)
+                        sl.set_msg("Created by Jordan Goetze! Thanks for using!")
+                        import subprocess, os
+                        FNULL = open(os.devnull, 'w')
+                        try: # lazily handle failure
+                            subprocess.call(["espeak", "Created by Jordan Goetze! Thanks for using!"], stdout=FNULL, stderr=subprocess.STDOUT)
+                        except:
+                            pass
+
+                    if "mind_blown" == self._combo_buffer[1:]:
+                        self._mind_blown = True
 
                     if (len(self._combo_buffer) > 2 and
                         "h" == self._combo_buffer[0] and

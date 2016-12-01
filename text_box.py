@@ -1,9 +1,11 @@
 from interactive import VisibleModule, InteractiveModule
 from viewer import ViewerConstants
 from client import Client
+from state import State
 import logging
 import math
 import curses
+
 
 log = logging.getLogger('simple_example')
 
@@ -15,7 +17,7 @@ class TextBox(VisibleModule, InteractiveModule):
 
         self.x = 0
         self.y = 0
-        self.h = ViewerConstants.max_y-1
+        self.h = ViewerConstants.max_y-2
         self.w = math.floor(ViewerConstants.max_x/3)
 
         self._screen = curses.newwin(self.h, self.w, self.y, self.x)
@@ -48,17 +50,32 @@ class TextBox(VisibleModule, InteractiveModule):
         if self._dirty or force:
             if force: log.debug("narrative.draw forced")
             self._screen.clear()
+
+            state = viewer.get_submodule(State)
             self._screen.attrset(curses.color_pair(179))
-            self._screen.border(
-                    curses.ACS_BOARD,
-                    curses.ACS_BOARD,
-                    curses.ACS_BOARD,
-                    curses.ACS_BOARD,
-                    curses.ACS_BOARD,
-                    curses.ACS_BOARD,
-                    curses.ACS_BOARD,
-                    curses.ACS_BOARD
-            )
+
+            if state.get_state("easter_egg") is not None:
+                self._screen.border(
+                        curses.ACS_VLINE,
+                        curses.ACS_VLINE,
+                        curses.ACS_HLINE,
+                        curses.ACS_HLINE,
+                        curses.ACS_DIAMOND,
+                        curses.ACS_DIAMOND,
+                        curses.ACS_DIAMOND,
+                        curses.ACS_DIAMOND
+                )
+            else:
+                self._screen.border(
+                        curses.ACS_BOARD,
+                        curses.ACS_BOARD,
+                        curses.ACS_BOARD,
+                        curses.ACS_BOARD,
+                        curses.ACS_BOARD,
+                        curses.ACS_BOARD,
+                        curses.ACS_BOARD,
+                        curses.ACS_BOARD
+                )
             self._screen.attroff(curses.color_pair(179))
 
 
@@ -101,6 +118,9 @@ class TextBox(VisibleModule, InteractiveModule):
         if buff[0] == "back":
             if self._previous:
                 self.set_text(self._previous)
+
+        if buff[0] == "redraw!":
+            viewer._draw(force=True)
 
     def set_text(self, text):
         self._previous_text = self._text

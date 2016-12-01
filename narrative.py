@@ -41,10 +41,17 @@ class Narrative(InteractiveModule):
             elif ( ( buff[1] == "view" or buff[1] == "v" ) and
                    len(buff) == 3 ):
                 c = viewer.get_submodule(Client)
-                data = c.make_request("/narrative/%s" % (int(buff[2])-1))
-                tb.set_text(data["text"])
+                if buff[2] != "":
+                    bad_int = False
+                    try:
+                        int(buff[2])
+                    except:
+                        bad_int = True
+                    if not bad_int:
+                        data = c.make_request("/narrative/%s" % (int(buff[2])-1))
+                        tb.set_text(data["text"])
 
-                self._dirty = True
+                    self._dirty = True
 
             elif ( ( buff[1] == "edit" or buff[1] == "e" ) and
                     len(buff) == 3 ):

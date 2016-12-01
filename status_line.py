@@ -1,8 +1,10 @@
 from interactive import VisibleModule, InteractiveModule
 from features import FeatureType
 from viewer import ViewerConstants
+from state import State
 import curses
 import logging
+import math
 
 log = logging.getLogger('simple_example')
 
@@ -16,7 +18,7 @@ class StatusLine(VisibleModule):
         self.x = 0
         self.y = ViewerConstants.max_y-2
         self.h = 3
-        self.w = max_x
+        self.w = math.floor(max_x/2)+1
 
         self._buffer = ""
         self._msg = ""
@@ -35,11 +37,38 @@ class StatusLine(VisibleModule):
         if self._dirty or force:
             if force: log.debug("status_line.draw forced")
 
-            padded_ln1 = self._buffer.ljust(ViewerConstants.max_x)
-            padded_ln2 = self._msg.ljust(ViewerConstants.max_x)
-            self._screen.addstr(0,0, "▒"*ViewerConstants.max_x, curses.color_pair(179))
-            self._screen.addstr(1,0, padded_ln1, curses.color_pair(179))
-            self._screen.addstr(2,0, padded_ln2)
+            state = viewer.get_submodule(State)
+            self._screen.attrset(curses.color_pair(179))
+
+            if state.get_state("easter_egg") is not None:
+                self._screen.border(
+                        curses.ACS_VLINE,
+                        curses.ACS_VLINE,
+                        curses.ACS_HLINE,
+                        curses.ACS_HLINE,
+                        curses.ACS_DIAMOND,
+                        curses.ACS_DIAMOND,
+                        curses.ACS_DIAMOND,
+                        curses.ACS_DIAMOND
+                )
+            else:
+                self._screen.border(
+                        curses.ACS_VLINE,
+                        curses.ACS_VLINE,
+                        curses.ACS_HLINE,
+                        curses.ACS_HLINE,
+                        curses.ACS_ULCORNER,
+                        curses.ACS_URCORNER,
+                        curses.ACS_LLCORNER,
+                        curses.ACS_LRCORNER,
+                )
+            self._screen.attroff(curses.color_pair(179))
+
+            if self._msg != "":
+                padded_ln = self._msg.ljust(self.w-2)
+            else:
+                padded_ln = self._buffer.ljust(self.w-2)
+            self._screen.addstr(1,1, padded_ln, curses.color_pair(179))
 
             self._msg = ""
 
