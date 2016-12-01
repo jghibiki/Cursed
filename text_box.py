@@ -117,6 +117,10 @@ class TextBox(VisibleModule, InteractiveModule):
             if self._previous:
                 self.set_text(self._previous)
 
+        elif buff[0] == "clear" or buff[0] == "c":
+            self.set_text(self._default_text)
+            self._dirty = True
+
         elif buff[0] == "read" or buff[0] == "r" and len(buff) == 1:
             import subprocess
             import os

@@ -83,9 +83,6 @@ class Narrative(InteractiveModule):
                     curses.curs_set(0)
                 viewer._draw(force=True) # force redraw after closing vim
 
-            elif buff[1] == "clear" or buff[1] == "c":
-                tb.set_text(text)
-                self._dirty = True
 
             elif buff[1] == "read" or buff[1] == "r":
                 text = ""
