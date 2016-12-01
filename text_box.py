@@ -25,17 +25,15 @@ class TextBox(VisibleModule, InteractiveModule):
                               "ctrl + j - scroll down\n" +
                               "ctrl + k - scroll up\n" +
                               ":clear - clear text box.\n" +
+                              ":read - read text in window.\n"
                               "\nNarrative:\n" +
                               ":n list - list chapters.\n" +
                               ":n view <chapter number> - view chapter.\n" +
                               ":n edit <chapter number> - edit chapter.\n" +
                               ":n read <chapter number> - read chapter. requires espeak.\n" +
-                              ":n read - read text in narrative window.\n"
                               "\nChat:\n" +
-                              ":chat read - read text in narrative window.\n" +
-                              ":c view - view text messages\n" +
-                              ":c send <message> - send a message to all players\n" +
-                              ":c whisper <username> <message> - send a message to a specific player\n"
+                              ":send <message> - send a message to all players\n" +
+                              ":whisper <username> <message> - send a message to a specific player\n"
                               )
         self._previous_text = None
         self._text = self._default_text
