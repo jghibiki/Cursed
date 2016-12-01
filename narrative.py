@@ -79,8 +79,8 @@ class Narrative(InteractiveModule):
                     tb.set_text(text)
 
                     # fix cursor mode
-                    curses.cur_set(1)
-                    curses.cur_set(0)
+                    curses.curs_set(1)
+                    curses.curs_set(0)
                 viewer._draw(force=True) # force redraw after closing vim
 
             elif buff[1] == "clear" or buff[1] == "c":
@@ -89,14 +89,11 @@ class Narrative(InteractiveModule):
 
             elif buff[1] == "read" or buff[1] == "r":
                 text = ""
-                if len(buff) == 3:
-                    c = viewer.get_submodule(Client)
-                    id = (int(buff[2])-1)
-                    data = c.make_request("/narrative/%s" % id)
-                    text = tb.get_text()
-                    text = text.splitlines()
-                else:
-                    text = self._paged_text
+
+                c = viewer.get_submodule(Client)
+                id = (int(buff[2])-1)
+                data = c.make_request("/narrative/%s" % id)
+                text = data["text"].splitlines()
 
                 FNULL = open(os.devnull, 'w')
                 for line in text:

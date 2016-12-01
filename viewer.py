@@ -112,19 +112,22 @@ class Viewer(InteractiveModule, VisibleModule):
                     if "q" == self._combo_buffer[1]:
                         exit()
 
-                    if "save" == self._combo_buffer[1:] or "w" == self._combo_buffer[1:]:
+                    elif self._combo_buffer[1:] == "redraw!":
+                        self._draw(force=True)
+
+                    elif "save" == self._combo_buffer[1:] or "w" == self._combo_buffer[1:]:
                         from client import Client
                         client = self.get_submodule(Client)
                         log.info("Saving Data")
                         client.make_request("/save")
                         log.info("Saved Data")
 
-                    if "easter_egg" == self._combo_buffer[1:]:
+                    elif "easter_egg" == self._combo_buffer[1:]:
                         from colon_line import ColonLine
                         cl = self.get_submodule(ColonLine)
                         cl.set_msg("Created by Jordan Goetze! Thanks for using!")
 
-                    if "super_easter_egg" == self._combo_buffer[1:]:
+                    elif "super_easter_egg" == self._combo_buffer[1:]:
                         from colon_line import ColonLine
                         cl = self.get_submodule(ColonLine)
                         cl.set_msg("Created by Jordan Goetze! Thanks for using!")
@@ -135,13 +138,13 @@ class Viewer(InteractiveModule, VisibleModule):
                         except:
                             pass
 
-                    if "mind_blown" == self._combo_buffer[1:]:
+                    elif "mind_blown" == self._combo_buffer[1:]:
                         self._mind_blown = True
 
-                    if (len(self._combo_buffer) > 2 and
-                        "h" == self._combo_buffer[0] and
-                        " " == self._combo_buffer[1]):
-                            self.handle_help(self._combo_buffer[2:])
+                    elif ( len(self._combo_buffer) > 2 and
+                           "h" == self._combo_buffer[1:] or
+                           "help" == self._combo_buffer[1:] ):
+                        self.handle_help(self._combo_buffer[2:])
 
                 # reset buffer
                 self._combo_buffer = ""

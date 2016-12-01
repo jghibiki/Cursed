@@ -119,8 +119,17 @@ class TextBox(VisibleModule, InteractiveModule):
             if self._previous:
                 self.set_text(self._previous)
 
-        if buff[0] == "redraw!":
-            viewer._draw(force=True)
+        elif buff[0] == "read" or buff[0] == "r" and len(buff) == 1:
+            import subprocess
+            import os
+            text = self._paged_text
+
+            FNULL = open(os.devnull, 'w')
+            for line in text:
+                try: # lazily handle failure
+                    subprocess.call(["espeak", line], stdout=FNULL, stderr=subprocess.STDOUT)
+                except:
+                    pass
 
     def set_text(self, text):
         self._previous_text = self._text
