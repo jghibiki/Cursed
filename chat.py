@@ -22,80 +22,62 @@ class Chat(InteractiveModule):
 
 
         buff = buff.split(" ")
-        if ( len(buff) > 1 and
-             buff[0] == "c" or
-             buff[0] == "chat" ):
 
+        log.error(buff)
+        if ( ( buff[0] == "send" or buff[0] == "s" ) and
+                 len(buff) > 1 ):
             username = state.get_state("username")
+
             if username:
-                if buff[1] == "view" or buff[1] == "v":
+                c = viewer.get_submodule(Client)
+                data = c.make_request("/chat", payload={
+                    "sender": username,
+                    "recipient": None,
+                    "message": ' '.join(buff[1:])
+                })
 
-                        c = viewer.get_submodule(Client)
-                        data = c.make_request("/chat/%s" % username)
-                        text = "Chat:\n"
-                        for message in data["messages"]:
-                            if message["recipient"] is not None:
-                                text += ("<private> %s to %s: %s\n" % (
-                                    message["sender"],
-                                    message["recipient"],
-                                    message["message"]))
-                            else:
-                                text += ("%s: %s\n" % (
-                                    message["sender"],
-                                    message["message"]))
-                        tb.set_text(text)
+                data = c.make_request("/chat/%s" % username)
+                text = "Chat:\n"
+                for message in data["messages"]:
+                    if message["recipient"] is not None:
+                        text += ("<private> %s to %s: %s\n" % (
+                            message["sender"],
+                            message["recipient"],
+                            message["message"]))
+                    else:
+                        text += ("%s: %s\n" % (
+                            message["sender"],
+                            message["message"]))
+                tb.set_text(text)
+            else:
+                cl = viewer.get_submodule(ColonLine)
+                cl.set_msg("No username set. Set one with :set username <username>")
 
-                elif ( ( buff[1] == "send" or buff[1] == "s" ) and
-                         len(buff) > 2 ):
-                    username = state.get_state("username")
+        elif ( ( buff[0] == "whisper" or buff[0] == "w" ) and
+                 len(buff) > 2 ):
+            username = state.get_state("username")
 
-                    if username:
-                        c = viewer.get_submodule(Client)
-                        data = c.make_request("/chat", payload={
-                            "sender": username,
-                            "recipient": None,
-                            "message": ' '.join(buff[2:])
-                        })
+            if username:
+                c = viewer.get_submodule(Client)
+                data = c.make_request("/chat", payload={
+                    "sender": username,
+                    "recipient": buff[1],
+                    "message": ' '.join(buff[2:])
+                })
 
-                        data = c.make_request("/chat/%s" % username)
-                        text = "Chat:\n"
-                        for message in data["messages"]:
-                            if message["recipient"] is not None:
-                                text += ("<private> %s to %s: %s\n" % (
-                                    message["sender"],
-                                    message["recipient"],
-                                    message["message"]))
-                            else:
-                                text += ("%s: %s\n" % (
-                                    message["sender"],
-                                    message["message"]))
-                        tb.set_text(text)
-
-                elif ( ( buff[1] == "whisper" or buff[1] == "w" ) and
-                         len(buff) > 3 ):
-                    username = state.get_state("username")
-
-                    if username:
-                        c = viewer.get_submodule(Client)
-                        data = c.make_request("/chat", payload={
-                            "sender": username,
-                            "recipient": buff[2],
-                            "message": ' '.join(buff[3:])
-                        })
-
-                        data = c.make_request("/chat/%s" % username)
-                        text = "Chat:\n"
-                        for message in data["messages"]:
-                            if message["recipient"] is not None:
-                                text += ("private %s to %s: %s\n" % (
-                                    message["sender"],
-                                    message["recipient"],
-                                    message["message"]))
-                            else:
-                                text += ("%s: %s\n" % (
-                                    message["sender"],
-                                    message["message"]))
-                        tb.set_text(text)
+                data = c.make_request("/chat/%s" % username)
+                text = "Chat:\n"
+                for message in data["messages"]:
+                    if message["recipient"] is not None:
+                        text += ("private %s to %s: %s\n" % (
+                            message["sender"],
+                            message["recipient"],
+                            message["message"]))
+                    else:
+                        text += ("%s: %s\n" % (
+                            message["sender"],
+                            message["message"]))
+                tb.set_text(text)
 
             else:
                 cl = viewer.get_submodule(ColonLine)
