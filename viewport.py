@@ -47,7 +47,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
             self._screen.attroff(curses.color_pair(17))
 
             for feature in self._features:
-                feature.draw(self._screen)
+                feature.draw(viewer, self._screen)
 
             self._screen.addch(self.cursor_y, self.cursor_x, ord('X'), curses.color_pair(260))
 

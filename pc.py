@@ -5,7 +5,9 @@ from viewport import Viewport
 from state import State
 from colon_line import ColonLine
 from text_box import TextBox
+import logging
 
+log = logging.getLogger('simple_example')
 
 class PC(InteractiveModule, UserModule):
     def __init__(self):
@@ -69,9 +71,6 @@ class PC(InteractiveModule, UserModule):
             elif ch == ord("D"):
                 self.vp_right(viewer)
 
-        if ch == ord("n"):
-            self.view_note(viewer)
-
 
     def up(self, viewer):
         vp = viewer.get_submodule(Viewport)
@@ -120,18 +119,4 @@ class PC(InteractiveModule, UserModule):
         vp.left()
         cl.mark_dirty()
         screen.fix_cursor()
-
-    def view_note(self, viewer):
-        vp = viewer.get_submodule(Viewport)
-        screen = viewer.get_submodule(Screen)
-        text_box = viewer.get_submodule(TextBox)
-
-        idx = vp.get_feature_idx(
-                screen.y + vp.y - 1,
-                screen.x + vp.x)
-
-        if idx:
-            feature = vp.get_feature(idx)
-            notes = feature.notes
-            text_box.set_text(notes)
 
