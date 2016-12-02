@@ -65,7 +65,6 @@ def _gm_join(scr, ctx, host, port, username, wsad, password, map_name):
     from viewer import Viewer
     from text_box import TextBox
     from gm import GM
-    from pc import PC
     from editor import Editor
     from colon_line import ColonLine
     from client import Client
@@ -74,11 +73,13 @@ def _gm_join(scr, ctx, host, port, username, wsad, password, map_name):
     from state import State
     from chat import Chat
     from status_line import StatusLine
+    from roll import Roll
 
     init_features()
     features = []
 
     # instanciating modules
+    roll = Roll()
     viewport = Viewport(features, 0, 0)
     screen = Screen(scr)
     editor = Editor(0, 0)
@@ -98,6 +99,7 @@ def _gm_join(scr, ctx, host, port, username, wsad, password, map_name):
     state.set_state("username", username)
 
     # registering modules with viewer module
+    viewer.register_submodule(roll)
     viewer.register_submodule(state)
     viewer.register_submodule(sl)
     viewer.register_submodule(chat)
@@ -153,22 +155,43 @@ def _pc_join(scr, ctx, host, port, password):
     from pc import PC
     from colon_line import ColonLine
     from client import Client
+    from command_window import CommandWindow
+    from state import State
+    from chat import Chat
+    from status_line import StatusLine
+    from colon_line import ColonLine
+    from text_box import TextBox
+    from roll import Roll
 
     init_features()
 
     features = []
+    roll = Roll()
     viewport = Viewport(features, 0, 0)
     colon_line = ColonLine(curses.LINES, curses.COLS)
     screen = Screen(scr)
     pc = PC()
     client = Client(password, host=host, port=port)
     viewer = Viewer(scr, "")
+    state = State()
+    chat = Chat()
+    sl = StatusLine(curses.LINES, curses.COLS)
+    tb = TextBox()
+    command_window = CommandWindow()
 
+    state.set_state("role", "pc")
+
+    viewer.register_submodule(roll)
+    viewer.register_submodule(command_window)
     viewer.register_submodule(viewport)
     viewer.register_submodule(screen)
     viewer.register_submodule(pc)
     viewer.register_submodule(colon_line)
     viewer.register_submodule(client)
+    viewer.register_submodule(state)
+    viewer.register_submodule(sl)
+    viewer.register_submodule(chat)
+    viewer.register_submodule(tb)
 
     viewer.run()
 

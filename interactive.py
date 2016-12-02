@@ -10,6 +10,17 @@ class InteractiveModule:
     def _handle_combo(self, viewer, buf):
         raise Exception("_handle_como has not been implemented.")
 
+class LiveModule:
+    def _each(self, viewer):
+        raise Exception("_each has not been implemented.")
+
+class TextDisplayModule:
+    def _show(self, viewer):
+        raise Exception("_show has not been implemented.")
+
+    def _hide(self, viewer):
+        raise Exception("_hide has not been implemented.")
+
 
 class VisibleModule:
     def draw(self):

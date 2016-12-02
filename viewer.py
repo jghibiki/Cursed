@@ -49,6 +49,10 @@ class Viewer(InteractiveModule, VisibleModule):
             changes = False
 
             for mod in self._submodules:
+                if isinstance(mod, LiveModule):
+                    mod._each(self)
+
+            for mod in self._submodules:
                 if isinstance(mod, ClientModule):
                     changes = mod.update(self)
 
@@ -254,6 +258,10 @@ class Viewer(InteractiveModule, VisibleModule):
         for submodule in self._submodules:
             if isinstance(submodule, module_type):
                 return submodule
+    def apply_to_submodules(self, module_type, callback):
+        for submodule in self._submodules:
+            if isinstance(submodule, module_type):
+                callback(submodule)
 
 
 class ViewerConstants:

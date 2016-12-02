@@ -1,4 +1,4 @@
-from interactive import VisibleModule, InteractiveModule
+from interactive import VisibleModule, InteractiveModule, TextDisplayModule
 from features import FeatureType, Feature, FeatureSerializer
 from viewer import ViewerConstants
 from viewport import Viewport
@@ -65,7 +65,14 @@ class CommandWindow(VisibleModule, InteractiveModule):
                 )
             self._screen.attroff(curses.color_pair(179))
 
-            if self._mode is CommandMode.default: self._draw_default_screen()
+            state = viewer.get_submodule(State)
+            role = state.get_state("role")
+
+            if self._mode is CommandMode.default:
+                if role == "pc":
+                    self._draw_pc_default_screen()
+                elif role == "gm":
+                    self._draw_gm_default_screen()
             if self._mode is CommandMode.build: self._draw_build_screen()
 
             self._screen.noutrefresh()
@@ -74,23 +81,26 @@ class CommandWindow(VisibleModule, InteractiveModule):
         return False
 
     def _handle(self, viewer, ch):
-
+        state = viewer.get_submodule(State)
+        role = state.get_state("role")
         if self._mode is CommandMode.default:
-            if ch == ord("b"):
+            if ch == ord("b") and role == "gm":
                 self._mode = CommandMode.build
                 self._dirty = True
 
             if ch == ord("c"):
                 from chat import Chat
                 chat = viewer.get_submodule(Chat)
-                chat.show(viewer)
+                viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
+                chat._show(viewer)
 
-            if ch == ord("n"):
+            if ch == ord("n") and role == "gm":
                 from narrative import Narrative
                 narrative = viewer.get_submodule(Narrative)
-                narrative.show(viewer)
+                viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
+                narrative._show(viewer)
 
-        elif self._mode is CommandMode.build:
+        elif self._mode is CommandMode.build: #gm only
             if ch == 27 or ch == curses.ascii.ESC: # escape
                 self._mode = CommandMode.default
                 self._dirty = True
@@ -275,7 +285,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
         pass
 
 
-    def _draw_default_screen(self):
+    def _draw_gm_default_screen(self):
         self._screen.addstr(1, 2, "Commands:", curses.color_pair(179))
 
         # build menu
@@ -289,6 +299,14 @@ class CommandWindow(VisibleModule, InteractiveModule):
         # show narrative
         self._screen.addstr(4, 2, "n", curses.color_pair(179))
         self._screen.addstr(4, 3, ": Narrative", )
+
+    def _draw_pc_default_screen(self):
+        self._screen.addstr(1, 2, "Commands:", curses.color_pair(179))
+
+        # show chat
+        self._screen.addstr(2, 2, "c", curses.color_pair(179))
+        self._screen.addstr(2, 3, ": Chat", )
+
 
     def _draw_build_screen(self):
         self._screen.addstr(1, 2, "Build:", curses.color_pair(179))

@@ -1,4 +1,4 @@
-from interactive import VisibleModule, InteractiveModule
+from interactive import VisibleModule, InteractiveModule, TextDisplayModule
 from viewer import ViewerConstants
 from client import Client
 from state import State
@@ -25,8 +25,8 @@ class TextBox(VisibleModule, InteractiveModule):
                               "ctrl + j - scroll down\n" +
                               "ctrl + k - scroll up\n" +
                               ":clear - clear text box.\n" +
-                              ":read - read text in window.\n"
-                              "\nNarrative:\n" +
+                              ":read - read text in window. GM only.\n"
+                              "\nNarrative (GM Only):\n" +
                               ":n list - list chapters.\n" +
                               ":n view <chapter number> - view chapter.\n" +
                               ":n edit <chapter number> - edit chapter.\n" +
@@ -118,20 +118,23 @@ class TextBox(VisibleModule, InteractiveModule):
                 self.set_text(self._previous)
 
         elif buff[0] == "clear" or buff[0] == "c":
+            viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
             self.set_text(self._default_text)
             self._dirty = True
 
-        elif buff[0] == "read" or buff[0] == "r" and len(buff) == 1:
-            import subprocess
-            import os
-            text = self._paged_text
+        elif buff[0] == "read" and len(buff) == 1:
+            state = viewer.get_submodule(State)
+            if state.get_state("role") == "gm":
+                import subprocess
+                import os
+                text = self._paged_text
 
-            FNULL = open(os.devnull, 'w')
-            for line in text:
-                try: # lazily handle failure
-                    subprocess.call(["espeak", line], stdout=FNULL, stderr=subprocess.STDOUT)
-                except:
-                    pass
+                FNULL = open(os.devnull, 'w')
+                for line in text:
+                    try: # lazily handle failure
+                        subprocess.call(["espeak", line], stdout=FNULL, stderr=subprocess.STDOUT)
+                    except:
+                        pass
 
     def set_text(self, text):
         self._previous_text = self._text

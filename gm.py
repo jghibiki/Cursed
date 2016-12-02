@@ -158,8 +158,6 @@ class GM(InteractiveModule, UserModule):
         import sys, tempfile, os
         import subprocess
 
-
-        log.error("opening notes")
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
 

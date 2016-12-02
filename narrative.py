@@ -1,4 +1,4 @@
-from interactive import VisibleModule, InteractiveModule
+from interactive import VisibleModule, InteractiveModule, TextDisplayModule
 from viewer import ViewerConstants
 from client import Client
 from text_box import TextBox
@@ -11,10 +11,10 @@ import subprocess
 log = logging.getLogger('simple_example')
 
 
-class Narrative(InteractiveModule):
+class Narrative(InteractiveModule, TextDisplayModule):
 
     def __init__(self):
-        pass
+        self._showing = False
 
 
     def _handle(self, viewer, ch):
@@ -103,7 +103,8 @@ class Narrative(InteractiveModule):
     def _handle_help(self, viewer, buff):
         pass
 
-    def show(self, viewer):
+    def _show(self, viewer):
+        self._showing = True
         tb = viewer.get_submodule(TextBox)
 
         c = viewer.get_submodule(Client)
@@ -112,5 +113,8 @@ class Narrative(InteractiveModule):
         for idx, chapter in enumerate(data["chapters"]):
             text += ("%02d. %s\n" % (idx+1, chapter))
         tb.set_text(text)
+
+    def _hide(self, viewer):
+        self._showing = False
 
 

@@ -219,6 +219,23 @@ def get_chat_messages(username):
 
     return jsonify({ "messages": messages })
 
+@app.route('/chat/<username>/hash', methods=["GET"])
+@requires_auth
+def get_chat_hash(username):
+    all_messages = game_data["chat"]
+    messages = []
+
+    for message in all_messages:
+        if ( message["recipient"] == username or
+             message["sender"] == username or
+             message["recipient"] == None ):
+            messages.append(message)
+
+    data = json.dumps(messages, sort_keys=True).encode("utf-8")
+    hash = hashlib.md5(data).hexdigest()
+
+    return jsonify({ "hash": hash })
+
 @app.route('/save', methods=["GET"])
 def save_data():
     save_callback(game_data)
