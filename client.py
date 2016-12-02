@@ -1,4 +1,4 @@
-from interactive import ClientModule
+from interactive import ClientModule, LiveModule
 from viewport import Viewport
 import requests
 import logging
@@ -28,43 +28,17 @@ class Client(ClientModule):
     def update(self, viewer):
         log.debug("client.update called")
 
-        map_updates = self._update_map(viewer)
+        hashes = self.make_request("/hash")
 
-        return map_updates
+        submodules = viewer.get_submodules(LiveModule)
 
-    def _update_map(self, viewer):
-        vp = viewer.get_submodule(Viewport)
+        updates = False
+        for module in submodules:
+            module_updates = module._update(viewer, hashes)
+            updates = updates and module_updates
 
-        log.debug("client._update_map requesting map name")
-        raw_data = self.make_request("/map")
-        self._map_name = raw_data["map_name"]
-        log.debug("client._update_map retrieved map name: %s" % self._map_name)
+        return updates
 
-        log.debug("client._update_map requesting map hash")
-        raw_data = self.make_request("/map/hash/%s" % self._map_name)
-        new_hash = raw_data["hash"]
-        log.debug("client._update_map retrieved map hash: %s, previous hash: %s" % (new_hash, self._previous_hash))
-
-        if new_hash != self._previous_hash:
-
-            data = self.make_request("/map/data/%s" % self._map_name)
-            self._previous_hash = new_hash
-
-            if data:
-                log.debug("client._update_map read in map name:%s max_y: %s, max_x: %s and %s features from server" %
-                        (self._map_name,
-                         data["max_y"],
-                         data["max_x"],
-                         len(data["features"])))
-
-                viewer.map_name = self._map_name
-                vp.update_features(data["features"])
-                vp.update_screen(
-                        data["max_y"],
-                        data["max_y"])
-
-                return True
-        return False
 
     def make_request(self, url, payload=None):
         if not payload:

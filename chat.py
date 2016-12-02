@@ -15,14 +15,17 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
         self._showing = False
         self._previous_hash = None
 
-    def _each(self, viewer):
+    def _update(self, viewer, hashes):
         if self._showing:
-            state = viewer.get_submodule(State)
-            tb = viewer.get_submodule(TextBox)
-            username = state.get_state("username")
-            text = self._get_messages(viewer, username)
-            if text:
-                tb.set_text(text)
+            hash = hashes["chat"]
+
+            if hash != self._previous_hash:
+                state = viewer.get_submodule(State)
+                tb = viewer.get_submodule(TextBox)
+                username = state.get_state("username")
+                text = self._get_messages(viewer, username)
+                if text:
+                    tb.set_text(text)
 
     def _handle(self, viewer, ch):
         pass
@@ -108,30 +111,22 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
     def _get_messages(self, viewer, username):
         c = viewer.get_submodule(Client)
 
-        hsh = self._get_message_hash(viewer, username)
+        self._previous_hash = hsh
+        data = c.make_request("/chat/%s" % username)
+        text = "Chat:\n"
+        for message in data["messages"]:
+            if message["recipient"] is not None:
+                text += ("<private> %s to %s: %s\n" % (
+                    message["sender"],
+                    message["recipient"],
+                    message["message"]))
+            else:
+                text += ("%s: %s\n" % (
+                    message["sender"],
+                    message["message"]))
 
-        if hsh != self._previous_hash:
-            self._previous_hash = hsh
-            data = c.make_request("/chat/%s" % username)
-            text = "Chat:\n"
-            for message in data["messages"]:
-                if message["recipient"] is not None:
-                    text += ("<private> %s to %s: %s\n" % (
-                        message["sender"],
-                        message["recipient"],
-                        message["message"]))
-                else:
-                    text += ("%s: %s\n" % (
-                        message["sender"],
-                        message["message"]))
+        return text
 
-            return text
-        return None
-
-    def _get_message_hash(self, viewer, username):
-        c = viewer.get_submodule(Client)
-        data = c.make_request("/chat/%s/hash" % username)
-        return data["hash"]
 
 
     def _hide(self, viewer):

@@ -11,8 +11,8 @@ class InteractiveModule:
         raise Exception("_handle_como has not been implemented.")
 
 class LiveModule:
-    def _each(self, viewer):
-        raise Exception("_each has not been implemented.")
+    def _update(self, viewer):
+        raise Exception("_update has not been implemented.")
 
 class TextDisplayModule:
     def _show(self, viewer):

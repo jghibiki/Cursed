@@ -12,17 +12,17 @@ app = Flask(__name__)
 game_data = None
 save_callback = None
 current_map = None
+map_hash = None
 feature_hashes = []
-
-@app.route("/")
-def hello():
-    return "Hello World"
+chat_hash = None
 
 
-@app.route("/map/data/<name>", methods=["GET"])
-@app.route("/map/data/<name>/<index>", methods=["GET"])
+@app.route("/map/data/", methods=["GET"])
+@app.route("/map/data/<index>/", methods=["GET"])
 @requires_auth
-def get_map(name, index=None):
+def get_map(index=None):
+
+    name = current_map
 
     if not index:
         return jsonify(
@@ -31,18 +31,22 @@ def get_map(name, index=None):
     return jsonify(game_data["maps"][name]["features"][index])
 
 
-@app.route("/map/hash/<name>", methods=["GET"])
+@app.route("/map/hash/", methods=["GET"])
 @requires_auth
-def get_map_hash(name):
+def get_map_hash():
+    name = current_map
+
     data = json.dumps(game_data["maps"][name], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
+
+    global map_hash
+    map_hash = hsh
 
     return jsonify({"hash": hsh, "features": feature_hashes})
 
 @app.route("/map/add", methods=["POST"])
-@app.route("/map/add/<name>", methods=["POST"])
 @requires_gm_auth
-def add_feature_to_map(name=None):
+def add_feature_to_map():
     data = request.json
 
     # validate request data
@@ -57,8 +61,7 @@ def add_feature_to_map(name=None):
     if "notes" not in data:
         return ('Payload midding field "notes"', 400)
 
-    if not name:
-        name = current_map
+    name = current_map
 
     features = game_data["maps"][name]["features"]
 
@@ -200,8 +203,13 @@ def add_chat_message():
     if "message" not in data:
         return 'Payload missing field "message"', 400
 
+
     global game_data
     game_data["chat"].append(data)
+
+    global chat_hash
+    data = json.dumps(game_data["chat"], sort_keys=True).encode("utf-8")
+    chat_hash = hashlib.md5(data).hexdigest()
 
     return jsonify({})
 
@@ -225,16 +233,24 @@ def get_chat_hash(username):
     all_messages = game_data["chat"]
     messages = []
 
-    for message in all_messages:
-        if ( message["recipient"] == username or
-             message["sender"] == username or
-             message["recipient"] == None ):
-            messages.append(message)
+    #for message in all_messages:
+    #    if ( message["recipient"] == username or
+    #         message["sender"] == username or
+    #         message["recipient"] == None ):
+    #        messages.append(message)
 
-    data = json.dumps(messages, sort_keys=True).encode("utf-8")
-    hash = hashlib.md5(data).hexdigest()
+    #data = json.dumps(messages, sort_keys=True).encode("utf-8")
+    #hash = hashlib.md5(data).hexdigest()
 
-    return jsonify({ "hash": hash })
+    return jsonify({ "hash": chat_hash })
+
+@app.route('/hash', methods=["GET"])
+def get_hashes():
+    return jsonify({
+        "map": map_hash,
+        "features": feature_hashes,
+        "chat": chat_hash
+    })
 
 @app.route('/save', methods=["GET"])
 def save_data():
@@ -242,12 +258,21 @@ def save_data():
     return jsonify({})
 
 
-def run(data, port, host, gm_passwd, passwd, save):
+def run(data, port, host, gm_passwd, passwd, map_name, save):
     global game_data
     game_data = data
 
     global save_callback
     save_callback = save
+
+    global current_map
+    current_map = map_name
+
+    data = json.dumps(game_data["maps"][map_name], sort_keys=True).encode("utf-8")
+    hsh = hashlib.md5(data).hexdigest()
+
+    global map_hash
+    map_hash = hsh
 
     tmp = "%s%s%s%s" % (random.randint(0, 9), random.randint(0, 9), random.randint(0, 9), random.randint(0, 9))
     authentication.gm_password = gm_passwd if gm_passwd else tmp
@@ -257,4 +282,4 @@ def run(data, port, host, gm_passwd, passwd, save):
     authentication.password = passwd if passwd else tmp
     print("PC Password: %s" % authentication.password)
 
-    app.run(port=port, host=host, threaded=True, debug=True)
+    app.run(port=port, host=host, threaded=True, debug=False)

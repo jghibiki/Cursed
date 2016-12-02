@@ -31,7 +31,7 @@ def server(ctx, port, host, map_name, gm_password, password):
     game_data = load(ctx)
     def save_callback(data):
         save(ctx, data)
-    start_app_server(game_data, port, host,gm_password, password, save_callback)
+    start_app_server(game_data, port, host, gm_password, password, map_name, save_callback)
 
 
 @click.command("gm")
@@ -74,6 +74,7 @@ def _gm_join(scr, ctx, host, port, username, wsad, password, map_name):
     from chat import Chat
     from status_line import StatusLine
     from roll import Roll
+    from map import Map
 
     init_features()
     features = []
@@ -93,12 +94,14 @@ def _gm_join(scr, ctx, host, port, username, wsad, password, map_name):
     chat = Chat()
     sl = StatusLine(curses.LINES, curses.COLS)
     viewer = Viewer(scr, map_name)
+    map = Map()
 
     state.set_state("role", "gm")
     state.set_state("direction_scheme", "wsad" if wsad else "vim")
     state.set_state("username", username)
 
     # registering modules with viewer module
+    viewer.register_submodule(map)
     viewer.register_submodule(roll)
     viewer.register_submodule(state)
     viewer.register_submodule(sl)
@@ -162,6 +165,7 @@ def _pc_join(scr, ctx, host, port, password):
     from colon_line import ColonLine
     from text_box import TextBox
     from roll import Roll
+    from map import Map
 
     init_features()
 
@@ -178,9 +182,11 @@ def _pc_join(scr, ctx, host, port, password):
     sl = StatusLine(curses.LINES, curses.COLS)
     tb = TextBox()
     command_window = CommandWindow()
+    map = Map()
 
     state.set_state("role", "pc")
 
+    viewer.register_submodule(map)
     viewer.register_submodule(roll)
     viewer.register_submodule(command_window)
     viewer.register_submodule(viewport)

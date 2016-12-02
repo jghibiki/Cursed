@@ -18,7 +18,7 @@ class Viewer(InteractiveModule, VisibleModule):
     def __init__(self, screen, map_name):
 
         self.screen = screen
-        self.screen.timeout(500)
+        self.screen.timeout(1000)
 
         self.map_name = map_name
 
@@ -47,10 +47,6 @@ class Viewer(InteractiveModule, VisibleModule):
 
 
             changes = False
-
-            for mod in self._submodules:
-                if isinstance(mod, LiveModule):
-                    mod._each(self)
 
             for mod in self._submodules:
                 if isinstance(mod, ClientModule):
@@ -258,10 +254,18 @@ class Viewer(InteractiveModule, VisibleModule):
         for submodule in self._submodules:
             if isinstance(submodule, module_type):
                 return submodule
+
     def apply_to_submodules(self, module_type, callback):
         for submodule in self._submodules:
             if isinstance(submodule, module_type):
                 callback(submodule)
+
+    def get_submodules(self, module_type):
+        modules = []
+        for submodule in self._submodules:
+            if isinstance(submodule, module_type):
+                modules.append(submodule)
+        return modules
 
 
 class ViewerConstants:
