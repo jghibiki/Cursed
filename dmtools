@@ -6,13 +6,12 @@ import json
 import click
 import os.path
 from utils import save, load
-from campaign_map import campaign_map
-from dice import roll
-from story import story
-from reference import ref
-from share import share
+from app_server import run as start_app_server
+import curses
+import logging
 
 # configure logging
+log = None 
 
 
 @click.group()
@@ -31,6 +30,8 @@ def cli(ctx, data_location, logfile):
     ch.setFormatter(formatter)
     logger.addHandler(ch)
     logger.setLevel(logging.INFO)
+    global log
+    log = logger
 
 #####################
 # Initialization
@@ -56,15 +57,194 @@ def init(ctx, campaign_title, campaign_description, overwrite):
     elif campaign_exists and not overwrite:
         print("Campaign file already exists. Use --overwrite to overwrite existing file.")
 
+@click.command()
+@click.option("--port", default=8080)
+@click.option("--host", default="0.0.0.0")
+@click.option("--gm-password", default=None)
+@click.option("--password", default=None)
+@click.argument("map_name")
+@click.pass_context
+def server(ctx, port, host, map_name, gm_password, password):
+    """
+    Starts a server
+    """
+    game_data = load(ctx)
+    def save_callback(data):
+        save(ctx, data)
+    start_app_server(game_data, port, host, gm_password, password, map_name, save_callback)
+
+
+@click.command("gm")
+@click.option("--host", default="127.0.0.1")
+@click.option("--port", default=8080)
+@click.option("--wsad", is_flag=True, default=False)
+@click.argument("username")
+@click.argument("password")
+@click.pass_context
+def gm(ctx, host, port, wsad, username, password):
+    """
+    Join a dmtools server.
+    """
+    os.environ.setdefault('ESCDELAY', '5')
+    curses.wrapper(_join, ctx, "gm", host, port, username, wsad, password)
+
+
+
+@click.command("pc")
+@click.option("--host", default="127.0.0.1")
+@click.option("--port", default=8080)
+@click.option("--wsad", is_flag=True, default=False)
+@click.argument("username")
+@click.argument("password")
+@click.pass_context
+def pc(ctx, host, port, wsad, username, password):
+    """
+    Join a dmtools server.
+    """
+    os.environ.setdefault('ESCDELAY', '5')
+    curses.wrapper(_join, ctx, "pc", host, port, username, wsad, password)
+
+def _join(scr, ctx, role, host, port, username, wsad, password):
+    curses.start_color()
+    curses.use_default_colors()
+    for i in range(0, curses.COLORS):
+        curses.init_pair(i + 1, i, -1)
+
+    from features import init_features
+    from features import load_features
+
+    init_features()
+
+    # load viewer
+    from viewer import Viewer
+    viewer = Viewer(scr)
+
+    # load submodules
+    from screen import Screen
+    screen = Screen(scr)
+    viewer.register_submodule(screen)
+
+    from viewport import Viewport
+    viewport = Viewport()
+    viewer.register_submodule(viewport)
+
+    from text_box import TextBox
+    tb = TextBox()
+    viewer.register_submodule(tb)
+
+    from colon_line import ColonLine
+    colon_line = ColonLine()
+    viewer.register_submodule(colon_line)
+
+    from client import Client
+    client = Client(password, host=host, port=port)
+    viewer.register_submodule(client)
+
+    from command_window import CommandWindow
+    cw = CommandWindow()
+    viewer.register_submodule(cw)
+
+    from state import State
+    state = State()
+    state.set_state("role", role)
+    state.set_state("direction_scheme", "wsad" if wsad else "vim")
+    state.set_state("username", username)
+    viewer.register_submodule(state)
+
+    from chat import Chat
+    chat = Chat()
+    viewer.register_submodule(chat)
+
+    from status_line import StatusLine
+    sl = StatusLine()
+    viewer.register_submodule(sl)
+
+    from roll import Roll
+    roll = Roll()
+    viewer.register_submodule(roll)
+
+    from map import Map
+    map = Map()
+    viewer.register_submodule(map)
+
+    if role == "gm":
+        from gm import GM
+        gm = GM()
+        viewer.register_submodule(gm)
+
+        from editor import Editor
+        editor = Editor()
+        viewer.register_submodule(editor)
+
+        from narrative import Narrative
+        narrative = Narrative()
+        viewer.register_submodule(narrative)
+
+    elif role == "pc":
+        from pc import PC
+        pc = PC()
+        viewer.register_submodule(pc)
+
+    log.debug("running viewer")
+    viewer.run()
+
+
+# Maps add / rm / list
+@click.group("map")
+@click.pass_context
+def campaign_map(ctx):
+    pass
+
+@click.command("add")
+@click.option("--max-x", default=100, type=int)
+@click.option("--max-y", default=100, type=int)
+@click.argument("map_name")
+@click.pass_context
+def add_map(ctx, max_x, max_y, map_name):
+    campaign_obj = load(ctx)
+
+
+    campaign_obj["maps"][map_name] = {
+        "max_x": max_x,
+        "max_y": max_y,
+        "features": [],
+        "fow": [ [ False for y in range(max_y) ] for x in range(max_x) ]
+    }
+
+    save(ctx, campaign_obj)
+
+@click.command("rm")
+@click.argument("map_name")
+@click.pass_context
+def remove_map(ctx, map_name):
+    campaign_obj = load(ctx)
+    del campaign_obj["maps"][map_name]
+    save(ctx, campaign_obj)
+
+@click.command("list")
+@click.pass_context
+def list(ctx):
+    campaign_obj = load(ctx)
+    intro = "%s" % campaign_obj["title"]
+    pad = len(intro)*"="
+    print("%s\n%s\n%s\nMaps:" % (pad, intro, pad))
+    for cmap in campaign_obj["maps"].keys():
+        print("|-> %s" % cmap)
+
+
+campaign_map.add_command(add_map)
+campaign_map.add_command(remove_map)
+campaign_map.add_command(list)
+
+
 
 ##########################
 # Root group definition
 cli.add_command(init)
+cli.add_command(server)
+cli.add_command(gm)
+cli.add_command(pc)
 cli.add_command(campaign_map)
-cli.add_command(roll)
-cli.add_command(story)
-cli.add_command(ref)
-cli.add_command(share)
 
 
 

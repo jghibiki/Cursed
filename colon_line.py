@@ -11,14 +11,13 @@ log = logging.getLogger('simple_example')
 
 class ColonLine(VisibleModule):
 
-    def __init__(self, max_y, max_x):
+    def __init__(self):
         self.initial_draw_priority = 99
         self.draw_priority = 99
-
         self.x = 0
         self.y = ViewerConstants.max_y-2
         self.h = 3
-        self.w = math.floor(max_x/2)+1
+        self.w = math.floor(curses.COLS/2)+1
 
         self._buffer = ""
         self._msg = ""

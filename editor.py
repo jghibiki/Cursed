@@ -17,7 +17,7 @@ log = logging.getLogger('simple_example')
 
 class Editor(VisibleModule, InteractiveModule):
 
-    def __init__(self, max_y, max_x):
+    def __init__(self):
 
 
         self.initial_draw_priority = 5
@@ -25,8 +25,8 @@ class Editor(VisibleModule, InteractiveModule):
 
         self.x = 0
         self.y = 0
-        self.h = max_y + 1
-        self.w = max_x + 2
+        self.h = 1
+        self.w = 2
 
         self._dirty = True
         self._screen = curses.newpad(self.h, self.w)

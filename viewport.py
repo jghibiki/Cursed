@@ -11,7 +11,7 @@ log = logging.getLogger('simple_example')
 # TODO: Implement save method
 
 class Viewport(VisibleModule, FeatureModule, SavableModule):
-    def __init__(self, features, max_y, max_x):
+    def __init__(self):
 
 
         self.initial_draw_priority = 0

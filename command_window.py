@@ -13,6 +13,7 @@ log = logging.getLogger('simple_example')
 class CommandMode:
     default = 0
     build = 1
+    fow = 2
 
 
 class CommandWindow(VisibleModule, InteractiveModule):
@@ -74,6 +75,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
                 elif role == "gm":
                     self._draw_gm_default_screen()
             if self._mode is CommandMode.build: self._draw_build_screen()
+            if self._mode is CommandMode.fow: self._draw_fow_screen()
 
             self._screen.noutrefresh()
             self._dirty = False
@@ -99,6 +101,21 @@ class CommandWindow(VisibleModule, InteractiveModule):
                 narrative = viewer.get_submodule(Narrative)
                 viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
                 narrative._show(viewer)
+
+            if ch == ord("f") and role == "gm":
+                vp = viewer.get_submodule(Viewport)
+                current = state.get_state("fow")
+                if current == "on":
+                    state.set_state("fow", "off")
+                else:
+                    state.set_state("fow", "on")
+                vp._dirty = True
+                viewer._draw(force=True)
+
+            if ch == ord("F") and role == "gm":
+                self._mode = CommandMode.fow
+                self._dirty = True
+
 
         elif self._mode is CommandMode.build: #gm only
             if ch == 27 or ch == curses.ascii.ESC: # escape
@@ -277,6 +294,47 @@ class CommandWindow(VisibleModule, InteractiveModule):
                 raw_feature = FeatureSerializer.toDict(feature)
                 c.make_request("/map/add", payload=raw_feature)
 
+        elif self._mode is CommandMode.fow: #gm only
+            if ch == 27 or ch == curses.ascii.ESC: # escape
+                self._mode = CommandMode.default
+                self._dirty = True
+
+            elif ch == ord("f"):
+                vp = viewer.get_submodule(Viewport)
+                current = state.get_state("fow")
+                if current == "on":
+                    state.set_state("fow", "off")
+                else:
+                    state.set_state("fow", "on")
+                vp._dirty = True
+                viewer._draw(force=True)
+
+            elif ch == ord("a"):
+                vp = viewer.get_submodule(Viewport)
+                c = viewer.get_submodule(Client)
+                c.make_request("/fow/add", payload={
+                    "x": vp.cursor_x,
+                    "y": vp.cursor_y
+                })
+
+            elif ch == ord("r"):
+                vp = viewer.get_submodule(Viewport)
+                c = viewer.get_submodule(Client)
+                c.make_request("/fow/rm", payload={
+                    "x": vp.cursor_x,
+                    "y": vp.cursor_y
+                })
+
+            elif ch == ord("A"):
+                vp = viewer.get_submodule(Viewport)
+                c = viewer.get_submodule(Client)
+                c.make_request("/fow/fill")
+
+            elif ch == ord("R"):
+                vp = viewer.get_submodule(Viewport)
+                c = viewer.get_submodule(Client)
+                c.make_request("/fow/clear")
+
 
     def _handle_combo(self, viewer, buff):
             pass
@@ -300,12 +358,47 @@ class CommandWindow(VisibleModule, InteractiveModule):
         self._screen.addstr(4, 2, "n", curses.color_pair(179))
         self._screen.addstr(4, 3, ": Narrative", )
 
+        # show fow toggle
+        self._screen.addstr(5, 2, "f", curses.color_pair(179))
+        self._screen.addstr(5, 3, ": Toggle Fog of War for GM")
+
+        # fow menu
+        self._screen.addstr(6, 2, "F", curses.color_pair(179))
+        self._screen.addstr(6, 3, ": Edit Fog of War")
+
     def _draw_pc_default_screen(self):
         self._screen.addstr(1, 2, "Commands:", curses.color_pair(179))
 
         # show chat
         self._screen.addstr(2, 2, "c", curses.color_pair(179))
         self._screen.addstr(2, 3, ": Chat", )
+
+    def _draw_fow_screen(self):
+        self._screen.addstr(1, 2, "Fog of War Commands:", curses.color_pair(179))
+
+        # toggle gm fow view
+        self._screen.addstr(2, 2, "f", curses.color_pair(179))
+        self._screen.addstr(2, 3, ": Toggle FoW for GM", )
+
+        # add fow
+        self._screen.addstr(3, 2, "a", curses.color_pair(179))
+        self._screen.addstr(3, 3, ": Add FoW", )
+
+        # rm fow
+        self._screen.addstr(4, 2, "r", curses.color_pair(179))
+        self._screen.addstr(4, 3, ": Remove FoW", )
+
+        # fill fow
+        self._screen.addstr(5, 2, "A", curses.color_pair(179))
+        self._screen.addstr(5, 3, ": Fill Map with FoW", )
+
+        # clear fow
+        self._screen.addstr(6, 2, "R", curses.color_pair(179))
+        self._screen.addstr(6, 3, ": Clear FoW", )
+
+        # esc
+        self._screen.addstr(8, 2, "esc", curses.color_pair(179))
+        self._screen.addstr(8, 5, ": Back", )
 
 
     def _draw_build_screen(self):

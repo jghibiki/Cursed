@@ -8,14 +8,13 @@ import hashlib
 log = logging.getLogger('simple_example')
 
 class Client(ClientModule):
-    def __init__(self, password, map_name=None, host="127.0.0.1", port=8080):
+    def __init__(self, password, host="127.0.0.1", port=8080):
         self._host = host
         self._port = port
         self._previous_hash = None
         self._previous_feature_hashes = []
         self._password = password
         self._base_url = "http://%s:%s" % (self._host, self._port)
-        self._map_name = map_name
 
     def connect(self):
         """Deprecated"""

@@ -11,14 +11,14 @@ log = logging.getLogger('simple_example')
 
 class StatusLine(VisibleModule):
 
-    def __init__(self, max_y, max_x):
+    def __init__(self):
         self.initial_draw_priority = 99
         self.draw_priority = 99
 
-        self.x = math.floor(max_x/2)+1
+        self.x = math.floor(curses.COLS/2)+1
         self.y = ViewerConstants.max_y-2
         self.h = 3
-        self.w = math.floor(max_x/2)-1
+        self.w = math.floor(curses.COLS/2)-1
 
         self._dirty = True
         self._screen = curses.newwin(self.h, self.w, self.y, self.x)

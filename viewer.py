@@ -15,12 +15,10 @@ WSAD_DIRECTIONS = [ ord("w"), ord("s"), ord("a"), ord("d"), ord("W"), ord("S"), 
 
 class Viewer(InteractiveModule, VisibleModule):
 
-    def __init__(self, screen, map_name):
+    def __init__(self, screen):
 
         self.screen = screen
         self.screen.timeout(1000)
-
-        self.map_name = map_name
 
         self._submodules = []
 
