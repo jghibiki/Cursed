@@ -65,15 +65,11 @@ class Viewer(InteractiveModule, VisibleModule):
                     color = random.randint(1, curses.COLORS-1)
                     curses.init_pair(i + 1, color, -1)
 
-            if changes:
-                curses.doupdate()
 
-                for mod in self._submodules:
-                    if isinstance(mod, ServerModule):
-                        mod.update(self)
 
 
     def _draw(self, force=False):
+        if force: log.debug("viewer._draw forced")
         changes = False
         visible_modules = []
         for module in self._submodules:
@@ -92,6 +88,8 @@ class Viewer(InteractiveModule, VisibleModule):
                 log.debug("module %s has updated." % module)
                 changes = True
 
+        if changes:
+                curses.doupdate()
         return changes
 
     def _handle_combo(self, ch):

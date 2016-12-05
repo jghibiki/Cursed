@@ -15,6 +15,7 @@ current_map = None
 map_hash = None
 feature_hashes = []
 chat_hash = None
+fow_hash = None
 
 
 @app.route("/map/data/", methods=["GET"])
@@ -249,12 +250,110 @@ def get_hashes():
     return jsonify({
         "map": map_hash,
         "features": feature_hashes,
-        "chat": chat_hash
+        "chat": chat_hash,
+        "fow": fow_hash
     })
 
 @app.route('/save', methods=["GET"])
 def save_data():
     save_callback(game_data)
+    return jsonify({})
+
+@app.route('/fow/add', methods=["POST"])
+def add_fow():
+    data = request.json
+
+    if "x" not in data:
+        return 'Payload missing field "x"', 400
+    if "y" not in data:
+        return 'Payload missing field "y"', 400
+
+    x = data["x"]
+    y = data["y"]
+
+    global dame_data
+    game_data["maps"][current_map]["fow"][x][y] = True
+
+    global fow_hash
+    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    hsh = hashlib.md5(data).hexdigest()
+    fow_hash = hsh
+
+    return jsonify({})
+
+@app.route('/fow/rm', methods=["POST"])
+def rm_fow():
+    data = request.json
+
+    if "x" not in data:
+        return 'Payload missing field "x"', 400
+    if "y" not in data:
+        return 'Payload missing field "y"', 400
+
+    x = data["x"]
+    y = data["y"]
+
+    global dame_data
+    game_data["maps"][current_map]["fow"][x][y] = False
+
+    global fow_hash
+    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    hsh = hashlib.md5(data).hexdigest()
+    fow_hash = hsh
+
+    return jsonify({})
+
+@app.route('/fow', methods=["GET"])
+def get_fow():
+
+    return jsonify({
+        "fow": game_data["maps"][current_map]["fow"]
+    })
+
+@app.route('/fow/toggle', methods=["GET"])
+def toggle_fow():
+
+    global dame_data
+    initial = not game_data["maps"][current_map]["fow"][0][0]
+    for x in range(0, game_data["maps"][current_map]["max_x"]):
+        for y in range(0, game_data["maps"][current_map]["max_y"]):
+            game_data["maps"][current_map]["fow"][x][y] = initial
+
+    global fow_hash
+    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    hsh = hashlib.md5(data).hexdigest()
+    fow_hash = hsh
+
+    return jsonify({})
+
+@app.route('/fow/fill', methods=["GET"])
+def all_fow():
+
+    global dame_data
+    for x in range(0, game_data["maps"][current_map]["max_x"]):
+        for y in range(0, game_data["maps"][current_map]["max_y"]):
+            game_data["maps"][current_map]["fow"][x][y] = True
+
+    global fow_hash
+    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    hsh = hashlib.md5(data).hexdigest()
+    fow_hash = hsh
+
+    return jsonify({})
+
+@app.route('/fow/clear', methods=["GET"])
+def none_fow():
+
+    global dame_data
+    for x in range(0, game_data["maps"][current_map]["max_x"]):
+        for y in range(0, game_data["maps"][current_map]["max_y"]):
+            game_data["maps"][current_map]["fow"][x][y] = False
+
+    global fow_hash
+    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    hsh = hashlib.md5(data).hexdigest()
+    fow_hash = hsh
+
     return jsonify({})
 
 
@@ -268,11 +367,18 @@ def run(data, port, host, gm_passwd, passwd, map_name, save):
     global current_map
     current_map = map_name
 
+
+    # calculate map hash
+    global map_hash
     data = json.dumps(game_data["maps"][map_name], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
-
-    global map_hash
     map_hash = hsh
+
+    # calculate fow hash
+    global fow_hash
+    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    hsh = hashlib.md5(data).hexdigest()
+    fow_hash = hsh
 
     tmp = "%s%s%s%s" % (random.randint(0, 9), random.randint(0, 9), random.randint(0, 9), random.randint(0, 9))
     authentication.gm_password = gm_passwd if gm_passwd else tmp

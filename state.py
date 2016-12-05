@@ -3,7 +3,9 @@ from interactive import InteractiveModule
 class State(InteractiveModule):
 
     def __init__(self):
-        self._state = {}
+        self._state={
+                "fow": "on"
+        }
 
     def _handle(self, viewer, ch):
         pass

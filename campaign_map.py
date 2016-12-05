@@ -24,7 +24,8 @@ def add_map(ctx, max_x, max_y, map_name):
     campaign_obj["maps"][map_name] = {
         "max_x": max_x,
         "max_y": max_y,
-        "features": []
+        "features": [],
+        "fow": [ [ False for y in range(max_y) ] for x in range(max_x) ]
     }
 
     save(ctx, campaign_obj)

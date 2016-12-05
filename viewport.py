@@ -1,5 +1,6 @@
 from features import Feature, FeatureType, FeatureSerializer
 from viewer import ViewerConstants
+from state import State
 from interactive import VisibleModule, FeatureModule, SavableModule
 import curses
 import logging
@@ -12,7 +13,6 @@ log = logging.getLogger('simple_example')
 class Viewport(VisibleModule, FeatureModule, SavableModule):
     def __init__(self, features, max_y, max_x):
 
-        self._features = features
 
         self.initial_draw_priority = 0
         self.draw_priority = 1
@@ -21,6 +21,9 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
         self.y = 0
         self.h = 100
         self.w = 100
+
+        self._features = []
+        self._fow = [ [ False for y in range(self.h) ] for x in range(self.w) ]
 
         self.cursor_y = math.floor(self.h/4)
         self.cursor_x = math.floor(self.w/2)
@@ -33,6 +36,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
             if force: log.debug("viewport.draw forced")
             if self._dirty: log.debug("viewport is dirty")
             self._screen.clear()
+
             self._screen.attrset(curses.color_pair(17))
             self._screen.border(
                     curses.ACS_BOARD,
@@ -48,6 +52,13 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
 
             for feature in self._features:
                 feature.draw(viewer, self._screen)
+
+            state = viewer.get_submodule(State)
+            if state.get_state("role") == "pc" or (state.get_state("role") == "gm" and state.get_state("fow") == "on"):
+                for x in range(0, self.w-2):
+                    for y in range(0, self.h-1):
+                        if self._fow[x][y]:
+                            self._screen.addstr(y, x, "▒", curses.color_pair(489))
 
             self._screen.addch(self.cursor_y, self.cursor_x, ord('X'), curses.color_pair(260))
 
@@ -153,6 +164,10 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
 
         if len(feature_dicts):
             self._dirty = True
+
+    def update_fow(self, new_fow):
+        self._fow = new_fow
+        self._dirty = True
 
     def update_screen(self, max_y, max_x):
         self.h = max_y + 1

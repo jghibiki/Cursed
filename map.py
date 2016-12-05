@@ -7,15 +7,17 @@ log = logging.getLogger('simple_example')
 
 class Map(LiveModule):
     def __init__(self):
-        self._previous_hash = None
+        self._previous_map_hash = None
+        self._previous_fow_hash = None
 
     def _update(self, viewer, hashes):
         vp = viewer.get_submodule(Viewport)
         client = viewer.get_submodule(Client)
 
         new_hash = hashes["map"]
-        if new_hash != self._previous_hash:
-            self._previous_hash = new_hash
+        updates = False
+        if new_hash != self._previous_map_hash:
+            self._previous_map_hash = new_hash
 
             data = client.make_request("/map/data/")
 
@@ -30,5 +32,16 @@ class Map(LiveModule):
                         data["max_y"],
                         data["max_y"])
 
-                return True
-        return False
+                updates = True
+
+        fow_hash = hashes["fow"]
+        if fow_hash != self._previous_fow_hash:
+            self._previous_fow_hash = fow_hash
+            data = client.make_request("/fow")
+
+            if data:
+                vp.update_fow(data["fow"])
+                updates = True
+
+
+        return updates
