@@ -294,6 +294,15 @@ class CommandWindow(VisibleModule, InteractiveModule):
                 raw_feature = FeatureSerializer.toDict(feature)
                 c.make_request("/map/add", payload=raw_feature)
 
+            elif ch == ord("x"):
+                vp = viewer.get_submodule(Viewport)
+                c = viewer.get_submodule(Client)
+                c.make_request("/map/rm", payload={
+                    "x": vp.cursor_x,
+                    "y": vp.cursor_y
+                })
+
+
         elif self._mode is CommandMode.fow: #gm only
             if ch == 27 or ch == curses.ascii.ESC: # escape
                 self._mode = CommandMode.default
@@ -596,7 +605,12 @@ class CommandWindow(VisibleModule, InteractiveModule):
                         FeatureType.dead_unit)))
         self._screen.addstr(20, 16, ")")
 
+
         # esc
-        self._screen.addstr(23, 2, "esc", curses.color_pair(179))
-        self._screen.addstr(23, 6, ": Back", )
+        self._screen.addstr(21, 2, "x", curses.color_pair(179))
+        self._screen.addstr(21, 3, ": Remove Object")
+
+        # esc
+        self._screen.addstr(24, 2, "esc", curses.color_pair(179))
+        self._screen.addstr(24, 6, ": Back")
 

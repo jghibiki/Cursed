@@ -110,8 +110,6 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
 
     def _get_messages(self, viewer, username):
         c = viewer.get_submodule(Client)
-
-        self._previous_hash = hsh
         data = c.make_request("/chat/%s" % username)
         text = "Chat:\n"
         for message in data["messages"]:

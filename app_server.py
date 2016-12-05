@@ -70,12 +70,16 @@ def add_feature_to_map():
         if feature["y"] == data["y"] and feature["x"] == data["x"]:
             return ('', 500)
 
-    features.append(data)
-    game_data["maps"][name]["features"] = features
+    game_data["maps"][name]["features"].append(data)
 
+    global map_hash
+    data = json.dumps(game_data["maps"][name], sort_keys=True).encode("utf-8")
+    hsh = hashlib.md5(data).hexdigest()
+    map_hash = hsh
+
+    global feature_hashes
     json_str = json.dumps(feature, sort_keys=True).encode("utf-8")
     h = hashlib.md5(json_str).hexdigest()
-    global feature_hashes
     feature_hashes.append(h)
 
     return jsonify({})
@@ -99,9 +103,14 @@ def rm_feature_from_map(name=None):
                 features.remove(feature)
                 game_data["maps"][name]["features"] = features
 
+                global map_hash
+                data = json.dumps(game_data["maps"][name], sort_keys=True).encode("utf-8")
+                hsh = hashlib.md5(data).hexdigest()
+                map_hash = hsh
+
+                global feature_hashes
                 json_str = json.dumps(feature, sort_keys=True).encode("utf-8")
                 h = hashlib.md5(json_str).hexdigest()
-                global feature_hashes
                 feature_hashes.remove(h)
 
                 return jsonify({})
