@@ -118,6 +118,17 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
             self.cursor_x -= 1
             self._dirty = True
 
+    def get_cursor_focus(self, viewer):
+        state = viewer.get_submodule(State)
+        a = [feature for feature in self._features if feature.pos_y == self.cursor_y and feature.pos_x == self.cursor_x]
+
+        # ensures there is a feature and if we are a pc we will not show thing hidden by FoW
+        if(len(a)) and not (state.get_state("role") == "pc" and self._fow[self.cursor_x][self.cursor_y]):
+                desc = "%s" % FeatureType.toName(a[0].char)
+                log.error(desc)
+                return desc
+        return ""
+
     def add_feature(self, y, x, char):
         if x < self.w and y < self.h:
             # if there is already a feature here don't add another

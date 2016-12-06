@@ -37,7 +37,6 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
 
         buff = buff.split(" ")
 
-        log.error(buff)
         if ( ( buff[0] == "send" or buff[0] == "s" ) and
                  len(buff) > 1 ):
             username = state.get_state("username")

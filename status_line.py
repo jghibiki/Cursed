@@ -23,18 +23,25 @@ class StatusLine(VisibleModule):
         self._dirty = True
         self._screen = curses.newwin(self.h, self.w, self.y, self.x)
 
+        self._previous_obj_desc = None
+
 
     def draw(self, viewer, force=False):
         from editor import Editor
         from screen import Screen
         from viewport import Viewport
 
+        vp = viewer.get_submodule(Viewport)
+        obj_desc = vp.get_cursor_focus(viewer)
+        if obj_desc != self._previous_obj_desc: # redraw if desc has changed
+            self._previous_obj_desc = obj_desc
+            self._dirty = True
+
         if self._dirty or force:
             if force: log.debug("status_line.draw forced")
 
             editor = viewer.get_submodule(Editor)
             screen = viewer.get_submodule(Screen)
-            vp = viewer.get_submodule(Viewport)
             state = viewer.get_submodule(State)
             self._screen.attrset(curses.color_pair(179))
 
@@ -63,7 +70,7 @@ class StatusLine(VisibleModule):
 
             self._screen.attroff(curses.color_pair(179))
 
-            msg = "Status Line"
+            msg = "%s" % (obj_desc)
             padded_ln = msg.ljust(self.w-2)
             self._screen.addstr(1,1, padded_ln, curses.color_pair(179))
 

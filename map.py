@@ -15,7 +15,6 @@ class Map(LiveModule):
         client = viewer.get_submodule(Client)
 
         new_hash = hashes["map"]
-        log.error("%s %s" % (new_hash, self._previous_map_hash))
         updates = False
         if new_hash != self._previous_map_hash:
             self._previous_map_hash = new_hash
