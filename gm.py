@@ -30,54 +30,55 @@ class GM(InteractiveModule, UserModule):
         state = viewer.get_submodule(State)
         wsad = state.get_state("direction_scheme")
         wsad = True if wsad is not None and wsad is True else False
-        if not wsad:
-            if ch == ord("j"):
-                self.down(viewer)
+        if True: #state.get_state("ignore_direction_keys") != "on":
+            if not wsad:
+                if ch == ord("j"):
+                    self.down(viewer)
 
-            elif ch == ord("k"):
-                self.up(viewer)
+                elif ch == ord("k"):
+                    self.up(viewer)
 
-            elif ch == ord("h"):
-                self.left(viewer)
+                elif ch == ord("h"):
+                    self.left(viewer)
 
-            elif ch == ord("l"):
-                self.right(viewer)
+                elif ch == ord("l"):
+                    self.right(viewer)
 
-            elif ch == ord("J"):
-                self.vp_down(viewer)
+                elif ch == ord("J"):
+                    self.vp_down(viewer)
 
-            elif ch == ord("K"):
-                self.vp_up(viewer)
+                elif ch == ord("K"):
+                    self.vp_up(viewer)
 
-            elif ch == ord("H"):
-                self.vp_left(viewer)
+                elif ch == ord("H"):
+                    self.vp_left(viewer)
 
-            elif ch == ord("L"):
-                self.vp_right(viewer)
-        else:
-            if ch == ord("s"):
-                self.down(viewer)
+                elif ch == ord("L"):
+                    self.vp_right(viewer)
+            else:
+                if ch == ord("s"):
+                    self.down(viewer)
 
-            elif ch == ord("w"):
-                self.up(viewer)
+                elif ch == ord("w"):
+                    self.up(viewer)
 
-            elif ch == ord("a"):
-                self.left(viewer)
+                elif ch == ord("a"):
+                    self.left(viewer)
 
-            elif ch == ord("d"):
-                self.right(viewer)
+                elif ch == ord("d"):
+                    self.right(viewer)
 
-            elif ch == ord("S"):
-                self.vp_down(viewer)
+                elif ch == ord("S"):
+                    self.vp_down(viewer)
 
-            elif ch == ord("W"):
-                self.vp_up(viewer)
+                elif ch == ord("W"):
+                    self.vp_up(viewer)
 
-            elif ch == ord("A"):
-                self.vp_left(viewer)
+                elif ch == ord("A"):
+                    self.vp_left(viewer)
 
-            elif ch == ord("D"):
-                self.vp_right(viewer)
+                elif ch == ord("D"):
+                    self.vp_right(viewer)
 
         if ch == ord("N"):
             self.edit_note(viewer)

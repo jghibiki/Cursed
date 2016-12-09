@@ -1,6 +1,7 @@
 from interactive import LiveModule
 from client import Client
 from viewport import Viewport
+from unit import Unit
 import logging
 
 log = logging.getLogger('simple_example')
@@ -9,6 +10,7 @@ class Map(LiveModule):
     def __init__(self):
         self._previous_map_hash = None
         self._previous_fow_hash = None
+        self._previous_unit_hash = None
 
     def _update(self, viewer, hashes):
         vp = viewer.get_submodule(Viewport)
@@ -41,6 +43,16 @@ class Map(LiveModule):
 
             if data:
                 vp.update_fow(data["fow"])
+                updates = True
+
+        unit_hash = hashes["unit"]
+        if unit_hash != self._previous_unit_hash:
+            self._previous_unit_hash = unit_hash
+            data = client.make_request('/unit')
+
+            if data:
+                units = [ Unit(unit) for unit in data["units"] ]
+                vp.update_units(units)
                 updates = True
 
 

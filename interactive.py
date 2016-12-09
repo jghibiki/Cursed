@@ -1,4 +1,8 @@
 
+class InitModule:
+    def init(self, viewer):
+        raise Exception("init has not been implemented.")
+
 
 class InteractiveModule:
     def _handle(self, viewer, ch):

@@ -1,5 +1,6 @@
-from interactive import ClientModule, LiveModule
+from interactive import ClientModule, LiveModule, InitModule
 from viewport import Viewport
+from state import State
 import requests
 import logging
 import json
@@ -7,7 +8,7 @@ import hashlib
 
 log = logging.getLogger('simple_example')
 
-class Client(ClientModule):
+class Client(ClientModule, InitModule):
     def __init__(self, password, host="127.0.0.1", port=8080):
         self._host = host
         self._port = port
@@ -15,6 +16,11 @@ class Client(ClientModule):
         self._previous_feature_hashes = []
         self._password = password
         self._base_url = "http://%s:%s" % (self._host, self._port)
+        self._username = ""
+
+    def init(self, viewer):
+        state = viewer.get_submodule(State)
+        self._username = state.get_state("username")
 
     def connect(self):
         """Deprecated"""
@@ -46,7 +52,7 @@ class Client(ClientModule):
         else:
             log.debug("make_request POST %s %s" % (url, payload))
             r = requests.post(self._base_url + url,
-                              auth=("user", self._password),
+                              auth=(self._username, self._password),
                               headers={'content-type': 'application/json'},
                               data=json.dumps(payload))
 

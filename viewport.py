@@ -23,6 +23,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
         self.w = 100
 
         self._features = []
+        self._units = []
         self._fow = [ [ False for y in range(self.h) ] for x in range(self.w) ]
 
         self.cursor_y = math.floor(self.h/4)
@@ -52,6 +53,9 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
 
             for feature in self._features:
                 feature.draw(viewer, self._screen)
+
+            for unit in self._units:
+                unit.draw(viewer, self._screen)
 
             state = viewer.get_submodule(State)
             if state.get_state("role") == "pc" or (state.get_state("role") == "gm" and state.get_state("fow") == "on"):
@@ -180,10 +184,20 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
         self._fow = new_fow
         self._dirty = True
 
+    def update_units(self, units):
+        self._units = units
+        self._dirty = True
+
     def update_screen(self, max_y, max_x):
         self.h = max_y + 1
         self.w = max_x + 2
 
         del self._screen
         self._screen = curses.newpad(self.h, self.w)
+
+    def get_current_unit(self):
+        for unit in self._units:
+            if unit.y == self.cursor_y and unit.x == self.cursor_x:
+                return unit
+        return None
 

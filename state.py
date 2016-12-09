@@ -4,7 +4,8 @@ class State(InteractiveModule):
 
     def __init__(self):
         self._state={
-                "fow": "on"
+                "fow": "on",
+                "ignore_direction_keys": "off"
         }
 
     def _handle(self, viewer, ch):

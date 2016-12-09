@@ -34,6 +34,8 @@ class FeatureType:
         FeatureType.enemy_unit = 16
         FeatureType.dead_unit = 17
         FeatureType.hill = 18
+        FeatureType.bed = 19
+        FeatureType.statue = 20
 
     def toName(char):
         if char == FeatureType.wall:
@@ -74,6 +76,10 @@ class FeatureType:
             return "Dead Unit"
         elif char == FeatureType.hill:
             return "Hill"
+        elif char == FeatureType.bed:
+            return "Bed"
+        elif char == FeatureType.statue:
+            return "Statue"
 
     def toSymbol(id):
         if id == FeatureType.wall:
@@ -114,6 +120,10 @@ class FeatureType:
             return "@"
         elif id == FeatureType.hill:
             return "^"
+        elif id == FeatureType.bed:
+            return "b"
+        elif id == FeatureType.statue:
+            return "&"
         else:
             return u"\u2699".encode(code)
 
@@ -156,6 +166,10 @@ class FeatureType:
             return FeatureType.dead_unit
         elif name == "Hill":
             return FeatureType.hill
+        elif name == "Bed":
+            return FeatureType.bed
+        elif name == "Statue":
+            return FeatureType.statue
 
     def modFromName(name):
         if name == "Wall":
@@ -195,6 +209,10 @@ class FeatureType:
         elif name == "Dead Unit":
             return curses.color_pair(8)
         elif name == "Hill":
+            return curses.A_NORMAL
+        elif name == "Bed":
+            return curses.A_NORMAL
+        elif name == "Statue":
             return curses.A_NORMAL
 
 

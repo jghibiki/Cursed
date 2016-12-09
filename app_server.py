@@ -5,6 +5,7 @@ import hashlib
 import random
 import authentication
 import logging
+from uuid import uuid4
 from authentication import requires_auth, requires_gm_auth
 
 app = Flask(__name__)
@@ -16,6 +17,7 @@ map_hash = None
 feature_hashes = []
 chat_hash = None
 fow_hash = None
+unit_hash = None
 
 
 @app.route("/map/data/", methods=["GET"])
@@ -32,18 +34,6 @@ def get_map(index=None):
     return jsonify(game_data["maps"][name]["features"][index])
 
 
-@app.route("/map/hash/", methods=["GET"])
-@requires_auth
-def get_map_hash():
-    name = current_map
-
-    data = json.dumps(game_data["maps"][name], sort_keys=True).encode("utf-8")
-    hsh = hashlib.md5(data).hexdigest()
-
-    global map_hash
-    map_hash = hsh
-
-    return jsonify({"hash": hsh, "features": feature_hashes})
 
 @app.route("/map/add", methods=["POST"])
 @requires_gm_auth
@@ -255,20 +245,24 @@ def get_chat_hash(username):
     return jsonify({ "hash": chat_hash })
 
 @app.route('/hash', methods=["GET"])
+@requires_auth
 def get_hashes():
     return jsonify({
         "map": map_hash,
         "features": feature_hashes,
         "chat": chat_hash,
-        "fow": fow_hash
+        "fow": fow_hash,
+        "unit": unit_hash
     })
 
 @app.route('/save', methods=["GET"])
+@requires_gm_auth
 def save_data():
     save_callback(game_data)
     return jsonify({})
 
 @app.route('/fow/add', methods=["POST"])
+@requires_gm_auth
 def add_fow():
     data = request.json
 
@@ -291,6 +285,7 @@ def add_fow():
     return jsonify({})
 
 @app.route('/fow/rm', methods=["POST"])
+@requires_gm_auth
 def rm_fow():
     data = request.json
 
@@ -313,6 +308,7 @@ def rm_fow():
     return jsonify({})
 
 @app.route('/fow', methods=["GET"])
+@requires_auth
 def get_fow():
 
     return jsonify({
@@ -320,6 +316,7 @@ def get_fow():
     })
 
 @app.route('/fow/toggle', methods=["GET"])
+@requires_gm_auth
 def toggle_fow():
 
     global dame_data
@@ -336,6 +333,7 @@ def toggle_fow():
     return jsonify({})
 
 @app.route('/fow/fill', methods=["GET"])
+@requires_gm_auth
 def all_fow():
 
     global dame_data
@@ -351,6 +349,7 @@ def all_fow():
     return jsonify({})
 
 @app.route('/fow/clear', methods=["GET"])
+@requires_gm_auth
 def none_fow():
 
     global dame_data
@@ -364,6 +363,102 @@ def none_fow():
     fow_hash = hsh
 
     return jsonify({})
+
+@app.route('/unit/add', methods=["POST"])
+@requires_gm_auth
+def add_unit():
+    data = request.json
+
+    if "x" not in data:
+        return 'Payload missing field "x"', 400
+    if "y" not in data:
+        return 'Payload missing field "y"', 400
+    if "name" not in data:
+        return 'Payload missing field "name"', 400
+    if "max_health" not in data:
+        return 'Payload missing field "max_health"', 400
+    if "current_health" not in data:
+        return 'Payload missing field "current_health"', 400
+    if "controller" not in data:
+        return 'Payload missing field "controller"', 400
+    if "type" not in data:
+        return 'Payload missing field "type"', 400
+
+    data["id"] = str(uuid4())
+
+    global game_data
+    game_data["maps"][current_map]["units"].append(data)
+
+    global unit_hash
+    data = json.dumps(game_data["maps"][current_map]["units"], sort_keys=True).encode("utf-8")
+    unit_hash = hashlib.md5(data).hexdigest()
+
+    return jsonify({})
+
+@app.route('/unit/rm', methods=["POST"])
+@requires_gm_auth
+def rm_unit():
+    data = request.json
+
+    if "id" not in data:
+        return 'Payload missing field "id"', 400
+
+    global game_data
+    units = game_data["maps"][current_map]["units"]
+
+    for unit in units:
+        if unit["id"] == data["id"]:
+            game_data["maps"][current_map]["units"].remove(unit)
+            break
+
+    global unit_hash
+    data = json.dumps(game_data["maps"][current_map]["units"], sort_keys=True).encode("utf-8")
+    unit_hash = hashlib.md5(data).hexdigest()
+
+    return jsonify({})
+
+@app.route('/unit/update', methods=["POST"])
+@requires_auth
+def update_unit():
+    data = request.json
+
+    if "x" not in data:
+        return 'Payload missing field "x"', 400
+    if "y" not in data:
+        return 'Payload missing field "y"', 400
+    if "name" not in data:
+        return 'Payload missing field "name"', 400
+    if "max_health" not in data:
+        return 'Payload missing field "max_health"', 400
+    if "current_health" not in data:
+        return 'Payload missing field "current_health"', 400
+    if "controller" not in data:
+        return 'Payload missing field "controller"', 400
+    if "type" not in data:
+        return 'Payload missing field "type"', 400
+    if "id" not in data:
+        return 'Payload missing field "id"', 400
+
+    global game_data
+
+    for i in range(len(game_data["maps"][current_map]["units"])):
+        if game_data["maps"][current_map]["units"][i]["id"] == data["id"]:
+            game_data["maps"][current_map]["units"][i] = data
+            break
+
+    global unit_hash
+    a = unit_hash
+    data = json.dumps(game_data["maps"][current_map]["units"], sort_keys=True).encode("utf-8")
+    unit_hash = hashlib.md5(data).hexdigest()
+
+    return jsonify({})
+
+@app.route('/unit', methods=["GET"])
+@requires_auth
+def get_units():
+    units = game_data["maps"][current_map]["units"]
+    return jsonify({"units": units})
+
 
 
 def run(data, port, host, gm_passwd, passwd, map_name, save):
@@ -388,6 +483,14 @@ def run(data, port, host, gm_passwd, passwd, map_name, save):
     data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
     fow_hash = hsh
+
+    global unit_hash
+    data = json.dumps(game_data["maps"][current_map]["units"], sort_keys=True).encode("utf-8")
+    unit_hash = hashlib.md5(data).hexdigest()
+
+    global chat_hash
+    data = json.dumps(game_data["chat"], sort_keys=True).encode("utf-8")
+    chat_hash = hashlib.md5(data).hexdigest()
 
     tmp = "%s%s%s%s" % (random.randint(0, 9), random.randint(0, 9), random.randint(0, 9), random.randint(0, 9))
     authentication.gm_password = gm_passwd if gm_passwd else tmp

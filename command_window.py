@@ -4,9 +4,13 @@ from viewer import ViewerConstants
 from viewport import Viewport
 from client import Client
 from state import State
+import json
 import logging
 import curses
 import math
+import os
+import subprocess
+import tempfile
 
 log = logging.getLogger('simple_example')
 
@@ -14,6 +18,8 @@ class CommandMode:
     default = 0
     build = 1
     fow = 2
+    units = 3
+    unit_move = 4
 
 
 class CommandWindow(VisibleModule, InteractiveModule):
@@ -76,6 +82,8 @@ class CommandWindow(VisibleModule, InteractiveModule):
                     self._draw_gm_default_screen()
             if self._mode is CommandMode.build: self._draw_build_screen()
             if self._mode is CommandMode.fow: self._draw_fow_screen()
+            if self._mode is CommandMode.units: self._draw_units_screen(viewer)
+            if self._mode is CommandMode.unit_move: self._draw_unit_move_screen(viewer)
 
             self._screen.noutrefresh()
             self._dirty = False
@@ -114,6 +122,12 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
             if ch == ord("F") and role == "gm":
                 self._mode = CommandMode.fow
+                self._dirty = True
+
+            if ch == ord("u"):
+                state = viewer.get_submodule(State)
+                state.set_state("ignore_direction_keys", "on")
+                self._mode = CommandMode.units
                 self._dirty = True
 
 
@@ -258,32 +272,6 @@ class CommandWindow(VisibleModule, InteractiveModule):
                 raw_feature = FeatureSerializer.toDict(feature)
                 c.make_request("/map/add", payload=raw_feature)
 
-            elif ch == ord(","):
-                vp = viewer.get_submodule(Viewport)
-                c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.friendly_unit)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
-
-            elif ch == ord("@"):
-                vp = viewer.get_submodule(Viewport)
-                c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.enemy_unit)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
-
-            elif ch == ord("$"):
-                vp = viewer.get_submodule(Viewport)
-                c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.dead_unit)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("^"):
                 vp = viewer.get_submodule(Viewport)
@@ -294,6 +282,24 @@ class CommandWindow(VisibleModule, InteractiveModule):
                 raw_feature = FeatureSerializer.toDict(feature)
                 c.make_request("/map/add", payload=raw_feature)
 
+            elif ch == ord("b"):
+                vp = viewer.get_submodule(Viewport)
+                c = viewer.get_submodule(Client)
+                feature = Feature(vp.cursor_y,
+                                  vp.cursor_x,
+                                  FeatureType.bed)
+                raw_feature = FeatureSerializer.toDict(feature)
+                c.make_request("/map/add", payload=raw_feature)
+
+            elif ch == ord("&"):
+                vp = viewer.get_submodule(Viewport)
+                c = viewer.get_submodule(Client)
+                feature = Feature(vp.cursor_y,
+                                  vp.cursor_x,
+                                  FeatureType.statue)
+                raw_feature = FeatureSerializer.toDict(feature)
+                c.make_request("/map/add", payload=raw_feature)
+
             elif ch == ord("x"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
@@ -301,6 +307,191 @@ class CommandWindow(VisibleModule, InteractiveModule):
                     "x": vp.cursor_x,
                     "y": vp.cursor_y
                 })
+
+
+        elif self._mode is CommandMode.units:
+            if ch == 27 or ch == curses.ascii.ESC:
+                self._mode = CommandMode.default
+                state = viewer.get_submodule(State)
+                state.set_state("ignore_direction_keys", "off")
+                self._dirty = True
+
+            elif ch == ord("a"):
+
+                unit_text = """
+# Name: Name of the unit
+# Max Health: the unit's maximum health
+# Current Health: the unit's current health, must be less than or equal to max health
+# Controller: The owner of the unit. Only the owner and the gm can move the unit.
+# Type: The type of the unit, must be one of the following. If not set defaults to neutral.
+#   - pc: a unit that will be controllable by the pc owner. Displayed as blue to the owner and green to others.
+#   - enemy: a unit that will be controllable by a gm. Displayed as red.
+#   - neutral: a unit that will be controllable by a gm. Displayed as grey.
+# Do not edit anything above this line
+{
+    "name": "",
+    "current_health": 0,
+    "max_health": 0,
+    "controller": "",
+    "type": ""
+}
+                """
+
+                valid_json = False
+
+                while not valid_json:
+
+                    EDITOR = os.environ.get('EDITOR','vim')
+                    with tempfile.NamedTemporaryFile(suffix=".tmp") as tf:
+                        tf.write(unit_text.encode("UTF-8"))
+                        tf.flush()
+                        subprocess.call([EDITOR, tf.name])
+
+                        # do the parsing with `tf` using regular File operations.
+                        # for instance:
+                        tf.seek(0)
+                        unit_text = tf.read().decode("UTF-8")
+
+                        # fix cursor mode
+                        curses.curs_set(1)
+                        curses.curs_set(0)
+                    viewer._draw(force=True) # force redraw after closing vim
+
+                    try:
+                        lines = unit_text.splitlines()
+                        lines = lines[10:]
+                        text = ''.join(lines)
+                        unit = json.loads(text)
+                        valid_json = True
+                    except:
+                        pass
+
+                vp = viewer.get_submodule(Viewport)
+                c = viewer.get_submodule(Client)
+
+                unit["x"] = vp.cursor_x
+                unit["y"] = vp.cursor_y
+
+                c.make_request("/unit/add", payload=unit)
+
+            elif ch == ord("r"):
+                vp = viewer.get_submodule(Viewport)
+                c = viewer.get_submodule(Client)
+
+                unit = vp.get_current_unit()
+
+
+                c.make_request('/unit/rm', payload={
+                    "id": unit.id
+                })
+
+            elif ch == ord("m"):
+                self._mode = CommandMode.unit_move
+                self._dirty = True
+
+
+        elif self._mode is CommandMode.unit_move:
+            state = viewer.get_submodule(State)
+
+            if ch == 27 or ch == curses.ascii.ESC: # escape
+                self._mode = CommandMode.units
+                self._dirty = True
+
+            elif state.get_state("direction_scheme") == "vim":
+
+                vp = viewer.get_submodule(Viewport)
+                unit = vp.get_current_unit()
+
+                if ( unit != None and
+                        ( unit.controller == state.get_state("username") or
+                          state.get_state("role") == "gm" )):
+                    if ch == ord("j"):
+                        log.error("move unit down")
+                        c = viewer.get_submodule(Client)
+
+                        if unit.y+1 <= vp.h:
+                            unit.y += 1
+                            c.make_request('/unit/update', payload=unit.toDict())
+                            vp._dirty = True
+
+                    elif ch == ord("k"):
+                        c = viewer.get_submodule(Client)
+
+                        if unit.y-1 >= 1:
+                            unit.y -= 1
+                            c.make_request('/unit/update', payload=unit.toDict())
+
+                    elif ch == ord("h"):
+                        c = viewer.get_submodule(Client)
+
+                        if unit.x-1 >= 1:
+                            unit.x -= 1
+                            c.make_request('/unit/update', payload=unit.toDict())
+
+                    elif ch == ord("l"):
+                        c = viewer.get_submodule(Client)
+
+                        if unit.x+1 <= vp.w:
+                            unit.x += 1
+                            c.make_request('/unit/update', payload=unit.toDict())
+                else:
+                    if ch == ord("j"):
+                        vp.cursor_up()
+                    elif ch == ord("k"):
+                        vp.cursor_down()
+                    elif ch == ord("h"):
+                        vp.cursor_right()
+                    elif ch == ord("l"):
+                        vp.cursor_left()
+
+            elif state.get_state("direction_scheme") == "wsad":
+
+                vp = viewer.get_submodule(Viewport)
+                unit = vp.get_current_unit()
+
+                if ( unit != None and
+                        ( unit.controller == state.get_state("username") or
+                          state.get_state("role") == "gm" )):
+                    if ch == ord("s"):
+                        c = viewer.get_submodule(Client)
+
+                        if unit.y+1 <= vp.h:
+                            unit.y += 1
+                            c.make_request('/unit/update', payload=unit.toDict())
+                            vp._dirty = True
+
+                    elif ch == ord("w"):
+                        c = viewer.get_submodule(Client)
+
+                        if unit.y-1 >= 1:
+                            unit.y -= 1
+                            c.make_request('/unit/update', payload=unit.toDict())
+
+                    elif ch == ord("a"):
+                        c = viewer.get_submodule(Client)
+
+                        if unit.x-1 >= 1:
+                            unit.x -= 1
+                            c.make_request('/unit/update', payload=unit.toDict())
+
+                    elif ch == ord("d"):
+                        c = viewer.get_submodule(Client)
+
+                        if unit.x+1 <= vp.w:
+                            unit.x += 1
+                            c.make_request('/unit/update', payload=unit.toDict())
+                else:
+                    if ch == ord("s"):
+                        vp.cursor_up()
+                    elif ch == ord("w"):
+                        vp.cursor_down()
+                    elif ch == ord("a"):
+                        vp.cursor_right()
+                    elif ch == ord("d"):
+                        vp.cursor_left()
+
+
+
 
 
         elif self._mode is CommandMode.fow: #gm only
@@ -375,12 +566,20 @@ class CommandWindow(VisibleModule, InteractiveModule):
         self._screen.addstr(6, 2, "F", curses.color_pair(179))
         self._screen.addstr(6, 3, ": Edit Fog of War")
 
+        # unit menu
+        self._screen.addstr(7, 2, "u", curses.color_pair(179))
+        self._screen.addstr(7, 3, ": Units")
+
     def _draw_pc_default_screen(self):
         self._screen.addstr(1, 2, "Commands:", curses.color_pair(179))
 
         # show chat
         self._screen.addstr(2, 2, "c", curses.color_pair(179))
         self._screen.addstr(2, 3, ": Chat", )
+
+        # unit menu
+        self._screen.addstr(3, 2, "u", curses.color_pair(179))
+        self._screen.addstr(3, 3, ": Units")
 
     def _draw_fow_screen(self):
         self._screen.addstr(1, 2, "Fog of War Commands:", curses.color_pair(179))
@@ -408,6 +607,109 @@ class CommandWindow(VisibleModule, InteractiveModule):
         # esc
         self._screen.addstr(8, 2, "esc", curses.color_pair(179))
         self._screen.addstr(8, 5, ": Back", )
+
+    def _draw_units_screen(self, viewer):
+        state = viewer.get_submodule(State)
+        role = state.get_state("role")
+        vp = viewer.get_submodule(Viewport)
+
+        current_unit = vp.get_current_unit()
+
+        if role == "gm":
+            self._screen.addstr(1, 2, "Units:", curses.color_pair(179))
+
+            self._screen.addstr(2, 2, "a", curses.color_pair(179))
+            self._screen.addstr(2, 3, ": Add Unit", )
+
+            if current_unit != None:
+                self._screen.addstr(3, 2, "r", curses.color_pair(179))
+                self._screen.addstr(3, 3, ": Remove Unit", )
+
+                self._screen.addstr(4, 2, "m", curses.color_pair(179))
+                self._screen.addstr(4, 3, ": Move Unit", )
+
+                self._screen.addstr(5, 2, "e", curses.color_pair(179))
+                self._screen.addstr(5, 3, ": Edit Unit", )
+
+                self._screen.addstr(6, 2, "+", curses.color_pair(179))
+                self._screen.addstr(6, 3, ": Increase Unit Health", )
+
+                self._screen.addstr(7, 2, "-", curses.color_pair(179))
+                self._screen.addstr(7, 3, ": Decrease Unit Health", )
+            else:
+
+                self._screen.addstr(3, 2, "r", curses.color_pair(60))
+                self._screen.addstr(3, 3, ": Remove Unit", )
+
+                self._screen.addstr(4, 2, "m", curses.color_pair(60))
+                self._screen.addstr(4, 3, ": Move Unit", )
+
+                self._screen.addstr(5, 2, "e", curses.color_pair(60))
+                self._screen.addstr(5, 3, ": Edit Unit", )
+
+                self._screen.addstr(6, 2, "+", curses.color_pair(60))
+                self._screen.addstr(6, 3, ": Increase Unit Health", )
+
+                self._screen.addstr(7, 2, "-", curses.color_pair(60))
+                self._screen.addstr(7, 3, ": Decrease Unit Health", )
+
+            # esc
+            self._screen.addstr(10, 2, "esc", curses.color_pair(179))
+            self._screen.addstr(10, 6, ": Back")
+
+        elif role == "pc":
+            if current_unit != None:
+                self._screen.addstr(2, 2, "m", curses.color_pair(179))
+                self._screen.addstr(2, 3, ": Move Unit", )
+            else:
+                self._screen.addstr(2, 2, "m", curses.color_pair(60))
+                self._screen.addstr(2, 3, ": Move Unit", curses.color_pair(60) )
+
+            # esc
+            self._screen.addstr(24, 2, "esc", curses.color_pair(179))
+            self._screen.addstr(24, 6, ": Back")
+
+    def _draw_unit_move_screen(self, viewer):
+
+        state = viewer.get_submodule(State)
+
+        direction_scheme = state.get_state("direction_scheme")
+
+        self._screen.addstr(1, 2, "Move Units:", curses.color_pair(179))
+
+        if direction_scheme == "vim":
+            self._screen.addstr(2, 2, "j", curses.color_pair(179))
+            self._screen.addstr(2, 3, ": Down", )
+
+            self._screen.addstr(3, 2, "k", curses.color_pair(179))
+            self._screen.addstr(3, 3, ": Up", )
+
+            self._screen.addstr(4, 2, "h", curses.color_pair(179))
+            self._screen.addstr(4, 3, ": Left", )
+
+            self._screen.addstr(5, 2, "l", curses.color_pair(179))
+            self._screen.addstr(5, 3, ": Right", )
+
+
+        elif direction_scheme == "wsad":
+            self._screen.addstr(2, 2, "s", curses.color_pair(179))
+            self._screen.addstr(2, 3, ": Down", )
+
+            self._screen.addstr(3, 2, "w", curses.color_pair(179))
+            self._screen.addstr(3, 3, ": Up", )
+
+            self._screen.addstr(4, 2, "a", curses.color_pair(179))
+            self._screen.addstr(4, 3, ": Left", )
+
+            self._screen.addstr(5, 2, "d", curses.color_pair(179))
+            self._screen.addstr(5, 3, ": Right", )
+
+        # esc
+        self._screen.addstr(24, 2, "esc", curses.color_pair(179))
+        self._screen.addstr(24, 6, ": Back")
+
+
+
 
 
     def _draw_build_screen(self):
@@ -575,42 +877,11 @@ class CommandWindow(VisibleModule, InteractiveModule):
                         FeatureType.point_of_interest)))
         self._screen.addstr(17, 24, ")")
 
-        # friendly unit ,
-        self._screen.addstr(18, 2, ",", curses.color_pair(179))
-        self._screen.addstr(18, 3, ": Friendly Unit(")
-        self._screen.addstr(18, 19,
-                FeatureType.toSymbol( FeatureType.friendly_unit),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.friendly_unit)))
-        self._screen.addstr(18, 20, ")")
 
-        # enemy unit @
-        self._screen.addstr(19, 2, ",", curses.color_pair(179))
-        self._screen.addstr(19, 3, ": Enemy Unit(")
-        self._screen.addstr(19, 16,
-                FeatureType.toSymbol( FeatureType.enemy_unit),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.enemy_unit)))
-        self._screen.addstr(19, 17, ")")
-
-        # dead unit $
-        self._screen.addstr(20, 2, ",", curses.color_pair(179))
-        self._screen.addstr(20, 3, ": Dead Unit(")
-        self._screen.addstr(20, 15,
-                FeatureType.toSymbol( FeatureType.dead_unit),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.dead_unit)))
-        self._screen.addstr(20, 16, ")")
-
+        self._screen.addstr(19, 2, "x", curses.color_pair(179))
+        self._screen.addstr(19, 3, ": Remove Object")
 
         # esc
-        self._screen.addstr(21, 2, "x", curses.color_pair(179))
-        self._screen.addstr(21, 3, ": Remove Object")
-
-        # esc
-        self._screen.addstr(24, 2, "esc", curses.color_pair(179))
-        self._screen.addstr(24, 6, ": Back")
+        self._screen.addstr(20, 2, "esc", curses.color_pair(179))
+        self._screen.addstr(20, 6, ": Back")
 

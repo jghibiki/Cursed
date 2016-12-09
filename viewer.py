@@ -36,6 +36,10 @@ class Viewer(InteractiveModule, VisibleModule):
         self._draw()
         curses.doupdate()
 
+        for mod in self._submodules:
+            if isinstance(mod, InitModule):
+                mod.update(self)
+
         while True:
             # hacks to fix terminal state
             curses.curs_set(0)
