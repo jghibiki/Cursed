@@ -36,7 +36,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
         if self._dirty or force:
             if force: log.debug("viewport.draw forced")
             if self._dirty: log.debug("viewport is dirty")
-            self._screen.clear()
+            self._screen.erase()
 
             self._screen.attrset(curses.color_pair(17))
             self._screen.border(

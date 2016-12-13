@@ -47,7 +47,7 @@ class TextBox(VisibleModule, InteractiveModule):
     def draw(self, viewer, force=False):
         if self._dirty or force:
             if force: log.debug("narrative.draw forced")
-            self._screen.clear()
+            self._screen.erase()
 
             state = viewer.get_submodule(State)
             self._screen.attrset(curses.color_pair(179))

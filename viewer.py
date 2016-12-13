@@ -19,6 +19,8 @@ class Viewer(InteractiveModule, VisibleModule):
 
         self.screen = screen
         self.screen.timeout(1000)
+        self.screen.idcok(False)
+        self.screen.idlok(False)
 
         self._submodules = []
 
