@@ -53,19 +53,19 @@ class Editor(VisibleModule, InteractiveModule):
         sl = viewer.get_submodule(StatusLine)
         c = viewer.get_submodule(Client)
         # detect place object
-        if ch == ord(" "):
-            feature = Feature(vp.cursor_y,
-                              vp.cursor_x,
-                              self.current_obj)
-            raw_feature = FeatureSerializer.toDict(feature)
-            c.make_request("/map/add", payload=raw_feature)
+        #if ch == ord(" "):
+        #    feature = Feature(vp.cursor_y,
+        #                      vp.cursor_x,
+        #                      self.current_obj)
+        #    raw_feature = FeatureSerializer.toDict(feature)
+        #    c.make_request("/map/add", payload=raw_feature)
 
-        # remove feature
-        elif ch == ord("x"):
-            c.make_request("/map/rm", payload={
-                "y": vp.cursor_y,
-                "x": vp.cursor_x
-            })
+        ## remove feature
+        #elif ch == ord("x"):
+        #    c.make_request("/map/rm", payload={
+        #        "y": vp.cursor_y,
+        #        "x": vp.cursor_x
+        #    })
 
 
         ## catch object type
@@ -165,7 +165,7 @@ class Editor(VisibleModule, InteractiveModule):
         #    self._dirty = True
 
         # show help
-        elif ch == ord("?"):
+        if ch == ord("?"):
             help_text = """DM Tools Editor Help:
 Controls:
 <spacebar> : Add feature at cursor

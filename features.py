@@ -244,51 +244,56 @@ class Feature:
         self.pos_x = pos_x
         self.char = char
         self.mod = mod
+        self.symbol = FeatureType.toSymbol(self.char)
         self.notes = notes
+        self.state = None
 
-    def draw(self, viewer, screen):
-        from state import State
-        state = viewer.get_submodule(State)
-        role = state.get_state("role")
-        try:
-            if role == "gm":
-                if self.mod and self.notes == "":
-                    screen.addstr(
+    def draw(self, viewer, screen, x, y, h, w):
+        if ( self.pos_x >= x and self.pos_x <= x+w and
+                self.pos_y >= y and self.pos_y <= y+h ):
+            if self.state is None:
+                from state import State
+                self.state = viewer.get_submodule(State)
+            role = self.state.get_state("role")
+            try:
+                if role == "gm":
+                    if self.mod and self.notes == "":
+                        screen.addstr(
+                                self.pos_y,
+                                self.pos_x,
+                                self.symbol,
+                                self.mod)
+                    elif self.mod and self.notes != "":
+                        screen.addstr(
+                                self.pos_y,
+                                self.pos_x,
+                                self.symbol,
+                                self.mod |
+                                curses.A_REVERSE)
+                    elif not self.mod and self.notes != "" :
+                        screen.addstr(
+                                self.pos_y,
+                                self.pos_x,
+                                self.symbol,
+                                curses.A_BLINK)
+                    elif not self.mod and self.notes == "":
+                        screen.addstr(
                             self.pos_y,
                             self.pos_x,
-                            FeatureType.toSymbol(self.char),
-                            self.mod)
-                elif self.mod and self.notes != "":
-                    screen.addstr(
+                            self.symbol)
+                elif role == "pc":
+                    if self.mod:
+                        screen.addstr(
+                                self.pos_y,
+                                self.pos_x,
+                                self.symbol,
+                                self.mod)
+                    elif not self.mod:
+                        screen.addstr(
                             self.pos_y,
                             self.pos_x,
-                            FeatureType.toSymbol(self.char),
-                            self.mod |
-                            curses.A_BLINK)
-                elif not self.mod and self.notes != "" :
-                    screen.addstr(
-                            self.pos_y,
-                            self.pos_x,
-                            FeatureType.toSymbol(self.char),
-                            curses.A_BLINK)
-                elif not self.mod and self.notes == "":
-                    screen.addstr(
-                        self.pos_y,
-                        self.pos_x,
-                        FeatureType.toSymbol(self.char))
-            elif role == "pc":
-                if self.mod:
-                    screen.addstr(
-                            self.pos_y,
-                            self.pos_x,
-                            FeatureType.toSymbol(self.char),
-                            self.mod)
-                elif not self.mod:
-                    screen.addstr(
-                        self.pos_y,
-                        self.pos_x,
-                        FeatureType.toSymbol(self.char))
-        except:
-            pass
+                            self.symbol)
+            except:
+                pass
 
 

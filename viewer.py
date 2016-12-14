@@ -69,6 +69,9 @@ class Viewer(InteractiveModule, VisibleModule):
                     color = random.randint(1, curses.COLORS-1)
                     curses.init_pair(i + 1, color, -1)
 
+            # part of an ongoing expiriment to see if this helps with character repeat lag
+            curses.flushinp() # get rid of any characters waiting in buffer
+
 
 
 

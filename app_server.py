@@ -74,9 +74,45 @@ def add_feature_to_map():
 
     return jsonify({})
 
+@app.route("/map/bulk/add", methods=["POST"])
+@requires_gm_auth
+def bulk_add_feature_to_map():
+    data = request.json
+
+    if data is None:
+        return 'No payload recieved', 400
+
+    new_features = data["features"]
+
+    name = current_map
+
+    features = game_data["maps"][name]["features"]
+
+    already_exist = []
+
+    for new_feature in new_features:
+        for feature in features:
+            if feature["y"] == new_feature["y"] and feature["x"] == new_feature["x"]:
+                already_exist.append(new_feature)
+
+    new_features = [ feature for feature in new_features if feature not in already_exist ]
+    for new_feature in new_features:
+        game_data["maps"][name]["features"].append(new_feature)
+
+    global map_hash
+    data = json.dumps(game_data["maps"][name], sort_keys=True).encode("utf-8")
+    hsh = hashlib.md5(data).hexdigest()
+    map_hash = hsh
+
+    global feature_hashes
+    json_str = json.dumps(feature, sort_keys=True).encode("utf-8")
+    h = hashlib.md5(json_str).hexdigest()
+    feature_hashes.append(h)
+
+    return jsonify({})
+
 @app.route('/map/rm', methods=["POST"])
-@app.route('/map/rm/<name>', methods=["POST"])
-def rm_feature_from_map(name=None):
+def rm_feature_from_map():
     data = request.json
 
     if ( ( data is None ) or
@@ -84,8 +120,7 @@ def rm_feature_from_map(name=None):
          ( "x" not in data ) ):
         return ('', 400)
 
-    if not name:
-        name = current_map
+    name = current_map
 
     features = game_data["maps"][name]["features"]
     for feature in features:
@@ -106,6 +141,41 @@ def rm_feature_from_map(name=None):
                 return jsonify({})
 
     return '', 500
+
+@app.route('/map/bulk/rm', methods=["POST"])
+def bulk_rm_feature_from_map():
+    data = request.json
+
+    if data is None:
+        return ('', 400)
+
+    new_features = data["features"]
+
+    name = current_map
+
+    features = game_data["maps"][name]["features"]
+    for new_feature in new_features:
+        for feature in features:
+            if feature["y"] == new_feature["y"] and feature["x"] == new_feature["x"]:
+                try:
+                    features.remove(feature)
+                except:
+                    pass
+
+    game_data["maps"][name]["features"] = features
+
+    global map_hash
+    data = json.dumps(game_data["maps"][name], sort_keys=True).encode("utf-8")
+    hsh = hashlib.md5(data).hexdigest()
+    map_hash = hsh
+
+    global feature_hashes
+    json_str = json.dumps(feature, sort_keys=True).encode("utf-8")
+    h = hashlib.md5(json_str).hexdigest()
+    feature_hashes.remove(h)
+
+    return jsonify({})
+
 
 @app.route('/map/update/', methods=["POST"])
 @app.route('/map/update/<name>', methods=["POST"])
@@ -284,6 +354,23 @@ def add_fow():
 
     return jsonify({})
 
+@app.route('/fow/bulk/add', methods=["POST"])
+@requires_gm_auth
+def bulk_add_fow():
+    data = request.json
+
+    global dame_data
+    for row in data["fow"]:
+        game_data["maps"][current_map]["fow"][row["x"]][row["y"]] = True
+
+    global fow_hash
+    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    hsh = hashlib.md5(data).hexdigest()
+    fow_hash = hsh
+
+    return jsonify({})
+
+
 @app.route('/fow/rm', methods=["POST"])
 @requires_gm_auth
 def rm_fow():
@@ -306,6 +393,23 @@ def rm_fow():
     fow_hash = hsh
 
     return jsonify({})
+
+@app.route('/fow/bulk/rm', methods=["POST"])
+@requires_gm_auth
+def bulk_rm_fow():
+    data = request.json
+
+    global dame_data
+    for row in data["fow"]:
+        game_data["maps"][current_map]["fow"][row["x"]][row["y"]] = False
+
+    global fow_hash
+    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    hsh = hashlib.md5(data).hexdigest()
+    fow_hash = hsh
+
+    return jsonify({})
+
 
 @app.route('/fow', methods=["GET"])
 @requires_auth
@@ -500,4 +604,4 @@ def run(data, port, host, gm_passwd, passwd, map_name, save):
     authentication.password = passwd if passwd else tmp
     print("PC Password: %s" % authentication.password)
 
-    app.run(port=port, host=host, threaded=True, debug=False)
+    app.run(port=port, host=host, threaded=True, debug=True)

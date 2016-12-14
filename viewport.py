@@ -29,6 +29,8 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
         self.cursor_y = math.floor(self.h/4)
         self.cursor_x = math.floor(self.w/2)
 
+        self.box_xy = None
+
         self._screen = curses.newpad(self.h, self.w)
         self._dirty = True
 
@@ -51,11 +53,10 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
             )
             self._screen.attroff(curses.color_pair(17))
 
-            for feature in self._features:
-                feature.draw(viewer, self._screen)
+            [ feature.draw(viewer, self._screen, self.x, self.y, self.h, self.w) for feature in self._features ]
 
-            for unit in self._units:
-                unit.draw(viewer, self._screen)
+            [ unit.draw(viewer, self._screen) for unit in self._units ]
+
 
             state = viewer.get_submodule(State)
             if state.get_state("role") == "pc" or (state.get_state("role") == "gm" and state.get_state("fow") == "on"):
@@ -63,6 +64,17 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
                     for y in range(0, self.h-1):
                         if self._fow[x][y]:
                             self._screen.addstr(y, x, "▒", curses.color_pair(489))
+
+            if self.box_xy != None:
+                x_min = min(self.box_xy[0], self.cursor_x)
+                x_max = max(self.box_xy[0], self.cursor_x) + 1
+
+                y_min = min(self.box_xy[1], self.cursor_y)
+                y_max = max(self.box_xy[1], self.cursor_y) + 1
+
+                for y in range(y_min, y_max):
+                    for x in range(x_min, x_max):
+                        self._screen.addstr(y, x, "X", curses.color_pair(1034))
 
             self._screen.addch(self.cursor_y, self.cursor_x, ord('X'), curses.color_pair(260))
 

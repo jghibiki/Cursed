@@ -20,6 +20,7 @@ class CommandMode:
     fow = 2
     units = 3
     unit_move = 4
+    box_select = 5
 
 
 class CommandWindow(VisibleModule, InteractiveModule):
@@ -35,6 +36,12 @@ class CommandWindow(VisibleModule, InteractiveModule):
         self._screen = curses.newwin(self.h, self.w, self.y, self.x)
 
         self._mode = CommandMode.default
+
+        self._box_refferer = -1
+        self._box_xy = None
+        self._box_xy2 = None
+        self._box_returning = False
+        self._box = False
 
         self._count = ""
 
@@ -84,6 +91,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
             if self._mode is CommandMode.fow: self._draw_fow_screen()
             if self._mode is CommandMode.units: self._draw_units_screen(viewer)
             if self._mode is CommandMode.unit_move: self._draw_unit_move_screen(viewer)
+            if self._mode is CommandMode.box_select: self._draw_box_select_screen()
 
             self._screen.noutrefresh()
             self._dirty = False
@@ -133,180 +141,501 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
         elif self._mode is CommandMode.build: #gm only
             if ch == 27 or ch == curses.ascii.ESC: # escape
-                self._mode = CommandMode.default
-                self._dirty = True
+                if self._box:
+                    vp = viewer.get_submodule(Viewport)
+                    vp.box_xy = None
+                    vp._dirty = True
 
+                    self._dirty = True
+                    self._box = False
+                else:
+                    self._mode = CommandMode.default
+                    self._dirty = True
 
             elif ch == ord("w"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.wall)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.wall)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.wall)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("c"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.chair)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.chair)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.chair)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("d"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.door)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.door)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.door)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("t"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.table)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.table)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.table)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord(">"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.up_stair)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.up_stair)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.up_stair)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("<"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.down_stair)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.down_stair)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.down_stair)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("%"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.lantern)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.lantern)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.lantern)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("#"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.chest)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.chest)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.chest)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("*"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.point_of_interest)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.point_of_interest)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.point_of_interest)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("r"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.road)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.road)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.road)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("G"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.gate)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.gate)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.gate)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("W"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.water)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.water)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.water)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("T"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.tree)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.tree)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.tree)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("o"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.bush)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.bush)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.bush)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("."):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.grass)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.grass)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add",  payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.grass)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
 
             elif ch == ord("^"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.hill)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.hill)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.hill)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("b"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.bed)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.bed)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.bed)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
+
 
             elif ch == ord("&"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                feature = Feature(vp.cursor_y,
-                                  vp.cursor_x,
-                                  FeatureType.statue)
-                raw_feature = FeatureSerializer.toDict(feature)
-                c.make_request("/map/add", payload=raw_feature)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.statue)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.statue)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
 
             elif ch == ord("x"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
-                c.make_request("/map/rm", payload={
-                    "x": vp.cursor_x,
-                    "y": vp.cursor_y
-                })
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ {"x": x, "y": y } for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/rm", payload={"features": payload})
+
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    c.make_request("/map/rm", payload={
+                        "x": vp.cursor_x,
+                        "y": vp.cursor_y
+                    })
+
+            elif ch == ord(" "):
+                vp = viewer.get_submodule(Viewport)
+                self._box_xy = ( vp.cursor_x, vp.cursor_y )
+                vp.box_xy = self._box_xy
+                vp._dirty = True
+                self._box_referer = self._mode
+                self._mode = CommandMode.box_select
+                self._dirty = True
+
+
+        elif self._mode is CommandMode.box_select:
+            if ch == ord(" "):
+                vp = viewer.get_submodule(Viewport)
+                self._box_xy2 = ( vp.cursor_x, vp.cursor_y)
+                self._box = True
+                self._mode = self._box_referer
+                self._dirty = True
+
+            elif ch == 27 or ch == curses.ascii.ESC:
+                self._box_returning = True
+                self._box = False
+                self._mode = self._box_referer
+                self._box_referer = -1
+                self._dirty = True
+
+                vp = viewer.get_submodule(Viewport)
+                vp.box_xy = None
+                vp._dirty = True
 
 
         elif self._mode is CommandMode.units:
@@ -496,44 +825,99 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
         elif self._mode is CommandMode.fow: #gm only
             if ch == 27 or ch == curses.ascii.ESC: # escape
-                self._mode = CommandMode.default
+                if self._box:
+                    vp = viewer.get_submodule(Viewport)
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                    self._dirty = True
+                    self._box = False
+                else:
+                    self._mode = CommandMode.default
+                    self._dirty = True
+
+            elif ch == ord(" "):
+                vp = viewer.get_submodule(Viewport)
+                self._box_xy = ( vp.cursor_x, vp.cursor_y )
+                vp.box_xy = self._box_xy
+                vp._dirty = True
+                self._box_referer = self._mode
+                self._mode = CommandMode.box_select
                 self._dirty = True
 
-            elif ch == ord("f"):
-                vp = viewer.get_submodule(Viewport)
-                current = state.get_state("fow")
-                if current == "on":
-                    state.set_state("fow", "off")
-                else:
-                    state.set_state("fow", "on")
-                vp._dirty = True
-                viewer._draw(force=True)
-
             elif ch == ord("a"):
-                vp = viewer.get_submodule(Viewport)
-                c = viewer.get_submodule(Client)
-                c.make_request("/fow/add", payload={
-                    "x": vp.cursor_x,
-                    "y": vp.cursor_y
-                })
+                if self._box:
+                    vp = viewer.get_submodule(Viewport)
+                    c = viewer.get_submodule(Client)
+
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ {"x": x, "y": y } for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/fow/bulk/add", payload={"fow": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    vp = viewer.get_submodule(Viewport)
+                    c = viewer.get_submodule(Client)
+                    c.make_request("/fow/add", payload={
+                        "x": vp.cursor_x,
+                        "y": vp.cursor_y
+                    })
 
             elif ch == ord("r"):
-                vp = viewer.get_submodule(Viewport)
-                c = viewer.get_submodule(Client)
-                c.make_request("/fow/rm", payload={
-                    "x": vp.cursor_x,
-                    "y": vp.cursor_y
-                })
+                if self._box:
+                    vp = viewer.get_submodule(Viewport)
+                    c = viewer.get_submodule(Client)
 
-            elif ch == ord("A"):
-                vp = viewer.get_submodule(Viewport)
-                c = viewer.get_submodule(Client)
-                c.make_request("/fow/fill")
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
 
-            elif ch == ord("R"):
-                vp = viewer.get_submodule(Viewport)
-                c = viewer.get_submodule(Client)
-                c.make_request("/fow/clear")
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ {"x": x, "y": y } for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/fow/bulk/rm", payload={"fow": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+
+                else:
+                    vp = viewer.get_submodule(Viewport)
+                    c = viewer.get_submodule(Client)
+                    c.make_request("/fow/rm", payload={
+                        "x": vp.cursor_x,
+                        "y": vp.cursor_y
+                    })
+
+            if not self._box:
+                if ch == ord("f"):
+                    vp = viewer.get_submodule(Viewport)
+                    current = state.get_state("fow")
+                    if current == "on":
+                        state.set_state("fow", "off")
+                    else:
+                        state.set_state("fow", "on")
+                    vp._dirty = True
+                    viewer._draw(force=True)
+
+
+                elif ch == ord("A"):
+                    vp = viewer.get_submodule(Viewport)
+                    c = viewer.get_submodule(Client)
+                    c.make_request("/fow/fill")
+
+                elif ch == ord("R"):
+                    vp = viewer.get_submodule(Viewport)
+                    c = viewer.get_submodule(Client)
+                    c.make_request("/fow/clear")
+
+
 
 
     def _handle_combo(self, viewer, buff):
@@ -582,31 +966,34 @@ class CommandWindow(VisibleModule, InteractiveModule):
         self._screen.addstr(3, 3, ": Units")
 
     def _draw_fow_screen(self):
-        self._screen.addstr(1, 2, "Fog of War Commands:", curses.color_pair(179))
+        if self._box:
+            self._screen.addstr(1, 2, "Fog of War(Box Mode):", curses.color_pair(179))
+        else:
+            self._screen.addstr(1, 2, "Fog of War:", curses.color_pair(179))
 
-        # toggle gm fow view
-        self._screen.addstr(2, 2, "f", curses.color_pair(179))
-        self._screen.addstr(2, 3, ": Toggle FoW for GM", )
+        if not self._box:
+            self._screen.addstr(2, 2, "f", curses.color_pair(179))
+            self._screen.addstr(2, 3, ": Toggle FoW for GM", )
 
-        # add fow
         self._screen.addstr(3, 2, "a", curses.color_pair(179))
         self._screen.addstr(3, 3, ": Add FoW", )
 
-        # rm fow
         self._screen.addstr(4, 2, "r", curses.color_pair(179))
         self._screen.addstr(4, 3, ": Remove FoW", )
 
-        # fill fow
-        self._screen.addstr(5, 2, "A", curses.color_pair(179))
-        self._screen.addstr(5, 3, ": Fill Map with FoW", )
+        if not self._box:
+            self._screen.addstr(5, 2, "A", curses.color_pair(179))
+            self._screen.addstr(5, 3, ": Fill Map with FoW", )
 
-        # clear fow
-        self._screen.addstr(6, 2, "R", curses.color_pair(179))
-        self._screen.addstr(6, 3, ": Clear FoW", )
+            self._screen.addstr(6, 2, "R", curses.color_pair(179))
+            self._screen.addstr(6, 3, ": Clear FoW", )
 
-        # esc
-        self._screen.addstr(8, 2, "esc", curses.color_pair(179))
-        self._screen.addstr(8, 5, ": Back", )
+        if self._box:
+            self._screen.addstr(8, 2, "esc", curses.color_pair(179))
+            self._screen.addstr(8, 5, ": Cancel Box Mode", )
+        else:
+            self._screen.addstr(8, 2, "esc", curses.color_pair(179))
+            self._screen.addstr(8, 5, ": Back", )
 
     def _draw_units_screen(self, viewer):
         state = viewer.get_submodule(State)
@@ -713,8 +1100,11 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
 
     def _draw_build_screen(self):
-        self._screen.addstr(1, 2, "Build:", curses.color_pair(179))
 
+        if self._box:
+            self._screen.addstr(1, 2, "Build (Box Mode):", curses.color_pair(179))
+        else:
+            self._screen.addstr(1, 2, "Build:", curses.color_pair(179))
 
         # wall
         self._screen.addstr(2, 2, "w", curses.color_pair(179))
@@ -877,11 +1267,55 @@ class CommandWindow(VisibleModule, InteractiveModule):
                         FeatureType.point_of_interest)))
         self._screen.addstr(17, 24, ")")
 
+        self._screen.addstr(18, 2, "^", curses.color_pair(179))
+        self._screen.addstr(18, 3, ": Hill(")
+        self._screen.addstr(18, 10,
+                FeatureType.toSymbol( FeatureType.hill),
+                FeatureType.modFromName(
+                    FeatureType.toName(
+                        FeatureType.hill)))
+        self._screen.addstr(18, 11, ")")
 
-        self._screen.addstr(19, 2, "x", curses.color_pair(179))
-        self._screen.addstr(19, 3, ": Remove Object")
+        self._screen.addstr(19, 2, "b", curses.color_pair(179))
+        self._screen.addstr(19, 3, ": Bed(")
+        self._screen.addstr(19, 9,
+                FeatureType.toSymbol( FeatureType.bed),
+                FeatureType.modFromName(
+                    FeatureType.toName(
+                        FeatureType.bed)))
+        self._screen.addstr(19, 10, ")")
+
+        self._screen.addstr(20, 2, "&", curses.color_pair(179))
+        self._screen.addstr(20, 3, ": Statue(")
+        self._screen.addstr(20, 12,
+                FeatureType.toSymbol( FeatureType.statue),
+                FeatureType.modFromName(
+                    FeatureType.toName(
+                        FeatureType.statue)))
+        self._screen.addstr(20, 13, ")")
+
+
+        self._screen.addstr(21, 2, "x", curses.color_pair(179))
+        self._screen.addstr(21, 3, ": Remove Object")
+
+
+        self._screen.addstr(22, 2, "space", curses.color_pair(179))
+        self._screen.addstr(22, 8, ": Select box corner")
 
         # esc
-        self._screen.addstr(20, 2, "esc", curses.color_pair(179))
-        self._screen.addstr(20, 6, ": Back")
+        if self._box:
+            self._screen.addstr(24, 2, "esc", curses.color_pair(179))
+            self._screen.addstr(24, 6, ": Cancel Box Mode")
+        else:
+            self._screen.addstr(24, 2, "esc", curses.color_pair(179))
+            self._screen.addstr(24, 6, ": Back")
 
+
+    def _draw_box_select_screen(self):
+        self._screen.addstr(1, 2, "Box Select:", curses.color_pair(179))
+
+        self._screen.addstr(2, 2, "space", curses.color_pair(179))
+        self._screen.addstr(2, 8, ": Select box corner")
+
+        self._screen.addstr(4, 2, "esc", curses.color_pair(179))
+        self._screen.addstr(4, 6, ": Back")
