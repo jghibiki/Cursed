@@ -61,9 +61,9 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
             state = viewer.get_submodule(State)
             if state.get_state("role") == "pc" or (state.get_state("role") == "gm" and state.get_state("fow") == "on"):
                 for x in range(0, self.w-2):
-                    for y in range(0, self.h-1):
+                    for y in range(0, self.h-2):
                         if self._fow[x][y]:
-                            self._screen.addstr(y, x, "▒", curses.color_pair(489))
+                            self._screen.addstr(y+1, x+1, "▒", curses.color_pair(489))
 
             if self.box_xy != None:
                 x_min = min(self.box_xy[0], self.cursor_x)

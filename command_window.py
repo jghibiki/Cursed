@@ -988,12 +988,15 @@ class CommandWindow(VisibleModule, InteractiveModule):
             self._screen.addstr(6, 2, "R", curses.color_pair(179))
             self._screen.addstr(6, 3, ": Clear FoW", )
 
+            self._screen.addstr(7, 2, "space", curses.color_pair(179))
+            self._screen.addstr(7, 7, ": Start Box Mode", )
+
         if self._box:
-            self._screen.addstr(8, 2, "esc", curses.color_pair(179))
-            self._screen.addstr(8, 5, ": Cancel Box Mode", )
+            self._screen.addstr(9, 2, "esc", curses.color_pair(179))
+            self._screen.addstr(9, 5, ": Cancel Box Mode", )
         else:
-            self._screen.addstr(8, 2, "esc", curses.color_pair(179))
-            self._screen.addstr(8, 5, ": Back", )
+            self._screen.addstr(9, 2, "esc", curses.color_pair(179))
+            self._screen.addstr(9, 5, ": Back", )
 
     def _draw_units_screen(self, viewer):
         state = viewer.get_submodule(State)
