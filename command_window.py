@@ -856,7 +856,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
                     y_min = min(self._box_xy[1], self._box_xy2[1])
                     y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
 
-                    payload = [ {"x": x, "y": y } for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    payload = [ {"x": x-1, "y": y-1 } for x in range(x_min, x_max) for y in range(y_min, y_max) ]
                     c.make_request("/fow/bulk/add", payload={"fow": payload})
                     self._box = False
                     vp.box_xy = None
@@ -866,8 +866,8 @@ class CommandWindow(VisibleModule, InteractiveModule):
                     vp = viewer.get_submodule(Viewport)
                     c = viewer.get_submodule(Client)
                     c.make_request("/fow/add", payload={
-                        "x": vp.cursor_x,
-                        "y": vp.cursor_y
+                        "x": vp.cursor_x-1,
+                        "y": vp.cursor_y-1
                     })
 
             elif ch == ord("r"):
@@ -881,7 +881,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
                     y_min = min(self._box_xy[1], self._box_xy2[1])
                     y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
 
-                    payload = [ {"x": x, "y": y } for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    payload = [ {"x": x-1, "y": y-1 } for x in range(x_min, x_max) for y in range(y_min, y_max) ]
                     c.make_request("/fow/bulk/rm", payload={"fow": payload})
                     self._box = False
                     vp.box_xy = None
@@ -891,8 +891,8 @@ class CommandWindow(VisibleModule, InteractiveModule):
                     vp = viewer.get_submodule(Viewport)
                     c = viewer.get_submodule(Client)
                     c.make_request("/fow/rm", payload={
-                        "x": vp.cursor_x,
-                        "y": vp.cursor_y
+                        "x": vp.cursor_x-1,
+                        "y": vp.cursor_y-1
                     })
 
             if not self._box:
