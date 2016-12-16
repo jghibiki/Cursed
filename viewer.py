@@ -6,6 +6,7 @@ from features import Feature, FeatureType, FeatureSerializer
 from interactive import *
 import logging
 import random
+from colors import Colors
 
 log = logging.getLogger('simple_example')
 
@@ -30,6 +31,7 @@ class Viewer(InteractiveModule, VisibleModule):
         self._combo_buffer = ""
         self._initial_draw = True
         self._mind_blown = False
+
 
         curses.curs_set(0)
 
@@ -70,7 +72,7 @@ class Viewer(InteractiveModule, VisibleModule):
                     curses.init_pair(i + 1, color, -1)
 
             # part of an ongoing expiriment to see if this helps with character repeat lag
-            curses.flushinp() # get rid of any characters waiting in buffer
+            #curses.flushinp() # get rid of any characters waiting in buffer
 
 
 

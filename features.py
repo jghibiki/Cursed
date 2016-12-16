@@ -1,5 +1,6 @@
 import curses
 import locale
+from colors import Colors
 locale.setlocale(locale.LC_ALL, '')
 code = locale.getpreferredencoding()
 
@@ -36,6 +37,7 @@ class FeatureType:
         FeatureType.hill = 18
         FeatureType.bed = 19
         FeatureType.statue = 20
+        FeatureType.blood = 21
 
     def toName(char):
         if char == FeatureType.wall:
@@ -80,6 +82,8 @@ class FeatureType:
             return "Bed"
         elif char == FeatureType.statue:
             return "Statue"
+        elif char == FeatureType.blood:
+            return "Blood"
 
     def toSymbol(id):
         if id == FeatureType.wall:
@@ -124,6 +128,8 @@ class FeatureType:
             return "b"
         elif id == FeatureType.statue:
             return "&"
+        elif id == FeatureType.blood:
+            return "▒"
         else:
             return u"\u2699".encode(code)
 
@@ -170,10 +176,12 @@ class FeatureType:
             return FeatureType.bed
         elif name == "Statue":
             return FeatureType.statue
+        elif name == "Blood":
+            return FeatureType.blood
 
     def modFromName(name):
         if name == "Wall":
-            return curses.color_pair(95)
+            return Colors.get(Colors.BROWN)
         elif name == "Table":
             return curses.A_NORMAL
         elif name == "Chair":
@@ -183,37 +191,33 @@ class FeatureType:
         elif name == "Down Stair":
             return curses.A_NORMAL
         elif name == "Door":
-            return curses.color_pair(95)
+            return Colors.get(Colors.BROWN)
         elif name == "Lantern":
-            return curses.color_pair(4)
+            return Colors.get(Colors.GOLD)
         elif name == "Chest":
             return curses.A_NORMAL
         elif name == "Point of Interest":
-            return curses.color_pair(197)
+            return Colors.get(Colors.RED)
         elif name == "Road":
-            return curses.color_pair(12)
+            return Colors.get(Colors.GREY)
         elif name == "Gate":
-            return curses.color_pair(95)
+            return Colors.get(Colors.BROWN)
         elif name == "Water":
-            return curses.color_pair(5)
+            return Colors.get(Colors.LIGHT_BLUE)
         elif name == "Tree":
-            return curses.color_pair(95)
+            return Colors.get(Colors.BROWN)
         elif name == "Bush":
-            return curses.color_pair(29)
+            return Colors.get(Colors.DARK_GREEN)
         elif name == "Grass":
-            return curses.color_pair(29)
-        elif name == "Friendly Unit":
-            return curses.color_pair(47)
-        elif name == "Enemy Unit":
-            return curses.color_pair(197)
-        elif name == "Dead Unit":
-            return curses.color_pair(8)
+            return Colors.get(Colors.GREEN)
         elif name == "Hill":
             return curses.A_NORMAL
         elif name == "Bed":
             return curses.A_NORMAL
         elif name == "Statue":
             return curses.A_NORMAL
+        elif name == "Blood":
+            return Colors.get(Colors.DARK_RED)
 
 
 class FeatureSerializer:

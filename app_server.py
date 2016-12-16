@@ -604,4 +604,4 @@ def run(data, port, host, gm_passwd, passwd, map_name, save):
     authentication.password = passwd if passwd else tmp
     print("PC Password: %s" % authentication.password)
 
-    app.run(port=port, host=host, threaded=True, debug=True)
+    app.run(port=port, host=host, threaded=True, debug=False)

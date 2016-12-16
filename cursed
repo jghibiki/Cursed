@@ -105,10 +105,8 @@ def pc(ctx, host, port, wsad, username, password):
     curses.wrapper(_join, ctx, "pc", host, port, username, wsad, password)
 
 def _join(scr, ctx, role, host, port, username, wsad, password):
-    curses.start_color()
-    curses.use_default_colors()
-    for i in range(0, curses.COLORS):
-        curses.init_pair(i + 1, i, -1)
+    from colors import Colors
+    Colors.init()
 
     from features import init_features
     from features import load_features

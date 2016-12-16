@@ -4,6 +4,7 @@ from viewer import ViewerConstants
 from viewport import Viewport
 from client import Client
 from state import State
+from colors import Colors
 import json
 import logging
 import curses
@@ -54,7 +55,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
             self._screen.clear()
 
             state = viewer.get_submodule(State)
-            self._screen.attrset(curses.color_pair(179))
+            self._screen.attrset(Colors.get(Colors.GOLD))
             if state.get_state("easter_egg") is not None:
                 self._screen.border(
                         curses.ACS_VLINE,
@@ -77,7 +78,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
                         curses.ACS_BOARD,
                         curses.ACS_BOARD
                 )
-            self._screen.attroff(curses.color_pair(179))
+            self._screen.attroff(Colors.get(Colors.GOLD))
 
             state = viewer.get_submodule(State)
             role = state.get_state("role")
@@ -585,6 +586,30 @@ class CommandWindow(VisibleModule, InteractiveModule):
                     raw_feature = FeatureSerializer.toDict(feature)
                     c.make_request("/map/add", payload=raw_feature)
 
+
+            elif ch == ord("B"):
+                vp = viewer.get_submodule(Viewport)
+                c = viewer.get_submodule(Client)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.blood)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.blood)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
+
             elif ch == ord("x"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
@@ -928,7 +953,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
 
     def _draw_gm_default_screen(self):
-        self._screen.addstr(1, 2, "Commands:", curses.color_pair(179))
+        self._screen.addstr(1, 2, "Commands:", Colors.get(Colors.GOLD))
 
         line = 2
         # build menu
@@ -950,7 +975,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
         line = self._draw_key(line, "u", "units")
 
     def _draw_pc_default_screen(self):
-        self._screen.addstr(1, 2, "Commands:", curses.color_pair(179))
+        self._screen.addstr(1, 2, "Commands:", Colors.get(Colors.GOLD))
 
         line = 2
         # show chat
@@ -961,9 +986,9 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
     def _draw_fow_screen(self):
         if self._box:
-            self._screen.addstr(1, 2, "Fog of War(Box Mode):", curses.color_pair(179))
+            self._screen.addstr(1, 2, "Fog of War(Box Mode):", Colors.get(Colors.GOLD))
         else:
-            self._screen.addstr(1, 2, "Fog of War:", curses.color_pair(179))
+            self._screen.addstr(1, 2, "Fog of War:", Colors.get(Colors.GOLD))
 
         line = 2
 
@@ -994,7 +1019,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
         current_unit = vp.get_current_unit()
 
         if role == "gm":
-            self._screen.addstr(1, 2, "Units:", curses.color_pair(179))
+            self._screen.addstr(1, 2, "Units:", Colors.get(Colors.GOLD))
 
             line = 2
 
@@ -1013,13 +1038,13 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
             else:
 
-                line = self._draw_key(line, "m", "Move Unit", curses.color_pair(60))
+                line = self._draw_key(line, "m", "Move Unit", Colors.get(Colors.DARK_GREY))
 
-                line = self._draw_key(line, "e", "Edit Unit", curses.color_pair(60))
+                line = self._draw_key(line, "e", "Edit Unit", Colors.get(Colors.DARK_GREY))
 
-                line = self._draw_key(line, "+", "Increase Unit Health", curses.color_pair(60))
+                line = self._draw_key(line, "+", "Increase Unit Health", Colors.get(Colors.DARK_GREY))
 
-                line = self._draw_key(line, "-", "Decrease Unit Health", curses.color_pair(60))
+                line = self._draw_key(line, "-", "Decrease Unit Health", Colors.get(Colors.DARK_GREY))
 
 
             # esc
@@ -1030,7 +1055,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
             if current_unit != None:
                 line = self._draw_key(line, "m", "Move Unit")
             else:
-                line = self._draw_key(line, "m", "Move Unit", curses.color_pair(60))
+                line = self._draw_key(line, "m", "Move Unit", Colors.get(Colors.DARK_GREY))
 
             # esc
             line = self._draw_key(line+1, "esc", "Back")
@@ -1041,37 +1066,37 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
         direction_scheme = state.get_state("direction_scheme")
 
-        self._screen.addstr(1, 2, "Move Units:", curses.color_pair(179))
+        self._screen.addstr(1, 2, "Move Units:", Colors.get(Colors.GOLD))
 
         if direction_scheme == "vim":
-            self._screen.addstr(2, 2, "j", curses.color_pair(179))
+            self._screen.addstr(2, 2, "j", Colors.get(Colors.GOLD))
             self._screen.addstr(2, 3, ": Down", )
 
-            self._screen.addstr(3, 2, "k", curses.color_pair(179))
+            self._screen.addstr(3, 2, "k", Colors.get(Colors.GOLD))
             self._screen.addstr(3, 3, ": Up", )
 
-            self._screen.addstr(4, 2, "h", curses.color_pair(179))
+            self._screen.addstr(4, 2, "h", Colors.get(Colors.GOLD))
             self._screen.addstr(4, 3, ": Left", )
 
-            self._screen.addstr(5, 2, "l", curses.color_pair(179))
+            self._screen.addstr(5, 2, "l", Colors.get(Colors.GOLD))
             self._screen.addstr(5, 3, ": Right", )
 
 
         elif direction_scheme == "wsad":
-            self._screen.addstr(2, 2, "s", curses.color_pair(179))
+            self._screen.addstr(2, 2, "s", Colors.get(Colors.GOLD))
             self._screen.addstr(2, 3, ": Down", )
 
-            self._screen.addstr(3, 2, "w", curses.color_pair(179))
+            self._screen.addstr(3, 2, "w", Colors.get(Colors.GOLD))
             self._screen.addstr(3, 3, ": Up", )
 
-            self._screen.addstr(4, 2, "a", curses.color_pair(179))
+            self._screen.addstr(4, 2, "a", Colors.get(Colors.GOLD))
             self._screen.addstr(4, 3, ": Left", )
 
-            self._screen.addstr(5, 2, "d", curses.color_pair(179))
+            self._screen.addstr(5, 2, "d", Colors.get(Colors.GOLD))
             self._screen.addstr(5, 3, ": Right", )
 
         # esc
-        self._screen.addstr(24, 2, "esc", curses.color_pair(179))
+        self._screen.addstr(24, 2, "esc", Colors.get(Colors.GOLD))
         self._screen.addstr(24, 6, ": Back")
 
 
@@ -1080,14 +1105,15 @@ class CommandWindow(VisibleModule, InteractiveModule):
     def _draw_build_screen(self):
 
         if self._box:
-            self._screen.addstr(1, 2, "Build (Box Mode):", curses.color_pair(179))
+            self._screen.addstr(1, 2, "Build (Box Mode):", Colors.get(Colors.GOLD))
         else:
-            self._screen.addstr(1, 2, "Build:", curses.color_pair(179))
+            self._screen.addstr(1, 2, "Build:", Colors.get(Colors.GOLD))
 
         line = 2
 
         line = self._draw_key(line, "b", "Bed")
         line = self._draw_key(line, "o", "Bush")
+        line = self._draw_key(line, "B", "Blood")
         line = self._draw_key(line, "c", "Chair")
         line = self._draw_key(line, "#", "Chest")
         line = self._draw_key(line, "d", "Door")
@@ -1116,7 +1142,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
 
     def _draw_box_select_screen(self):
-        self._screen.addstr(1, 2, "Box Select:", curses.color_pair(179))
+        self._screen.addstr(1, 2, "Box Select:", Colors.get(Colors.GOLD))
 
         line = 2
         line = self._draw_key(line, "space", "Select box corner")
@@ -1126,7 +1152,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
     def _draw_key(self, line_no, key, description, attr=None):
 
         if attr is None:
-            self._screen.addstr(line_no, 2, key, curses.color_pair(179))
+            self._screen.addstr(line_no, 2, key, Colors.get(Colors.GOLD))
         else:
             self._screen.addstr(line_no, 2, key, attr)
 

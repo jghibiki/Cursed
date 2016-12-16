@@ -1,5 +1,5 @@
-import curses
 import logging
+from colors import Colors
 
 log = logging.getLogger('simple_example')
 
@@ -22,13 +22,13 @@ class Unit:
         username = state.get_state("username")
 
         if self.controller == username and role != "gm":
-            screen.addstr(self.y, self.x, "@", curses.color_pair(5))
+            screen.addstr(self.y, self.x, "@", Colors.get(Colors.LIGHT_BLUE))
         elif self.type == "pc":
-            screen.addstr(self.y, self.x, "@", curses.color_pair(3))
+            screen.addstr(self.y, self.x, "@", Colors.get(Colors.LIGHT_GREEN))
         elif self.type == "enemy":
-            screen.addstr(self.y, self.x, "@", curses.color_pair(2))
+            screen.addstr(self.y, self.x, "@", Colors.get(Colors.LIGHT_RED))
         elif self.type == "neutral" or self.type == "":
-            screen.addstr(self.y, self.x, "@", curses.color_pair(0))
+            screen.addstr(self.y, self.x, "@", Colors.get(Colors.LIGHT_GREY))
 
 
 
