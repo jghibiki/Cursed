@@ -930,40 +930,34 @@ class CommandWindow(VisibleModule, InteractiveModule):
     def _draw_gm_default_screen(self):
         self._screen.addstr(1, 2, "Commands:", curses.color_pair(179))
 
+        line = 2
         # build menu
-        self._screen.addstr(2, 2, "b", curses.color_pair(179))
-        self._screen.addstr(2, 3, ": Build", )
+        line = self._draw_key(line, "b", "Build")
 
         # show chat
-        self._screen.addstr(3, 2, "c", curses.color_pair(179))
-        self._screen.addstr(3, 3, ": Chat", )
+        line = self._draw_key(line, "c", "Chat")
 
         # show narrative
-        self._screen.addstr(4, 2, "n", curses.color_pair(179))
-        self._screen.addstr(4, 3, ": Narrative", )
+        line = self._draw_key(line, "n", "Narrative")
 
         # show fow toggle
-        self._screen.addstr(5, 2, "f", curses.color_pair(179))
-        self._screen.addstr(5, 3, ": Toggle Fog of War for GM")
+        line = self._draw_key(line, "f", "Toggle Fog of War for GM")
 
         # fow menu
-        self._screen.addstr(6, 2, "F", curses.color_pair(179))
-        self._screen.addstr(6, 3, ": Edit Fog of War")
+        line = self._draw_key(line, "F", "Edit Fog of War")
 
         # unit menu
-        self._screen.addstr(7, 2, "u", curses.color_pair(179))
-        self._screen.addstr(7, 3, ": Units")
+        line = self._draw_key(line, "u", "units")
 
     def _draw_pc_default_screen(self):
         self._screen.addstr(1, 2, "Commands:", curses.color_pair(179))
 
+        line = 2
         # show chat
-        self._screen.addstr(2, 2, "c", curses.color_pair(179))
-        self._screen.addstr(2, 3, ": Chat", )
+        line = self._draw_key(line, "c", "Chat")
 
         # unit menu
-        self._screen.addstr(3, 2, "u", curses.color_pair(179))
-        self._screen.addstr(3, 3, ": Units")
+        line = self._draw_key(line, "u", "units")
 
     def _draw_fow_screen(self):
         if self._box:
@@ -971,32 +965,26 @@ class CommandWindow(VisibleModule, InteractiveModule):
         else:
             self._screen.addstr(1, 2, "Fog of War:", curses.color_pair(179))
 
-        if not self._box:
-            self._screen.addstr(2, 2, "f", curses.color_pair(179))
-            self._screen.addstr(2, 3, ": Toggle FoW for GM", )
-
-        self._screen.addstr(3, 2, "a", curses.color_pair(179))
-        self._screen.addstr(3, 3, ": Add FoW", )
-
-        self._screen.addstr(4, 2, "r", curses.color_pair(179))
-        self._screen.addstr(4, 3, ": Remove FoW", )
+        line = 2
 
         if not self._box:
-            self._screen.addstr(5, 2, "A", curses.color_pair(179))
-            self._screen.addstr(5, 3, ": Fill Map with FoW", )
+            line = self._draw_key(line, "f", "Toggle FoW for GM")
 
-            self._screen.addstr(6, 2, "R", curses.color_pair(179))
-            self._screen.addstr(6, 3, ": Clear FoW", )
+        line = self._draw_key(line, "a", "Add FoW")
 
-            self._screen.addstr(7, 2, "space", curses.color_pair(179))
-            self._screen.addstr(7, 7, ": Start Box Mode", )
+        line = self._draw_key(line, "r", "Remove FoW")
+
+        if not self._box:
+            line = self._draw_key(line, "A", "Fill Map with FoW")
+
+            line = self._draw_key(line, "R", "Clear FoW")
+
+            line = self._draw_key(line+1, "space", "Start Box Mode")
 
         if self._box:
-            self._screen.addstr(9, 2, "esc", curses.color_pair(179))
-            self._screen.addstr(9, 5, ": Cancel Box Mode", )
+            line = self._draw_key(line+1, "esc", "Cancel")
         else:
-            self._screen.addstr(9, 2, "esc", curses.color_pair(179))
-            self._screen.addstr(9, 5, ": Back", )
+            line = self._draw_key(line+1, "esc", "Back")
 
     def _draw_units_screen(self, viewer):
         state = viewer.get_submodule(State)
@@ -1008,56 +996,44 @@ class CommandWindow(VisibleModule, InteractiveModule):
         if role == "gm":
             self._screen.addstr(1, 2, "Units:", curses.color_pair(179))
 
-            self._screen.addstr(2, 2, "a", curses.color_pair(179))
-            self._screen.addstr(2, 3, ": Add Unit", )
+            line = 2
+
+            line = self._draw_key(line, "a", "Add Unit")
 
             if current_unit != None:
-                self._screen.addstr(3, 2, "r", curses.color_pair(179))
-                self._screen.addstr(3, 3, ": Remove Unit", )
+                line = self._draw_key(line, "r", "Remove Unit")
 
-                self._screen.addstr(4, 2, "m", curses.color_pair(179))
-                self._screen.addstr(4, 3, ": Move Unit", )
+                line = self._draw_key(line, "m", "Move Unit")
 
-                self._screen.addstr(5, 2, "e", curses.color_pair(179))
-                self._screen.addstr(5, 3, ": Edit Unit", )
+                line = self._draw_key(line, "e", "Edit Unit")
 
-                self._screen.addstr(6, 2, "+", curses.color_pair(179))
-                self._screen.addstr(6, 3, ": Increase Unit Health", )
+                line = self._draw_key(line, "+", "Increase Unit Health")
 
-                self._screen.addstr(7, 2, "-", curses.color_pair(179))
-                self._screen.addstr(7, 3, ": Decrease Unit Health", )
+                line = self._draw_key(line, "-", "Decrease Unit Health")
+
             else:
 
-                self._screen.addstr(3, 2, "r", curses.color_pair(60))
-                self._screen.addstr(3, 3, ": Remove Unit", )
+                line = self._draw_key(line, "m", "Move Unit", curses.color_pair(60))
 
-                self._screen.addstr(4, 2, "m", curses.color_pair(60))
-                self._screen.addstr(4, 3, ": Move Unit", )
+                line = self._draw_key(line, "e", "Edit Unit", curses.color_pair(60))
 
-                self._screen.addstr(5, 2, "e", curses.color_pair(60))
-                self._screen.addstr(5, 3, ": Edit Unit", )
+                line = self._draw_key(line, "+", "Increase Unit Health", curses.color_pair(60))
 
-                self._screen.addstr(6, 2, "+", curses.color_pair(60))
-                self._screen.addstr(6, 3, ": Increase Unit Health", )
+                line = self._draw_key(line, "-", "Decrease Unit Health", curses.color_pair(60))
 
-                self._screen.addstr(7, 2, "-", curses.color_pair(60))
-                self._screen.addstr(7, 3, ": Decrease Unit Health", )
 
             # esc
-            self._screen.addstr(10, 2, "esc", curses.color_pair(179))
-            self._screen.addstr(10, 6, ": Back")
+            line = self._draw_key(line+1, "esc", "Back")
 
         elif role == "pc":
+            line = 2
             if current_unit != None:
-                self._screen.addstr(2, 2, "m", curses.color_pair(179))
-                self._screen.addstr(2, 3, ": Move Unit", )
+                line = self._draw_key(line, "m", "Move Unit")
             else:
-                self._screen.addstr(2, 2, "m", curses.color_pair(60))
-                self._screen.addstr(2, 3, ": Move Unit", curses.color_pair(60) )
+                line = self._draw_key(line, "m", "Move Unit", curses.color_pair(60))
 
             # esc
-            self._screen.addstr(24, 2, "esc", curses.color_pair(179))
-            self._screen.addstr(24, 6, ": Back")
+            line = self._draw_key(line+1, "esc", "Back")
 
     def _draw_unit_move_screen(self, viewer):
 
@@ -1101,7 +1077,6 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
 
 
-
     def _draw_build_screen(self):
 
         if self._box:
@@ -1109,216 +1084,67 @@ class CommandWindow(VisibleModule, InteractiveModule):
         else:
             self._screen.addstr(1, 2, "Build:", curses.color_pair(179))
 
-        # wall
-        self._screen.addstr(2, 2, "w", curses.color_pair(179))
-        self._screen.addstr(2, 3, ": Wall(")
-        self._screen.addstr(2, 10,
-                FeatureType.toSymbol(
-                    FeatureType.wall),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.wall)))
-        self._screen.addstr(2, 11, ")")
+        line = 2
 
-        # water
-        self._screen.addstr(3, 2, "W", curses.color_pair(179))
-        self._screen.addstr(3, 3, ": Water(")
-        self._screen.addstr(3, 11,
-                FeatureType.toSymbol( FeatureType.water ),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.water)))
-        self._screen.addstr(3, 12, ")")
+        line = self._draw_key(line, "b", "Bed")
+        line = self._draw_key(line, "o", "Bush")
+        line = self._draw_key(line, "c", "Chair")
+        line = self._draw_key(line, "#", "Chest")
+        line = self._draw_key(line, "d", "Door")
+        line = self._draw_key(line, "G", "Gate")
+        line = self._draw_key(line, ".", "Grass")
+        line = self._draw_key(line, "^", "Hill")
+        line = self._draw_key(line, "%", "Lantern")
+        line = self._draw_key(line, "*", "Point of Interest")
+        line = self._draw_key(line, "r", "Road")
+        line = self._draw_key(line, ">", "Stair/Ladder Up")
+        line = self._draw_key(line, "<", "Stair/Ladder Down")
+        line = self._draw_key(line, "&", "Statue")
+        line = self._draw_key(line, "t", "Table")
+        line = self._draw_key(line, "T", "Tree")
+        line = self._draw_key(line, "w", "Wall")
+        line = self._draw_key(line, "W", "Water")
 
-        # door
-        self._screen.addstr(4, 2, "d", curses.color_pair(179))
-        self._screen.addstr(4, 3, ": Door(")
-        self._screen.addstr(4, 10,
-                FeatureType.toSymbol( FeatureType.door ),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.door)))
-        self._screen.addstr(4, 11, ")")
-
-        # gate
-        self._screen.addstr(5, 2, "G", curses.color_pair(179))
-        self._screen.addstr(5, 3, ": Gate(")
-        self._screen.addstr(5, 10,
-                FeatureType.toSymbol( FeatureType.gate ),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.gate)))
-        self._screen.addstr(5, 11, ")")
-
-        # Road
-        self._screen.addstr(6, 2, "r", curses.color_pair(179))
-        self._screen.addstr(6, 3, ": Road(")
-        self._screen.addstr(6, 10,
-                FeatureType.toSymbol( FeatureType.road ),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.road)))
-        self._screen.addstr(6, 11, ")")
-
-        # bush
-        self._screen.addstr(7, 2, "o", curses.color_pair(179))
-        self._screen.addstr(7, 3, ": Bush(")
-        self._screen.addstr(7, 10,
-                FeatureType.toSymbol( FeatureType.bush ),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.bush)))
-        self._screen.addstr(7, 11, ")")
-
-        # grass
-        self._screen.addstr(8, 2, ".", curses.color_pair(179))
-        self._screen.addstr(8, 3, ": Grass(")
-        self._screen.addstr(8, 11,
-                FeatureType.toSymbol( FeatureType.grass ),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.grass)))
-        self._screen.addstr(8, 12, ")")
-
-        # table
-        self._screen.addstr(9, 2, "t", curses.color_pair(179))
-        self._screen.addstr(9, 3, ": Table(")
-        self._screen.addstr(9, 11,
-                FeatureType.toSymbol( FeatureType.table ),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.table)))
-        self._screen.addstr(9, 12, ")")
-
-        # chair
-        self._screen.addstr(10, 2, "t", curses.color_pair(179))
-        self._screen.addstr(10, 3, ": Chair(")
-        self._screen.addstr(10, 11,
-                FeatureType.toSymbol( FeatureType.chair),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.chair)))
-        self._screen.addstr(10, 12, ")")
-
-        # tree
-        self._screen.addstr(11, 2, "T", curses.color_pair(179))
-        self._screen.addstr(11, 3, ": Tree(")
-        self._screen.addstr(11, 10,
-                FeatureType.toSymbol( FeatureType.tree ),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.tree)))
-        self._screen.addstr(11, 11, ")")
-
-        # hill
-        self._screen.addstr(12, 2, "^", curses.color_pair(179))
-        self._screen.addstr(12, 3, ": Hill(")
-        self._screen.addstr(12, 10,
-                FeatureType.toSymbol( FeatureType.hill ),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.hill)))
-        self._screen.addstr(12, 11, ")")
-
-        # Up stair/Ladder
-        self._screen.addstr(13, 2, ">", curses.color_pair(179))
-        self._screen.addstr(13, 3, ": Up Stair/Ladder(")
-        self._screen.addstr(13, 21,
-                FeatureType.toSymbol( FeatureType.up_stair ),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.up_stair)))
-        self._screen.addstr(13, 22, ")")
-
-        # Down stair/ladder
-        self._screen.addstr(14, 2, "<", curses.color_pair(179))
-        self._screen.addstr(14, 3, ": Down Stair/Ladder(")
-        self._screen.addstr(14, 23,
-                FeatureType.toSymbol( FeatureType.down_stair ),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.down_stair)))
-        self._screen.addstr(14, 24, ")")
-
-        # lantern
-        self._screen.addstr(15, 2, "%", curses.color_pair(179))
-        self._screen.addstr(15, 3, ": Lantern(")
-        self._screen.addstr(15, 13,
-                FeatureType.toSymbol( FeatureType.lantern ),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.lantern)))
-        self._screen.addstr(15, 14, ")")
-
-        # chest
-        self._screen.addstr(16, 2, "#", curses.color_pair(179))
-        self._screen.addstr(16, 3, ": Chest(")
-        self._screen.addstr(16, 11,
-                FeatureType.toSymbol( FeatureType.lantern ),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.lantern)))
-        self._screen.addstr(16, 12, ")")
-
-        # point of interest *
-        self._screen.addstr(17, 2, "*", curses.color_pair(179))
-        self._screen.addstr(17, 3, ": Point Of Interest(")
-        self._screen.addstr(17, 23,
-                FeatureType.toSymbol( FeatureType.point_of_interest),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.point_of_interest)))
-        self._screen.addstr(17, 24, ")")
-
-        self._screen.addstr(18, 2, "^", curses.color_pair(179))
-        self._screen.addstr(18, 3, ": Hill(")
-        self._screen.addstr(18, 10,
-                FeatureType.toSymbol( FeatureType.hill),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.hill)))
-        self._screen.addstr(18, 11, ")")
-
-        self._screen.addstr(19, 2, "b", curses.color_pair(179))
-        self._screen.addstr(19, 3, ": Bed(")
-        self._screen.addstr(19, 9,
-                FeatureType.toSymbol( FeatureType.bed),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.bed)))
-        self._screen.addstr(19, 10, ")")
-
-        self._screen.addstr(20, 2, "&", curses.color_pair(179))
-        self._screen.addstr(20, 3, ": Statue(")
-        self._screen.addstr(20, 12,
-                FeatureType.toSymbol( FeatureType.statue),
-                FeatureType.modFromName(
-                    FeatureType.toName(
-                        FeatureType.statue)))
-        self._screen.addstr(20, 13, ")")
-
-
-        self._screen.addstr(21, 2, "x", curses.color_pair(179))
-        self._screen.addstr(21, 3, ": Remove Object")
-
-
-        self._screen.addstr(22, 2, "space", curses.color_pair(179))
-        self._screen.addstr(22, 8, ": Select box corner")
+        line = self._draw_key(line+1, "x", "Remove Object")
+        line = self._draw_key(line, "space", "Select box corner")
 
         # esc
         if self._box:
-            self._screen.addstr(24, 2, "esc", curses.color_pair(179))
-            self._screen.addstr(24, 6, ": Cancel Box Mode")
+            line = self._draw_key(line+2, "esc", "Cancel Box Mode")
         else:
-            self._screen.addstr(24, 2, "esc", curses.color_pair(179))
-            self._screen.addstr(24, 6, ": Back")
+            line = self._draw_key(line+2, "esc", "Back")
 
 
     def _draw_box_select_screen(self):
         self._screen.addstr(1, 2, "Box Select:", curses.color_pair(179))
 
-        self._screen.addstr(2, 2, "space", curses.color_pair(179))
-        self._screen.addstr(2, 8, ": Select box corner")
+        line = 2
+        line = self._draw_key(line, "space", "Select box corner")
+        line = self._draw_key(line, "esc", "Cancel")
 
-        self._screen.addstr(4, 2, "esc", curses.color_pair(179))
-        self._screen.addstr(4, 6, ": Back")
+
+    def _draw_key(self, line_no, key, description, attr=None):
+
+        if attr is None:
+            self._screen.addstr(line_no, 2, key, curses.color_pair(179))
+        else:
+            self._screen.addstr(line_no, 2, key, attr)
+
+        key_len = 4 + len(key)
+        offset_width = self.w - key_len
+
+        text = ": %s" % description
+
+        n = offset_width
+        text = [ text[i:i+n] for i in range(0, len(text), n) ]
+
+        first_line = text.pop(0)
+        self._screen.addstr(line_no, 2 + len(key), first_line)
+        line_no += 1
+
+        for line in text:
+            self._screen.addstr(line_no, 2, line)
+            line_no += 1
+
+        return line_no
+
