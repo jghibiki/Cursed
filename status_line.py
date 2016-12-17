@@ -75,8 +75,6 @@ class StatusLine(VisibleModule):
             padded_ln = msg.ljust(self.w-2)
             self._screen.addstr(1,1, padded_ln, Colors.get(Colors.GOLD))
 
-
-
             self._screen.noutrefresh()
 
             self._dirty = False

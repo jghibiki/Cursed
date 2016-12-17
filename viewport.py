@@ -2,6 +2,7 @@ from features import Feature, FeatureType, FeatureSerializer
 from viewer import ViewerConstants
 from state import State
 from interactive import VisibleModule, FeatureModule, SavableModule
+from status_line import StatusLine
 from colors import Colors
 import curses
 import logging
@@ -137,13 +138,56 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
 
     def get_cursor_focus(self, viewer):
         state = viewer.get_submodule(State)
-        a = [feature for feature in self._features if feature.pos_y == self.cursor_y and feature.pos_x == self.cursor_x]
+        unit = [ unit for unit in self._units if unit.y == self.cursor_y and unit.x == self.cursor_x ]
+        feature = [feature for feature in self._features if feature.pos_y == self.cursor_y and feature.pos_x == self.cursor_x]
 
+        if not (state.get_state("role") == "pc" and self._fow[self.cursor_x][self.cursor_y]):
         # ensures there is a feature and if we are a pc we will not show thing hidden by FoW
-        if(len(a)) and not (state.get_state("role") == "pc" and self._fow[self.cursor_x][self.cursor_y]):
-                desc = "%s" % FeatureType.toName(a[0].char)
+            if len(unit):
+                sl = viewer.get_submodule(StatusLine)
+                                #name + space         border []
+                text = "%s %s/%s " % (unit[0].name, unit[0].current_health, unit[0].max_health)
+                width = sl.w - (len(text) + 1) - 2 - 2
+
+                percent = unit[0].current_health/float(unit[0].max_health)
+
+                log.error(unit[0].current_health)
+                log.error(unit[0].max_health)
+                log.error(percent)
+
+                if percent <= 1.0 and percent >= 0.0:
+                    number_of_units = math.ceil(percent * width)
+                    bar = number_of_units * "="
+                    bar = bar.rjust(width, " ")
+
+                elif percent > 1.0:
+                    diff = percent - 1.0
+                    diff_percent = diff/percent
+                    excess = math.ceil(width * diff_percent)
+
+                    bar = excess * "="
+                    bar += "(+)|"
+                    bar = bar.ljust(width, "=")
+
+                elif percent < 0.0:
+                    diff = (-1 * percent)/(1.0 + ( -1 * percent))
+                    log.error("diff %s" % diff)
+                    excess = math.ceil(width * diff)
+
+                    bar = "|(-)"
+                    bar += excess * "="
+                    bar = bar.rjust(width, "=")
+
+
+                desc = "%s [%s]" % (text, bar)
                 log.error(desc)
                 return desc
+
+            elif(len(feature)):
+                desc = "%s" % FeatureType.toName(feature[0].char)
+                log.error(desc)
+                return desc
+
         return ""
 
     def add_feature(self, y, x, char):
