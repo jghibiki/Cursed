@@ -610,6 +610,29 @@ class CommandWindow(VisibleModule, InteractiveModule):
                     raw_feature = FeatureSerializer.toDict(feature)
                     c.make_request("/map/add", payload=raw_feature)
 
+            elif ch == ord("`"):
+                vp = viewer.get_submodule(Viewport)
+                c = viewer.get_submodule(Client)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.fire)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.fire)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
+
             elif ch == ord("x"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
@@ -696,7 +719,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
                 while not valid_json:
 
                     EDITOR = os.environ.get('EDITOR','vim')
-                    with tempfile.NamedTemporaryFile(suffix=".tmp") as tf:
+                    with tempfile.NamedTemporaryFile(suffix=".json") as tf:
                         tf.write(unit_text.encode("UTF-8"))
                         tf.flush()
                         subprocess.call([EDITOR, tf.name])
@@ -727,6 +750,64 @@ class CommandWindow(VisibleModule, InteractiveModule):
                 unit["y"] = vp.cursor_y
 
                 c.make_request("/unit/add", payload=unit)
+
+            elif ch == ord("e"):
+
+                vp = viewer.get_submodule(Viewport)
+
+                unit = vp.get_current_unit()
+
+                if unit is not None:
+
+                    unit_text = """
+// Name: Name of the unit
+// Max Health: the unit's maximum health
+// Current Health: the unit's current health, must be less than or equal to max health
+// Controller: The owner of the unit. Only the owner and the gm can move the unit.
+// Type: The type of the unit, must be one of the following. If not set defaults to neutral.
+//   - pc: a unit that will be controllable by the pc owner. Displayed as blue to the owner and green to others.
+//   - enemy: a unit that will be controllable by a gm. Displayed as red.
+//   - neutral: a unit that will be controllable by a gm. Displayed as grey.
+// Do not edit anything above this line"""
+
+                    unit_text = unit_text + "\n" + json.dumps(unit.toDict(edit=True), indent=4, sort_keys=True)
+
+                    valid_json = False
+
+                    while not valid_json:
+
+                        EDITOR = os.environ.get('EDITOR','vim')
+                        with tempfile.NamedTemporaryFile(suffix=".json") as tf:
+                            tf.write(unit_text.encode("UTF-8"))
+                            tf.flush()
+                            subprocess.call([EDITOR, tf.name])
+
+                            # do the parsing with `tf` using regular File operations.
+                            # for instance:
+                            tf.seek(0)
+                            unit_text = tf.read().decode("UTF-8")
+
+                            # fix cursor mode
+                            curses.curs_set(1)
+                            curses.curs_set(0)
+                        viewer._draw(force=True) # force redraw after closing vim
+
+                        try:
+                            lines = unit_text.splitlines()
+                            lines = lines[10:]
+                            text = ''.join(lines)
+                            unit_updates = json.loads(text)
+                            valid_json = True
+                        except:
+                            pass
+
+                    unit.updateFromDict(unit_updates)
+
+                    c = viewer.get_submodule(Client)
+
+                    c.make_request("/unit/update", payload=unit.toDict())
+
+
 
             elif ch == ord("r"):
                 vp = viewer.get_submodule(Viewport)
@@ -844,10 +925,6 @@ class CommandWindow(VisibleModule, InteractiveModule):
                     elif ch == ord("d"):
                         vp.cursor_left()
 
-
-
-
-
         elif self._mode is CommandMode.fow: #gm only
             if ch == 27 or ch == curses.ascii.ESC: # escape
                 if self._box:
@@ -943,8 +1020,6 @@ class CommandWindow(VisibleModule, InteractiveModule):
                     c.make_request("/fow/clear")
 
 
-
-
     def _handle_combo(self, viewer, buff):
             pass
 
@@ -953,57 +1028,36 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
 
     def _draw_gm_default_screen(self):
-        self._screen.addstr(1, 2, "Commands:", Colors.get(Colors.GOLD))
+        line = self._draw_title(1, "Commands:")
 
-        line = 2
-        # build menu
         line = self._draw_key(line, "b", "Build")
-
-        # show chat
         line = self._draw_key(line, "c", "Chat")
-
-        # show narrative
         line = self._draw_key(line, "n", "Narrative")
-
-        # show fow toggle
         line = self._draw_key(line, "f", "Toggle Fog of War for GM")
-
-        # fow menu
         line = self._draw_key(line, "F", "Edit Fog of War")
-
-        # unit menu
         line = self._draw_key(line, "u", "units")
 
     def _draw_pc_default_screen(self):
-        self._screen.addstr(1, 2, "Commands:", Colors.get(Colors.GOLD))
+        line = self._draw_title(1, "Commands:")
 
-        line = 2
-        # show chat
         line = self._draw_key(line, "c", "Chat")
-
-        # unit menu
         line = self._draw_key(line, "u", "units")
 
     def _draw_fow_screen(self):
         if self._box:
-            self._screen.addstr(1, 2, "Fog of War(Box Mode):", Colors.get(Colors.GOLD))
+            line = self._draw_title(1, "Fog of War(Box Mode):")
         else:
-            self._screen.addstr(1, 2, "Fog of War:", Colors.get(Colors.GOLD))
-
-        line = 2
+            line = self._draw_title(1, "Fog of War:")
 
         if not self._box:
             line = self._draw_key(line, "f", "Toggle FoW for GM")
 
         line = self._draw_key(line, "a", "Add FoW")
-
         line = self._draw_key(line, "r", "Remove FoW")
 
         if not self._box:
             line = self._draw_key(line, "A", "Fill Map with FoW")
-
             line = self._draw_key(line, "R", "Clear FoW")
-
             line = self._draw_key(line+1, "space", "Start Box Mode")
 
         if self._box:
@@ -1019,45 +1073,34 @@ class CommandWindow(VisibleModule, InteractiveModule):
         current_unit = vp.get_current_unit()
 
         if role == "gm":
-            self._screen.addstr(1, 2, "Units:", Colors.get(Colors.GOLD))
-
-            line = 2
+            line = self._draw_title(1, "Unites:")
 
             line = self._draw_key(line, "a", "Add Unit")
 
             if current_unit != None:
                 line = self._draw_key(line, "r", "Remove Unit")
-
                 line = self._draw_key(line, "m", "Move Unit")
-
                 line = self._draw_key(line, "e", "Edit Unit")
-
                 line = self._draw_key(line, "+", "Increase Unit Health")
-
                 line = self._draw_key(line, "-", "Decrease Unit Health")
 
             else:
 
                 line = self._draw_key(line, "m", "Move Unit", Colors.get(Colors.DARK_GREY))
-
                 line = self._draw_key(line, "e", "Edit Unit", Colors.get(Colors.DARK_GREY))
-
                 line = self._draw_key(line, "+", "Increase Unit Health", Colors.get(Colors.DARK_GREY))
-
                 line = self._draw_key(line, "-", "Decrease Unit Health", Colors.get(Colors.DARK_GREY))
 
-
-            # esc
             line = self._draw_key(line+1, "esc", "Back")
 
         elif role == "pc":
-            line = 2
+            line = self._draw_title(1, "Unites:")
+
             if current_unit != None:
                 line = self._draw_key(line, "m", "Move Unit")
             else:
                 line = self._draw_key(line, "m", "Move Unit", Colors.get(Colors.DARK_GREY))
 
-            # esc
             line = self._draw_key(line+1, "esc", "Back")
 
     def _draw_unit_move_screen(self, viewer):
@@ -1066,50 +1109,30 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
         direction_scheme = state.get_state("direction_scheme")
 
-        self._screen.addstr(1, 2, "Move Units:", Colors.get(Colors.GOLD))
+        line = self._draw_title(1, "Move Units:")
 
         if direction_scheme == "vim":
-            self._screen.addstr(2, 2, "j", Colors.get(Colors.GOLD))
-            self._screen.addstr(2, 3, ": Down", )
-
-            self._screen.addstr(3, 2, "k", Colors.get(Colors.GOLD))
-            self._screen.addstr(3, 3, ": Up", )
-
-            self._screen.addstr(4, 2, "h", Colors.get(Colors.GOLD))
-            self._screen.addstr(4, 3, ": Left", )
-
-            self._screen.addstr(5, 2, "l", Colors.get(Colors.GOLD))
-            self._screen.addstr(5, 3, ": Right", )
-
+            line = self._draw_key(line, "j", "Down")
+            line = self._draw_key(line, "k", "Up")
+            line = self._draw_key(line, "h", "Left")
+            line = self._draw_key(line, "l", "Right")
 
         elif direction_scheme == "wsad":
-            self._screen.addstr(2, 2, "s", Colors.get(Colors.GOLD))
-            self._screen.addstr(2, 3, ": Down", )
-
-            self._screen.addstr(3, 2, "w", Colors.get(Colors.GOLD))
-            self._screen.addstr(3, 3, ": Up", )
-
-            self._screen.addstr(4, 2, "a", Colors.get(Colors.GOLD))
-            self._screen.addstr(4, 3, ": Left", )
-
-            self._screen.addstr(5, 2, "d", Colors.get(Colors.GOLD))
-            self._screen.addstr(5, 3, ": Right", )
+            line = self._draw_key(line, "s", "Down")
+            line = self._draw_key(line, "w", "Up")
+            line = self._draw_key(line, "a", "Left")
+            line = self._draw_key(line, "d", "Right")
 
         # esc
-        self._screen.addstr(24, 2, "esc", Colors.get(Colors.GOLD))
-        self._screen.addstr(24, 6, ": Back")
-
-
+        line = self._draw_key(line, "esc", "Back")
 
 
     def _draw_build_screen(self):
 
         if self._box:
-            self._screen.addstr(1, 2, "Build (Box Mode):", Colors.get(Colors.GOLD))
+            line = self._draw_title(1, "Build (Box Mode):")
         else:
-            self._screen.addstr(1, 2, "Build:", Colors.get(Colors.GOLD))
-
-        line = 2
+            line = self._draw_title(1, "Build:")
 
         line = self._draw_key(line, "b", "Bed")
         line = self._draw_key(line, "o", "Bush")
@@ -1117,6 +1140,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
         line = self._draw_key(line, "c", "Chair")
         line = self._draw_key(line, "#", "Chest")
         line = self._draw_key(line, "d", "Door")
+        line = self._draw_key(line, "`", "Fire")
         line = self._draw_key(line, "G", "Gate")
         line = self._draw_key(line, ".", "Grass")
         line = self._draw_key(line, "^", "Hill")
@@ -1142,11 +1166,19 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
 
     def _draw_box_select_screen(self):
-        self._screen.addstr(1, 2, "Box Select:", Colors.get(Colors.GOLD))
+        line = self._draw_title(1, "Box Select:")
 
-        line = 2
         line = self._draw_key(line, "space", "Select box corner")
         line = self._draw_key(line, "esc", "Cancel")
+
+    def _draw_title(self, line_no, text):
+        offset_width = self.w - 4
+        n = offset_width
+        text = [ text[i:i+n] for i in range(0, len(text), n) ]
+        for line in text:
+            self._screen.addstr(line_no, 2, line, Colors.get(Colors.GOLD))
+            line_no += 1
+        return line_no
 
 
     def _draw_key(self, line_no, key, description, attr=None):

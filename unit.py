@@ -33,14 +33,30 @@ class Unit:
 
 
 
-    def toDict(self):
-        return {
-            "name": self.name,
-            "y": self.y,
-            "x": self.x,
-            "max_health": self.max_health,
-            "current_health": self.current_health,
-            "controller": self.controller,
-            "type": self.type,
-            "id": self.id
-        }
+    def toDict(self, edit=False):
+        if not edit:
+            return {
+                "name": self.name,
+                "y": self.y,
+                "x": self.x,
+                "max_health": self.max_health,
+                "current_health": self.current_health,
+                "controller": self.controller,
+                "type": self.type,
+                "id": self.id
+            }
+        else:
+            return {
+                "name": self.name,
+                "max_health": self.max_health,
+                "current_health": self.current_health,
+                "controller": self.controller,
+                "type": self.type,
+            }
+
+    def updateFromDict(self, data):
+        self.name = data["name"]
+        self.max_health = data["max_health"]
+        self.current_health = data["current_health"]
+        self.controller = data["controller"]
+        self.type = data["type"]

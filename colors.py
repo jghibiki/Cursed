@@ -37,6 +37,8 @@ class Colors:
 
     BLUE_ON_LIGHT_BLUE = 37
 
+    RED_ON_ORANGE = 38
+
 
     def init():
         curses.start_color()
@@ -72,6 +74,7 @@ class Colors:
 
         # complex color combos
         curses.init_pair(Colors.BLUE_ON_LIGHT_BLUE, Colors.BLUE, Colors.LIGHT_BLUE)
+        curses.init_pair(Colors.RED_ON_ORANGE, Colors.RED, Colors.ORANGE)
 
         # set background to black
         curses.init_color(0,

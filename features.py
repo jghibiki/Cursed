@@ -38,6 +38,7 @@ class FeatureType:
         FeatureType.bed = 19
         FeatureType.statue = 20
         FeatureType.blood = 21
+        FeatureType.fire = 22
 
     def toName(char):
         if char == FeatureType.wall:
@@ -84,6 +85,8 @@ class FeatureType:
             return "Statue"
         elif char == FeatureType.blood:
             return "Blood"
+        elif char == FeatureType.fire:
+            return "Fire"
 
     def toSymbol(id):
         if id == FeatureType.wall:
@@ -130,6 +133,8 @@ class FeatureType:
             return "&"
         elif id == FeatureType.blood:
             return "▒"
+        elif id == FeatureType.fire:
+            return "~"
         else:
             return u"\u2699".encode(code)
 
@@ -178,6 +183,8 @@ class FeatureType:
             return FeatureType.statue
         elif name == "Blood":
             return FeatureType.blood
+        elif name == "Fire":
+            return FeatureType.fire
 
     def modFromName(name):
         if name == "Wall":
@@ -218,6 +225,8 @@ class FeatureType:
             return curses.A_NORMAL
         elif name == "Blood":
             return Colors.get(Colors.DARK_RED)
+        elif name == "Fire":
+            return Colors.get(Colors.RED_ON_ORANGE)
 
 
 class FeatureSerializer:

@@ -171,7 +171,7 @@ class GM(InteractiveModule, UserModule):
             notes = feature.notes
 
             EDITOR = os.environ.get('EDITOR','vim')
-            with tempfile.NamedTemporaryFile(suffix=".tmp") as tf:
+            with tempfile.NamedTemporaryFile(suffix=".md") as tf:
                 text = notes.encode("UTF-8")
                 tf.write(text)
                 tf.flush()
