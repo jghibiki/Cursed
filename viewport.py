@@ -147,45 +147,42 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
                 sl = viewer.get_submodule(StatusLine)
                                 #name + space         border []
                 text = "%s %s/%s " % (unit[0].name, unit[0].current_health, unit[0].max_health)
-                width = sl.w - (len(text) + 1) - 2 - 2
+                bar = ""
 
-                percent = unit[0].current_health/float(unit[0].max_health)
+                if unit[0].max_health != 0:
+                    width = sl.w - (len(text) + 1) - 2 - 2
 
-                log.error(unit[0].current_health)
-                log.error(unit[0].max_health)
-                log.error(percent)
+                    percent = unit[0].current_health/float(unit[0].max_health)
 
-                if percent <= 1.0 and percent >= 0.0:
-                    number_of_units = math.ceil(percent * width)
-                    bar = number_of_units * "="
-                    bar = bar.rjust(width, " ")
+                    if percent <= 1.0 and percent >= 0.0:
+                        number_of_units = math.ceil(percent * width)
+                        bar = number_of_units * "="
+                        bar = bar.rjust(width, " ")
 
-                elif percent > 1.0:
-                    diff = percent - 1.0
-                    diff_percent = diff/percent
-                    excess = math.ceil(width * diff_percent)
+                    elif percent > 1.0:
+                        diff = percent - 1.0
+                        diff_percent = diff/percent
+                        excess = math.ceil(width * diff_percent)
 
-                    bar = excess * "="
-                    bar += "(+)|"
-                    bar = bar.ljust(width, "=")
+                        bar = excess * "="
+                        bar += "(+)|"
+                        bar = bar.ljust(width, "=")
 
-                elif percent < 0.0:
-                    diff = (-1 * percent)/(1.0 + ( -1 * percent))
-                    log.error("diff %s" % diff)
-                    excess = math.ceil(width * diff)
+                    elif percent < 0.0:
+                        diff = (-1 * percent)/(1.0 + ( -1 * percent))
+                        log.error("diff %s" % diff)
+                        excess = math.ceil(width * diff)
 
-                    bar = "|(-)"
-                    bar += excess * "="
-                    bar = bar.rjust(width, "=")
+                        bar = "|(-)"
+                        bar += excess * "="
+                        bar = bar.rjust(width, "=")
 
 
                 desc = "%s [%s]" % (text, bar)
-                log.error(desc)
                 return desc
 
             elif(len(feature)):
                 desc = "%s" % FeatureType.toName(feature[0].char)
-                log.error(desc)
                 return desc
 
         return ""
