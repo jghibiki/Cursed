@@ -15,10 +15,27 @@ log = None
 
 
 @click.group()
-@click.option('--data-location', default="data.json")
-@click.option('--logfile', default="log.txt")
+@click.option('--data-location', default="data.json", help="Location of the cursed data.json file to use (Default: data.json).")
+@click.option('--logfile', default="log.txt", help="Change the location of the log file (Default: log.txt).")
 @click.pass_context
 def cli(ctx, data_location, logfile):
+    """
+    \b
+    To get started hosting a campaign server, run:
+    cursed init [OPTIONS]
+    cursed map add [OPTIONS] MAP_NAME
+    cursed server [OPTIONS] MAP_NAME
+
+    \b 
+    To get started joining a campaign, run
+    cursed gm [OPTIONS] USERNAME GM_PASSWORD
+    or 
+    cursed pc [OPTIONS] USERNAME PC_PASSWORD
+
+    Note: Running cused init is only required once to initialize a data.json file. Future sessions do not need to recreate this file.
+
+    Note: Suffix any command with --help to view help information about that command.
+    """
     ctx.obj["data_location"] = data_location
 
 
@@ -37,11 +54,12 @@ def cli(ctx, data_location, logfile):
 # Initialization
 
 @click.command()
-@click.option('--campaign-title', default="Campaign Title")
-@click.option('--campaign-description', default="Campaign Description")
-@click.option('--overwrite', is_flag=True, default=False)
+@click.option('--campaign-title', default="Campaign Title", help="A title for the campaign file to be created.")
+@click.option('--campaign-description', default="Campaign Description", help="A description for the campaign to be created.")
+@click.option('--overwrite', is_flag=True, default=False, help="A flag to toggle allow overwriting the data.json file. By default, this is not allowed.")
 @click.pass_context
 def init(ctx, campaign_title, campaign_description, overwrite):
+    """Initialize a Cursed campaign file."""
     default_campaign= {
         "title": campaign_title,
         "description": campaign_description,
@@ -58,10 +76,10 @@ def init(ctx, campaign_title, campaign_description, overwrite):
         print("Campaign file already exists. Use --overwrite to overwrite existing file.")
 
 @click.command()
-@click.option("--port", default=8080)
-@click.option("--host", default="0.0.0.0")
-@click.option("--gm-password", default=None)
-@click.option("--password", default=None)
+@click.option("--port", default=8080, help="The port the server should run on.")
+@click.option("--host", default="0.0.0.0", help="The host ip to use. 127.0.0.1 will only allow connections from localhost clients. 0.0.0.0 will allow connections from any client.")
+@click.option("--gm-password", default=None, help="Set a gm password. If not set, the gm password will be a randomly generated four digit code.")
+@click.option("--password", default=None, help="Set a pc password. If not set, the pc password will be a randomly generated four digit code.") 
 @click.argument("map_name")
 @click.pass_context
 def server(ctx, port, host, map_name, gm_password, password):
@@ -75,9 +93,9 @@ def server(ctx, port, host, map_name, gm_password, password):
 
 
 @click.command("gm")
-@click.option("--host", default="127.0.0.1")
-@click.option("--port", default=8080)
-@click.option("--wsad", is_flag=True, default=False)
+@click.option("--host", default="127.0.0.1", help="The ip or hostname of the Cursed server to connect to.")
+@click.option("--port", default=8080, help="The port of the Cursed server to connect to." )
+@click.option("--wsad", is_flag=True, default=False, help="Enable wsad control scheme. Defaults to vim style (kjhl) control scheme.")
 @click.argument("username")
 @click.argument("password")
 @click.pass_context
@@ -91,9 +109,9 @@ def gm(ctx, host, port, wsad, username, password):
 
 
 @click.command("pc")
-@click.option("--host", default="127.0.0.1")
-@click.option("--port", default=8080)
-@click.option("--wsad", is_flag=True, default=False)
+@click.option("--host", default="127.0.0.1", help="The ip or hostname of the Cursed server to connect to.")
+@click.option("--port", default=8080, help="The port of the Cursed server to connect to.")
+@click.option("--wsad", is_flag=True, default=False, help="Enable wsad controm scheme. Defaults to vim tyle (kjhl) control scheme.")
 @click.argument("username")
 @click.argument("password")
 @click.pass_context
@@ -191,16 +209,17 @@ def _join(scr, ctx, role, host, port, username, wsad, password):
 @click.group("map")
 @click.pass_context
 def campaign_map(ctx):
+    """Add, list, and remove campaign maps."""
     pass
 
 @click.command("add")
-@click.option("--max-x", default=100, type=int)
-@click.option("--max-y", default=100, type=int)
+@click.option("--max-x", default=100, type=int, help="The width of the map to be created.")
+@click.option("--max-y", default=100, type=int, help="The height of the map to be created.")
 @click.argument("map_name")
 @click.pass_context
 def add_map(ctx, max_x, max_y, map_name):
+    """Add a new campaign map."""
     campaign_obj = load(ctx)
-
 
     campaign_obj["maps"][map_name] = {
         "max_x": max_x,
@@ -216,6 +235,7 @@ def add_map(ctx, max_x, max_y, map_name):
 @click.argument("map_name")
 @click.pass_context
 def remove_map(ctx, map_name):
+    """Remove an existing campaign map."""
     campaign_obj = load(ctx)
     del campaign_obj["maps"][map_name]
     save(ctx, campaign_obj)
@@ -223,6 +243,7 @@ def remove_map(ctx, map_name):
 @click.command("list")
 @click.pass_context
 def list(ctx):
+    """List campaign maps."""
     campaign_obj = load(ctx)
     intro = "%s" % campaign_obj["title"]
     pad = len(intro)*"="
