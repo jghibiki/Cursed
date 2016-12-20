@@ -87,9 +87,12 @@ def server(ctx, port, host, map_name, gm_password, password):
     Starts a server
     """
     game_data = load(ctx)
-    def save_callback(data):
-        save(ctx, data)
-    start_app_server(game_data, port, host, gm_password, password, map_name, save_callback)
+    if map_name in game_data["maps"]:
+        def save_callback(data):
+            save(ctx, data)
+        start_app_server(game_data, port, host, gm_password, password, map_name, save_callback)
+    else:
+        click.echo("Map %s does not exist. Please create map with:\n cursed map add OPTIONS MAP_NAME" % map_name)
 
 
 @click.command("gm")

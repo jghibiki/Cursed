@@ -39,6 +39,8 @@ class FeatureType:
         FeatureType.statue = 20
         FeatureType.blood = 21
         FeatureType.fire = 22
+        FeatureType.snow = 23
+        FeatureType.boulder = 24
 
     def toName(char):
         if char == FeatureType.wall:
@@ -87,6 +89,10 @@ class FeatureType:
             return "Blood"
         elif char == FeatureType.fire:
             return "Fire"
+        elif char == FeatureType.snow:
+            return "Snow"
+        elif char == FeatureType.boulder:
+            return "Boulder"
 
     def toSymbol(id):
         if id == FeatureType.wall:
@@ -135,6 +141,10 @@ class FeatureType:
             return "▒"
         elif id == FeatureType.fire:
             return "~"
+        elif id == FeatureType.snow:
+            return "▒"
+        elif id == FeatureType.boulder:
+            return "O"
         else:
             return u"\u2699".encode(code)
 
@@ -185,6 +195,10 @@ class FeatureType:
             return FeatureType.blood
         elif name == "Fire":
             return FeatureType.fire
+        elif name == "Snow":
+            return FeatureType.snow
+        elif name == "Boulder":
+            return FeatureType.boulder
 
     def modFromName(name):
         if name == "Wall":
@@ -227,6 +241,10 @@ class FeatureType:
             return Colors.get(Colors.DARK_RED)
         elif name == "Fire":
             return Colors.get(Colors.RED_ON_ORANGE)
+        elif name == "Snow":
+            return Colors.get(Colors.WHITE)
+        elif name == "Boulder":
+            return Colors.get(Colors.DARK_GREY)
 
 
 class FeatureSerializer:

@@ -633,6 +633,52 @@ class CommandWindow(VisibleModule, InteractiveModule):
                     raw_feature = FeatureSerializer.toDict(feature)
                     c.make_request("/map/add", payload=raw_feature)
 
+            elif ch == ord("O"):
+                vp = viewer.get_submodule(Viewport)
+                c = viewer.get_submodule(Client)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.boulder)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.boulder)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
+
+            elif ch == ord("n"):
+                vp = viewer.get_submodule(Viewport)
+                c = viewer.get_submodule(Client)
+
+                if self._box:
+                    x_min = min(self._box_xy[0], self._box_xy2[0])
+                    x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
+
+                    y_min = min(self._box_xy[1], self._box_xy2[1])
+                    y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
+
+                    payload = [ FeatureSerializer.toDict(Feature(y, x, FeatureType.snow)) for x in range(x_min, x_max) for y in range(y_min, y_max) ]
+                    c.make_request("/map/bulk/add", payload={"features": payload})
+                    self._box = False
+                    vp.box_xy = None
+                    vp._dirty = True
+                else:
+                    feature = Feature(vp.cursor_y,
+                                      vp.cursor_x,
+                                      FeatureType.snow)
+                    raw_feature = FeatureSerializer.toDict(feature)
+                    c.make_request("/map/add", payload=raw_feature)
+
             elif ch == ord("x"):
                 vp = viewer.get_submodule(Viewport)
                 c = viewer.get_submodule(Client)
@@ -1135,8 +1181,9 @@ class CommandWindow(VisibleModule, InteractiveModule):
             line = self._draw_title(1, "Build:")
 
         line = self._draw_key(line, "b", "Bed")
-        line = self._draw_key(line, "o", "Bush")
         line = self._draw_key(line, "B", "Blood")
+        line = self._draw_key(line, "O", "Boulder")
+        line = self._draw_key(line, "o", "Bush")
         line = self._draw_key(line, "c", "Chair")
         line = self._draw_key(line, "#", "Chest")
         line = self._draw_key(line, "d", "Door")
@@ -1147,6 +1194,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
         line = self._draw_key(line, "%", "Lantern")
         line = self._draw_key(line, "*", "Point of Interest")
         line = self._draw_key(line, "r", "Road")
+        line = self._draw_key(line, "n", "Snow")
         line = self._draw_key(line, ">", "Stair/Ladder Up")
         line = self._draw_key(line, "<", "Stair/Ladder Down")
         line = self._draw_key(line, "&", "Statue")

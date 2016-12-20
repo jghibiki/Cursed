@@ -6,6 +6,7 @@ from features import Feature, FeatureType, FeatureSerializer
 from interactive import *
 import logging
 import random
+from datetime import datetime
 from colors import Colors
 
 log = logging.getLogger('simple_example')
@@ -45,6 +46,7 @@ class Viewer(InteractiveModule, VisibleModule):
                 mod.update(self)
 
         while True:
+            self.start = datetime.now()
             # hacks to fix terminal state
             curses.curs_set(0)
 
@@ -54,13 +56,20 @@ class Viewer(InteractiveModule, VisibleModule):
 
             changes = False
 
+            log.info("%s Calling update on client modules" % (datetime.now() - self.start))
             for mod in self._submodules:
                 if isinstance(mod, ClientModule):
                     changes = mod.update(self)
+            log.info("%s Finished calling update on client modules" % (datetime.now() - self.start))
 
+            log.info("%s Calling handle" % (datetime.now() - self.start))
             if ch is not -1:
                 self._handle(ch)
+            log.info("%s Finished calling handle" % (datetime.now() - self.start))
+
+            log.info("%s Calling draw" % (datetime.now() - self.start))
             changes = self._draw() or changes
+            log.info("%s Finished calling draw" % (datetime.now() - self.start))
 
 
             if self._mind_blown and changes:
@@ -72,7 +81,11 @@ class Viewer(InteractiveModule, VisibleModule):
                     curses.init_pair(i + 1, color, -1)
 
             # part of an ongoing expiriment to see if this helps with character repeat lag
-            #curses.flushinp() # get rid of any characters waiting in buffer
+            curses.flushinp() # get rid of any characters waiting in buffer
+
+            end = datetime.now()
+            elapsed = end - self.start
+            log.info("Main loop duration: %s" % elapsed)
 
 
 
