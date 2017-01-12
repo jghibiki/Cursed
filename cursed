@@ -191,10 +191,6 @@ def _join(scr, ctx, role, host, port, username, wsad, password):
         gm = GM()
         viewer.register_submodule(gm)
 
-        from editor import Editor
-        editor = Editor()
-        viewer.register_submodule(editor)
-
         from narrative import Narrative
         narrative = Narrative()
         viewer.register_submodule(narrative)

@@ -137,6 +137,9 @@ class TextBox(VisibleModule, InteractiveModule):
                     except:
                         pass
 
+    def _handle_help(self, viewer, buff):
+        pass
+
     def set_text(self, text):
         self._previous_text = self._text
         self._text = text

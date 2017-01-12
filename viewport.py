@@ -182,21 +182,21 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
                 return desc
 
             elif(len(feature)):
-                desc = "%s" % FeatureType.toName(feature[0].char)
+                desc = "%s" % FeatureType.toName(feature[0].character)
                 return desc
 
         return ""
 
-    def add_feature(self, y, x, char):
+    def add_feature(self, y, x, character):
         if x < self.w and y < self.h:
             # if there is already a feature here don't add another
             for feature in self._features:
                 if feature.pos_y == y and feature.pos_x == x:
                     return
 
-            new_feature = Feature(y, x, char,
+            new_feature = Feature(y, x, character,
                     mod=FeatureType.modFromName(
-                    FeatureType.toName(char)))
+                    FeatureType.toName(character)))
             self._features.append(new_feature)
             self._dirty = True
 

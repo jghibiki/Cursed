@@ -46,30 +46,33 @@ class Viewer(InteractiveModule, VisibleModule):
                 mod.update(self)
 
         while True:
-            self.start = datetime.now()
             # hacks to fix terminal state
             curses.curs_set(0)
 
             # get ch
             ch = self.screen.getch()
 
+            self.start = datetime.now()
 
             changes = False
 
-            log.info("%s Calling update on client modules" % (datetime.now() - self.start))
+            log.info("Calling update on client modules")
+            part_start = datetime.now()
             for mod in self._submodules:
                 if isinstance(mod, ClientModule):
                     changes = mod.update(self)
-            log.info("%s Finished calling update on client modules" % (datetime.now() - self.start))
+            log.info("Elapsed: %s" % (datetime.now() - part_start))
 
-            log.info("%s Calling handle" % (datetime.now() - self.start))
+            log.info("Calling handle")
+            part_start = datetime.now()
             if ch is not -1:
                 self._handle(ch)
-            log.info("%s Finished calling handle" % (datetime.now() - self.start))
+            log.info("Elapsed %s" % (datetime.now() - part_start))
 
-            log.info("%s Calling draw" % (datetime.now() - self.start))
+            log.info("Calling draw")
+            part_start = datetime.now()
             changes = self._draw() or changes
-            log.info("%s Finished calling draw" % (datetime.now() - self.start))
+            log.info("Elapsed %s" % (datetime.now() - part_start))
 
 
             if self._mind_blown and changes:
@@ -164,7 +167,7 @@ class Viewer(InteractiveModule, VisibleModule):
                     elif ( len(self._combo_buffer) > 2 and
                            "h" == self._combo_buffer[1:] or
                            "help" == self._combo_buffer[1:] ):
-                        self.handle_help(self._combo_buffer[2:])
+                        self._handle_help(self._combo_buffer[2:])
 
                 # reset buffer
                 self._combo_buffer = ""
@@ -193,6 +196,7 @@ class Viewer(InteractiveModule, VisibleModule):
     def _handle_help(self, buf):
         for mod in self._submodules:
             if isinstance(mod, InteractiveModule):
+                log.error(mod)
                 mod._handle_help(self, buf)
 
     def _handle(self, ch):

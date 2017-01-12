@@ -30,6 +30,7 @@ class Narrative(InteractiveModule, TextDisplayModule):
 
             if buff[1] == "list" or buff[1] == "l":
                 c = viewer.get_submodule(Client)
+                viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
                 data = c.make_request("/narrative")
                 text = "Chapters:\n"
                 for idx, chapter in enumerate(data["chapters"]):
@@ -41,6 +42,7 @@ class Narrative(InteractiveModule, TextDisplayModule):
             elif ( ( buff[1] == "view" or buff[1] == "v" ) and
                    len(buff) == 3 ):
                 c = viewer.get_submodule(Client)
+                viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
                 if buff[2] != "":
                     bad_int = False
                     try:
@@ -56,6 +58,7 @@ class Narrative(InteractiveModule, TextDisplayModule):
             elif ( ( buff[1] == "edit" or buff[1] == "e" ) and
                     len(buff) == 3 ):
                 c = viewer.get_submodule(Client)
+                viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
                 id = (int(buff[2])-1)
                 data = c.make_request("/narrative/%s" % id)
                 text = data["text"]
@@ -88,6 +91,7 @@ class Narrative(InteractiveModule, TextDisplayModule):
                 text = ""
 
                 c = viewer.get_submodule(Client)
+                viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
                 id = (int(buff[2])-1)
                 data = c.make_request("/narrative/%s" % id)
                 text = data["text"].splitlines()

@@ -40,6 +40,7 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
         if ( ( buff[0] == "send" or buff[0] == "s" ) and
                  len(buff) > 1 ):
             username = state.get_state("username")
+            viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
 
             if username:
                 c = viewer.get_submodule(Client)
@@ -59,6 +60,7 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
         elif ( ( buff[0] == "whisper" or buff[0] == "w" ) and
                  len(buff) > 2 ):
             username = state.get_state("username")
+            viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
 
             if username:
                 c = viewer.get_submodule(Client)

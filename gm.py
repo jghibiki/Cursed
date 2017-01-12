@@ -3,7 +3,6 @@ from interactive import InteractiveModule, UserModule
 from viewer import ViewerConstants
 from screen import Screen
 from viewport import Viewport
-from editor import Editor
 from colon_line import ColonLine
 from state import State
 from client import Client
@@ -118,40 +117,32 @@ class GM(InteractiveModule, UserModule):
     def vp_down(self, viewer):
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
-        editor = viewer.get_submodule(Editor)
         cl = viewer.get_submodule(ColonLine)
         vp.down()
-        editor.down()
         cl.mark_dirty()
         screen.fix_cursor()
 
     def vp_up(self, viewer):
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
-        editor = viewer.get_submodule(Editor)
         cl = viewer.get_submodule(ColonLine)
         vp.up()
-        editor.up()
         cl.mark_dirty()
         screen.fix_cursor()
 
     def vp_right(self, viewer):
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
-        editor = viewer.get_submodule(Editor)
         cl = viewer.get_submodule(ColonLine)
         vp.right()
-        editor.right()
         cl.mark_dirty()
         screen.fix_cursor()
 
     def vp_left(self, viewer):
         vp = viewer.get_submodule(Viewport)
         screen = viewer.get_submodule(Screen)
-        editor = viewer.get_submodule(Editor)
         cl = viewer.get_submodule(ColonLine)
         vp.left()
-        editor.left()
         cl.mark_dirty()
         screen.fix_cursor()
 

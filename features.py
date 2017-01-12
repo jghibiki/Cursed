@@ -42,56 +42,56 @@ class FeatureType:
         FeatureType.snow = 23
         FeatureType.boulder = 24
 
-    def toName(char):
-        if char == FeatureType.wall:
+    def toName(character):
+        if character == FeatureType.wall:
             return "Wall"
-        elif char == FeatureType.table:
+        elif character == FeatureType.table:
             return "Table"
-        elif char == FeatureType.chair:
+        elif character == FeatureType.chair:
             return "Chair"
-        elif char == FeatureType.up_stair:
+        elif character == FeatureType.up_stair:
             return "Up Stair"
-        elif char == FeatureType.down_stair:
+        elif character == FeatureType.down_stair:
             return "Down Stair"
-        elif char == FeatureType.door:
+        elif character == FeatureType.door:
             return "Door"
-        elif char == FeatureType.lantern:
+        elif character == FeatureType.lantern:
             return "Lantern"
-        elif char == FeatureType.chest:
+        elif character == FeatureType.chest:
             return "Chest"
-        elif char == FeatureType.point_of_interest:
+        elif character == FeatureType.point_of_interest:
             return "Point of Interest"
-        elif char == FeatureType.road:
+        elif character == FeatureType.road:
             return "Road"
-        elif char == FeatureType.gate:
+        elif character == FeatureType.gate:
             return "Gate"
-        elif char == FeatureType.water:
+        elif character == FeatureType.water:
             return "Water"
-        elif char == FeatureType.tree:
+        elif character == FeatureType.tree:
             return "Tree"
-        elif char == FeatureType.bush:
+        elif character == FeatureType.bush:
             return "Bush"
-        elif char == FeatureType.grass:
+        elif character == FeatureType.grass:
             return "Grass"
-        elif char == FeatureType.friendly_unit:
+        elif character == FeatureType.friendly_unit:
             return "Friendly Unit"
-        elif char == FeatureType.enemy_unit:
+        elif character == FeatureType.enemy_unit:
             return "Enemy Unit"
-        elif char == FeatureType.dead_unit:
+        elif character == FeatureType.dead_unit:
             return "Dead Unit"
-        elif char == FeatureType.hill:
+        elif character == FeatureType.hill:
             return "Hill"
-        elif char == FeatureType.bed:
+        elif character == FeatureType.bed:
             return "Bed"
-        elif char == FeatureType.statue:
+        elif character == FeatureType.statue:
             return "Statue"
-        elif char == FeatureType.blood:
+        elif character == FeatureType.blood:
             return "Blood"
-        elif char == FeatureType.fire:
+        elif character == FeatureType.fire:
             return "Fire"
-        elif char == FeatureType.snow:
+        elif character == FeatureType.snow:
             return "Snow"
-        elif char == FeatureType.boulder:
+        elif character == FeatureType.boulder:
             return "Boulder"
 
     def toSymbol(id):
@@ -252,7 +252,7 @@ class FeatureSerializer:
         return {
                 "y": obj.pos_y,
                 "x": obj.pos_x,
-                "type": FeatureType.toName(obj.char),
+                "type": FeatureType.toName(obj.character),
                 "notes": obj.notes
         }
 
@@ -270,12 +270,12 @@ class FeatureSerializer:
 
 
 class Feature:
-    def __init__(self, pos_y, pos_x, char, mod=None, notes=""):
+    def __init__(self, pos_y, pos_x, character, mod=None, notes=""):
         self.pos_y = pos_y
         self.pos_x = pos_x
-        self.char = char
+        self.character = character
         self.mod = mod
-        self.symbol = FeatureType.toSymbol(self.char)
+        self.symbol = FeatureType.toSymbol(self.character)
         self.notes = notes
         self.state = None
 
