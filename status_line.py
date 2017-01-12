@@ -2,7 +2,7 @@ from interactive import VisibleModule, InteractiveModule
 from features import FeatureType
 from viewer import ViewerConstants
 from state import State
-from colors import Colors
+import colors
 import curses
 import logging
 import math
@@ -44,7 +44,7 @@ class StatusLine(VisibleModule):
             editor = viewer.get_submodule(Editor)
             screen = viewer.get_submodule(Screen)
             state = viewer.get_submodule(State)
-            self._screen.attrset(Colors.get(Colors.GOLD))
+            self._screen.attrset(colors.get("Gold"))
 
             if state.get_state("easter_egg") is not None:
                 self._screen.border(
@@ -69,11 +69,11 @@ class StatusLine(VisibleModule):
                         curses.ACS_LRCORNER,
                 )
 
-            self._screen.attroff(Colors.get(Colors.GOLD))
+            self._screen.attroff(colors.get("Gold"))
 
             msg = "%s" % (obj_desc)
             padded_ln = msg.ljust(self.w-2)
-            self._screen.addstr(1,1, padded_ln, Colors.get(Colors.GOLD))
+            self._screen.addstr(1,1, padded_ln, colors.get("Gold"))
 
             self._screen.noutrefresh()
 

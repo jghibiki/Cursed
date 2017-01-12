@@ -1,6 +1,6 @@
 import curses
 import locale
-from colors import Colors
+import colors
 locale.setlocale(locale.LC_ALL, '')
 code = locale.getpreferredencoding()
 
@@ -202,7 +202,7 @@ class FeatureType:
 
     def modFromName(name):
         if name == "Wall":
-            return Colors.get(Colors.BROWN)
+            return colors.get("Brown")
         elif name == "Table":
             return curses.A_NORMAL
         elif name == "Chair":
@@ -212,25 +212,25 @@ class FeatureType:
         elif name == "Down Stair":
             return curses.A_NORMAL
         elif name == "Door":
-            return Colors.get(Colors.BROWN)
+            return colors.get("Brown")
         elif name == "Lantern":
-            return Colors.get(Colors.GOLD)
+            return colors.get("Gold")
         elif name == "Chest":
             return curses.A_NORMAL
         elif name == "Point of Interest":
-            return Colors.get(Colors.RED)
+            return colors.get("Red")
         elif name == "Road":
-            return Colors.get(Colors.GREY)
+            return colors.get("Grey")
         elif name == "Gate":
-            return Colors.get(Colors.BROWN)
+            return colors.get("Brown")
         elif name == "Water":
-            return Colors.get(Colors.LIGHT_BLUE)
+            return colors.get("Light Blue")
         elif name == "Tree":
-            return Colors.get(Colors.BROWN)
+            return colors.get("Brown")
         elif name == "Bush":
-            return Colors.get(Colors.DARK_GREEN)
+            return colors.get("Dark Green")
         elif name == "Grass":
-            return Colors.get(Colors.GREEN)
+            return colors.get("Green")
         elif name == "Hill":
             return curses.A_NORMAL
         elif name == "Bed":
@@ -238,13 +238,13 @@ class FeatureType:
         elif name == "Statue":
             return curses.A_NORMAL
         elif name == "Blood":
-            return Colors.get(Colors.DARK_RED)
+            return colors.get("Dark Red")
         elif name == "Fire":
-            return Colors.get(Colors.RED_ON_ORANGE)
+            return colors.get("Red on Orange")
         elif name == "Snow":
-            return Colors.get(Colors.WHITE)
+            return colors.get("White")
         elif name == "Boulder":
-            return Colors.get(Colors.DARK_GREY)
+            return colors.get("Dark Grey")
 
 
 class FeatureSerializer:

@@ -3,7 +3,7 @@ from viewer import ViewerConstants
 from state import State
 from interactive import VisibleModule, FeatureModule, SavableModule
 from status_line import StatusLine
-from colors import Colors
+import colors
 import curses
 import logging
 import math
@@ -42,7 +42,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
             if self._dirty: log.debug("viewport is dirty")
             self._screen.erase()
 
-            self._screen.attrset(Colors.get(Colors.WHITE))
+            self._screen.attrset(colors.get("White"))
             self._screen.border(
                     curses.ACS_BOARD,
                     curses.ACS_BOARD,
@@ -53,7 +53,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
                     curses.ACS_BOARD,
                     curses.ACS_BOARD
             )
-            self._screen.attroff(Colors.get(Colors.WHITE))
+            self._screen.attroff(colors.get("White"))
 
             [ feature.draw(viewer, self._screen, self.x, self.y, self.h, self.w) for feature in self._features ]
 
@@ -65,7 +65,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
                 for x in range(0, self.w-2):
                     for y in range(0, self.h-2):
                         if self._fow[x][y]:
-                            self._screen.addstr(y+1, x+1, "▒", Colors.get(Colors.DARK_GREY))
+                            self._screen.addstr(y+1, x+1, "▒", colors.get("Dark Grey"))
 
             if self.box_xy != None:
                 x_min = min(self.box_xy[0], self.cursor_x)
@@ -76,9 +76,9 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
 
                 for y in range(y_min, y_max):
                     for x in range(x_min, x_max):
-                        self._screen.addstr(y, x, "▒", Colors.get(Colors.ORANGE))
+                        self._screen.addstr(y, x, "▒", colors.get("Orange"))
 
-            self._screen.addch(self.cursor_y, self.cursor_x, ord('X'), Colors.get(Colors.GOLD))
+            self._screen.addch(self.cursor_y, self.cursor_x, ord('X'), colors.get("Gold"))
 
             self._screen.noutrefresh(
                     self.y,

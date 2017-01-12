@@ -7,7 +7,6 @@ from interactive import *
 import logging
 import random
 from datetime import datetime
-from colors import Colors
 
 log = logging.getLogger('simple_example')
 

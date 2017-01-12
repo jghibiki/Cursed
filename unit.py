@@ -1,5 +1,5 @@
 import logging
-from colors import Colors
+import colors
 
 log = logging.getLogger('simple_example')
 
@@ -22,13 +22,13 @@ class Unit:
         username = state.get_state("username")
 
         if self.controller == username and role != "gm":
-            screen.addstr(self.y, self.x, "@", Colors.get(Colors.LIGHT_BLUE))
+            screen.addstr(self.y, self.x, "@", colors.get("Light Blue"))
         elif self.type == "pc":
-            screen.addstr(self.y, self.x, "@", Colors.get(Colors.LIGHT_GREEN))
+            screen.addstr(self.y, self.x, "@", colors.get("Light Green"))
         elif self.type == "enemy":
-            screen.addstr(self.y, self.x, "@", Colors.get(Colors.LIGHT_RED))
+            screen.addstr(self.y, self.x, "@", colors.get("Light Red"))
         elif self.type == "neutral" or self.type == "":
-            screen.addstr(self.y, self.x, "@", Colors.get(Colors.LIGHT_GREY))
+            screen.addstr(self.y, self.x, "@", colors.get("Light Grey"))
 
 
 

@@ -2,7 +2,7 @@ from interactive import VisibleModule, InteractiveModule, TextDisplayModule
 from viewer import ViewerConstants
 from client import Client
 from state import State
-from colors import Colors
+import colors
 import logging
 import math
 import curses
@@ -51,7 +51,7 @@ class TextBox(VisibleModule, InteractiveModule):
             self._screen.erase()
 
             state = viewer.get_submodule(State)
-            self._screen.attrset(Colors.get(Colors.GOLD))
+            self._screen.attrset(colors.get("Gold"))
 
             if state.get_state("easter_egg") is not None:
                 self._screen.border(
@@ -75,7 +75,7 @@ class TextBox(VisibleModule, InteractiveModule):
                         curses.ACS_BOARD,
                         curses.ACS_BOARD
                 )
-            self._screen.attroff(Colors.get(Colors.GOLD))
+            self._screen.attroff(colors.get("Gold"))
 
 
             self._paged_text = []

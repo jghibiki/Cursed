@@ -2,7 +2,7 @@ from interactive import VisibleModule, InteractiveModule
 from features import FeatureType
 from viewer import ViewerConstants
 from state import State
-from colors import Colors
+import colors
 import curses
 import logging
 import math
@@ -38,7 +38,7 @@ class ColonLine(VisibleModule):
             if force: log.debug("colon_line.draw forced")
 
             state = viewer.get_submodule(State)
-            self._screen.attrset(Colors.get(Colors.GOLD))
+            self._screen.attrset(colors.get("Gold"))
 
             if state.get_state("easter_egg") is not None:
                 self._screen.border(
@@ -62,13 +62,13 @@ class ColonLine(VisibleModule):
                         curses.ACS_LLCORNER,
                         curses.ACS_LRCORNER,
                 )
-            self._screen.attroff(Colors.get(Colors.GOLD))
+            self._screen.attroff(colors.get("Gold"))
 
             if self._msg != "":
                 padded_ln = self._msg.ljust(self.w-2)
             else:
                 padded_ln = self._buffer.ljust(self.w-2)
-            self._screen.addstr(1,1, padded_ln, Colors.get(Colors.GOLD))
+            self._screen.addstr(1,1, padded_ln, colors.get("Gold"))
 
             self._msg = ""
 

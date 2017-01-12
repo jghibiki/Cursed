@@ -4,7 +4,7 @@ from viewer import ViewerConstants
 from viewport import Viewport
 from client import Client
 from state import State
-from colors import Colors
+import colors
 import json
 import logging
 import curses
@@ -55,7 +55,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
             self._screen.clear()
 
             state = viewer.get_submodule(State)
-            self._screen.attrset(Colors.get(Colors.GOLD))
+            self._screen.attrset(colors.get("Gold"))
             if state.get_state("easter_egg") is not None:
                 self._screen.border(
                         curses.ACS_VLINE,
@@ -78,7 +78,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
                         curses.ACS_BOARD,
                         curses.ACS_BOARD
                 )
-            self._screen.attroff(Colors.get(Colors.GOLD))
+            self._screen.attroff(colors.get("Gold"))
 
             state = viewer.get_submodule(State)
             role = state.get_state("role")
@@ -1132,10 +1132,10 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
             else:
 
-                line = self._draw_key(line, "m", "Move Unit", Colors.get(Colors.DARK_GREY))
-                line = self._draw_key(line, "e", "Edit Unit", Colors.get(Colors.DARK_GREY))
-                line = self._draw_key(line, "+", "Increase Unit Health", Colors.get(Colors.DARK_GREY))
-                line = self._draw_key(line, "-", "Decrease Unit Health", Colors.get(Colors.DARK_GREY))
+                line = self._draw_key(line, "m", "Move Unit", colors.get("Dark Grey"))
+                line = self._draw_key(line, "e", "Edit Unit", colors.get("Dark Grey"))
+                line = self._draw_key(line, "+", "Increase Unit Health", colors.get("Dark Grey"))
+                line = self._draw_key(line, "-", "Decrease Unit Health", colors.get("Dark Grey"))
 
             line = self._draw_key(line+1, "esc", "Back")
 
@@ -1145,7 +1145,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
             if current_unit != None:
                 line = self._draw_key(line, "m", "Move Unit")
             else:
-                line = self._draw_key(line, "m", "Move Unit", Colors.get(Colors.DARK_GREY))
+                line = self._draw_key(line, "m", "Move Unit", colors.get("Dark Grey"))
 
             line = self._draw_key(line+1, "esc", "Back")
 
@@ -1224,7 +1224,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
         n = offset_width
         text = [ text[i:i+n] for i in range(0, len(text), n) ]
         for line in text:
-            self._screen.addstr(line_no, 2, line, Colors.get(Colors.GOLD))
+            self._screen.addstr(line_no, 2, line, colors.get("Gold"))
             line_no += 1
         return line_no
 
@@ -1232,7 +1232,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
     def _draw_key(self, line_no, key, description, attr=None):
 
         if attr is None:
-            self._screen.addstr(line_no, 2, key, Colors.get(Colors.GOLD))
+            self._screen.addstr(line_no, 2, key, colors.get("Gold"))
         else:
             self._screen.addstr(line_no, 2, key, attr)
 
