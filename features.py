@@ -4,6 +4,9 @@ import colors
 locale.setlocale(locale.LC_ALL, '')
 code = locale.getpreferredencoding()
 
+types_id = 0
+types = []
+
 def init_features():
     FeatureType.init()
 

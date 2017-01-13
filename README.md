@@ -1,6 +1,9 @@
 # Cursed
 A tool for designing and playing DnD style games via a terminal using the curses library. Supports one Game Master(GM) and multiple Player Characters(PCs). GMs have the power to edit the map and story of the campaign all in one lightweight tool. PCs can then connect to the server to play. The GM has the ability to add and remove Fog of War to obsucre the vision of PCs, add objects to the map and view/edit the campaign narrative all on one screen. 
 
+*Disclaimer:* Running cursed in a tmux or gnu screen session, or any other screen, screen-256color, etc. term is NOT supported. To my knowledge, we cannot define colors in these terms, meaning color definitions are defined by the terminal color bindings. Running cursed in one of these environments may result in unexpected color behavior, and may in some cases render the program unusable (black screen, invisible characters, etc).
+
+
 ## Demos: 
 ### A castle with a coupe of huts out front.
 [![asciicast](https://asciinema.org/a/95041.png)](https://asciinema.org/a/95041)
@@ -28,3 +31,5 @@ To toggle FoW from the main command window press ```f```. To edit the FoW press 
 To roll dice type ```:roll <number of rolls>d<number of sides on die>``` or ```:r <number of rolls>d<number of sides on die>```. Use ```ctrl+j``` to scroll down and ```ctrl+k``` to scroll the results up and down.
 
 [![asciicast](https://asciinema.org/a/95046.png)](https://asciinema.org/a/95046)
+
+
