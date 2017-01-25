@@ -1,4 +1,3 @@
-from features import FeatureSerializer
 from interactive import InteractiveModule, UserModule
 from viewer import ViewerConstants
 from screen import Screen
@@ -180,7 +179,7 @@ class GM(InteractiveModule, UserModule):
                 # TODO: add a way to upload edited note to server
                 feature.notes = text
                 client = viewer.get_submodule(Client)
-                feature_dict = FeatureSerializer.toDict(feature)
+                feature_dict = feature
                 client.make_request("/map/update/", payload=feature_dict)
             viewer._draw(force=True) # force redraw after closing vim
 

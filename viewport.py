@@ -1,9 +1,9 @@
-from features import Feature, FeatureType, FeatureSerializer
 from viewer import ViewerConstants
 from state import State
 from interactive import VisibleModule, FeatureModule, SavableModule
 from status_line import StatusLine
 import colors
+import features
 import curses
 import logging
 import math
@@ -55,7 +55,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
             )
             self._screen.attroff(colors.get("White"))
 
-            [ feature.draw(viewer, self._screen, self.x, self.y, self.h, self.w) for feature in self._features ]
+            [ features.draw(viewer, self._screen, feature, self.x, self.y, self.h, self.w) for feature in self._features ]
 
             [ unit.draw(viewer, self._screen) for unit in self._units ]
 
@@ -139,7 +139,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
     def get_cursor_focus(self, viewer):
         state = viewer.get_submodule(State)
         unit = [ unit for unit in self._units if unit.y == self.cursor_y and unit.x == self.cursor_x ]
-        feature = [feature for feature in self._features if feature.pos_y == self.cursor_y and feature.pos_x == self.cursor_x]
+        feature = [feature for feature in self._features if feature["y"] == self.cursor_y and feature["x"] == self.cursor_x]
 
         if not (state.get_state("role") == "pc" and self._fow[self.cursor_x][self.cursor_y]):
         # ensures there is a feature and if we are a pc we will not show thing hidden by FoW
@@ -182,30 +182,11 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
                 return desc
 
             elif(len(feature)):
-                desc = "%s" % FeatureType.toName(feature[0].character)
+                desc = "%s" % feature[0]["type"]
                 return desc
 
         return ""
 
-    def add_feature(self, y, x, character):
-        if x < self.w and y < self.h:
-            # if there is already a feature here don't add another
-            for feature in self._features:
-                if feature.pos_y == y and feature.pos_x == x:
-                    return
-
-            new_feature = Feature(y, x, character,
-                    mod=FeatureType.modFromName(
-                    FeatureType.toName(character)))
-            self._features.append(new_feature)
-            self._dirty = True
-
-    def rm_feature(self, y, x):
-        for feature in self._features:
-            if feature.pos_y is y and feature.pos_x is x:
-                self._features.remove(feature)
-                self._dirty = True
-                break
 
     def get_feature_idx(self, y, x):
         for feature in self._features:
@@ -221,15 +202,13 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
     def serialize_features(self):
         features = []
         for feature in self._features:
-            features.append(FeatureSerializer.toDict(feature))
+            features.append(feature)
         return features
 
     def update_features(self, feature_dicts):
         self._features = []
         for feature_dict in feature_dicts:
-            self._features.append(
-                    FeatureSerializer.fromDict(
-                        feature_dict))
+            self._features.append(feature_dict)
 
         if len(feature_dicts):
             self._dirty = True

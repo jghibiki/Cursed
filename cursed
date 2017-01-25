@@ -130,10 +130,6 @@ def _join(scr, ctx, role, host, port, username, wsad, password):
     from parser import load_config
     load_config()
 
-    from features import init_features
-    from features import load_features
-
-    init_features()
 
     # load viewer
     from viewer import Viewer

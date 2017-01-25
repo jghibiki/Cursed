@@ -2,7 +2,6 @@ import curses
 import curses.textpad
 import curses.ascii
 import os
-from features import Feature, FeatureType, FeatureSerializer
 from interactive import *
 import logging
 import random

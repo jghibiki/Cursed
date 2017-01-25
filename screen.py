@@ -1,4 +1,3 @@
-from features import Feature, FeatureType, FeatureSerializer
 from interactive import VisibleModule
 from viewport import Viewport
 from viewer import ViewerConstants

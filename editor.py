@@ -1,7 +1,6 @@
 import curses
 import curses.textpad
 import os
-from features import Feature, FeatureType, FeatureSerializer
 from viewer import ViewerConstants
 from interactive import VisibleModule, InteractiveModule
 from viewport import Viewport
@@ -31,7 +30,6 @@ class Editor(VisibleModule, InteractiveModule):
         self._dirty = True
         self._screen = curses.newpad(self.h, self.w)
 
-        self.current_obj = FeatureType.wall
 
 
     def draw(self, viewer, force=False):
@@ -52,117 +50,6 @@ class Editor(VisibleModule, InteractiveModule):
         screen = viewer.get_submodule(Screen)
         sl = viewer.get_submodule(StatusLine)
         c = viewer.get_submodule(Client)
-        # detect place object
-        #if ch == ord(" "):
-        #    feature = Feature(vp.cursor_y,
-        #                      vp.cursor_x,
-        #                      self.current_obj)
-        #    raw_feature = FeatureSerializer.toDict(feature)
-        #    c.make_request("/map/add", payload=raw_feature)
-
-        ## remove feature
-        #elif ch == ord("x"):
-        #    c.make_request("/map/rm", payload={
-        #        "y": vp.cursor_y,
-        #        "x": vp.cursor_x
-        #    })
-
-
-        ## catch object type
-        #elif ch == ord("c"):
-        #    self.current_obj = FeatureType.chair
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("d"):
-        #    self.current_obj = FeatureType.door
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("w"):
-        #    self.current_obj = FeatureType.wall
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("t"):
-        #    self.current_obj = FeatureType.table
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord(">"):
-        #    self.current_obj = FeatureType.up_stair
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("<"):
-        #    self.current_obj = FeatureType.down_stair
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("%"):
-        #    self.current_obj = FeatureType.lantern
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("#"):
-        #    self.current_obj = FeatureType.chest
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("*"):
-        #    self.current_obj = FeatureType.point_of_interest
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("r"):
-        #    self.current_obj = FeatureType.road
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("G"):
-        #    self.current_obj = FeatureType.gate
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("W"):
-        #    self.current_obj = FeatureType.water
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("T"):
-        #    self.current_obj = FeatureType.tree
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("o"):
-        #    self.current_obj = FeatureType.bush
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("."):
-        #    self.current_obj = FeatureType.grass
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord(","):
-        #    self.current_obj = FeatureType.friendly_unit
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("@"):
-        #    self.current_obj = FeatureType.enemy_unit
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("$"):
-        #    self.current_obj = FeatureType.dead_unit
-        #    sl.mark_dirty()
-        #    self._dirty = True
-
-        #elif ch == ord("^"):
-        #    self.current_obj = FeatureType.hill
-        #    sl.mark_dirty()
-        #    self._dirty = True
 
         # show help
         if ch == ord("?"):

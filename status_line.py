@@ -1,5 +1,4 @@
 from interactive import VisibleModule, InteractiveModule
-from features import FeatureType
 from viewer import ViewerConstants
 from state import State
 import colors
