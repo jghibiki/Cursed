@@ -7,6 +7,14 @@ code = locale.getpreferredencoding()
 types_id = 0
 types = []
 
+def new_feature(feature_type, x, y):
+    return {
+            "y": y,
+            "x": x,
+            "type": feature_type["name"],
+            "notes": ""
+    }
+
 def init_features():
     FeatureType.init()
 
