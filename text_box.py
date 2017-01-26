@@ -22,26 +22,133 @@ class TextBox(VisibleModule, InteractiveModule):
         self.w = math.floor(ViewerConstants.max_x/3)
 
         self._screen = curses.newwin(self.h, self.w, self.y, self.x)
-        self._default_text = ("Text Box: \n" +
-                              "ctrl + j - scroll down\n" +
-                              "ctrl + k - scroll up\n" +
-                              ":clear - clear text box.\n" +
-                              ":read - read text in window. GM only.\n"
-                              "\nNarrative (GM Only):\n" +
-                              ":n list - list chapters.\n" +
-                              ":n view <chapter number> - view chapter.\n" +
-                              ":n edit <chapter number> - edit chapter.\n" +
-                              ":n read <chapter number> - read chapter. requires espeak.\n" +
-                              "\nChat:\n" +
-                              ":send <message> - send a message to all players\n" +
-                              ":whisper <username> <message> - send a message to a specific player\n"
-                              )
-        self._previous_text = None
-        self._text = self._default_text
+        self._default_lines = [
+                [
+                    {
+                        "text": "Text Box:" ,
+                        "color": "Gold"
+                    }
+                ],
+                [
+                    {
+                        "text": "ctrl + j",
+                        "color": "Gold"
+                    },
+                    {
+                        "text": " - scroll down",
+                        "color": None
+                    }
+                ],
+                [
+                    {
+                        "text": "ctrl + k" ,
+                        "color": "Gold"
+                    },
+                    {
+                        "text": " - scroll up",
+                        "color": None
+                    }
+                ],
+                [
+                    {
+                        "text": ":clear",
+                        "color": "Gold"
+                    },
+                    {
+                        "text": " - clear text box.",
+                        "color": None
+                    }
+
+                ],
+                [
+                    {
+                        "text": ":read",
+                        "color": "Gold"
+                    },
+                    {
+                        "text": " - read text in window. GM only.",
+                        "color": None
+                    }
+                ],
+                [
+                    {
+                        "text":  "Narrative (GM Only):",
+                        "color": "Gold"
+                    }
+                ],
+                [
+                    {
+                        "text": ":n list",
+                        "color": "Gold"
+                    },
+                    {
+                        "text": " - list chapters.",
+                        "color": None
+                    }
+                ],
+                [
+                    {
+                        "text": ":n view <chapter number>",
+                        "color": "Gold"
+                    },
+                    {
+                        "text": " - view chapter.",
+                        "color": None
+                    }
+                ],
+                [
+                    {
+                        "text": ":n edit <chapter number>",
+                        "color": "Gold"
+                    },
+                    {
+                        "text": " - edit chapter.",
+                        "color": None
+                    }
+                ],
+                [
+                    {
+                        "text": ":n read <chapter number>",
+                        "color": "Gold"
+                    },
+                    {
+                        "text": ": - read chapter. requires espeak.",
+                        "color": None
+                    }
+                ],
+                [
+                    {
+                        "text": "Chat:",
+                        "color": "Gold"
+                    }
+                ],
+                [
+                    {
+                        "text": ":chat <message>",
+                        "color": "Gold"
+                    },
+                    {
+                        "text": " - send a message to all players",
+                        "color": None
+                    }
+                ],
+                [
+                    {
+                        "text": ":whisper <username> <message>",
+                        "color": "Gold"
+                    },
+                    {
+                        "text": " - send a message to a specific player",
+                        "color": None
+                    }
+                ]
+        ]
+
+        self._lines = self._default_lines
+        self._previous_lines = []
         self._page = 0
-        self._max_text_w = self.w - 4
+        self._max_text_w = self.w - 2
         self._max_text_h = self.h - 2
-        self._paged_text = []
 
         self._dirty = True
 
@@ -78,20 +185,43 @@ class TextBox(VisibleModule, InteractiveModule):
             self._screen.attroff(colors.get("Gold"))
 
 
-            self._paged_text = []
-            for line in self._text.splitlines():
-                splits = [ line[i:i+self._max_text_w] for i in range(0, len(line), self._max_text_w) ]
-                self._paged_text = self._paged_text + (splits if splits else [""])
+            offset_width = self._max_text_w
+            line_no = 1
+            for line in self._lines:
+                char = 2
 
-            x = 0
-            page = 0
-            for line in self._paged_text:
-                if page >= self._page:
-                    self._screen.addstr(x+1, 2, line)
-                    x += 1
-                if x > self._max_text_h-1:
-                    break
-                page += 1
+                for part in line:
+
+                    for text in part["text"]:
+
+                        if char == offset_width:
+                            char = 2
+                            line_no += 1
+
+                        if part["color"]:
+                            self._screen.addstr(line_no, char, text, colors.get(part["color"]))
+                        else:
+                            self._screen.addstr(line_no, char, text)
+                        char += len(text)
+
+                line_no += 1
+
+
+
+            #self._paged_text = []
+            #for line in self._text.splitlines():
+            #    splits = [ line[i:i+self._max_text_w] for i in range(0, len(line), self._max_text_w) ]
+            #    self._paged_text = self._paged_text + (splits if splits else [""])
+
+            #x = 0
+            #page = 0
+            #for line in self._paged_text:
+            #    if page >= self._page:
+            #        self._screen.addstr(x+1, 2, line)
+            #        x += 1
+            #    if x > self._max_text_h-1:
+            #        break
+            #    page += 1
 
 
             self._screen.noutrefresh()
@@ -116,11 +246,11 @@ class TextBox(VisibleModule, InteractiveModule):
         buff = buff.split(" ")
         if buff[0] == "back":
             if self._previous:
-                self.set_text(self._previous)
+                self.set(self._previous_lines)
 
-        elif buff[0] == "clear" or buff[0] == "c":
+        elif buff[0] == "clear":
             viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
-            self.set_text(self._default_text)
+            self.set(self._default_lines)
             self._dirty = True
 
         elif buff[0] == "read" and len(buff) == 1:
@@ -141,10 +271,22 @@ class TextBox(VisibleModule, InteractiveModule):
         pass
 
     def set_text(self, text):
-        self._previous_text = self._text
-        self._text = text
+        raise Exception()
+
+    def set(self, lines):
+        self._previous_lines = self._lines
+        self._lines = lines
         self._page = 0
         self._dirty = True
 
+
+
+
     def get_text(self):
         return self._text
+
+
+
+lines = [
+    [ {"color": "Gold", "text": "this is a line of text"}]
+]

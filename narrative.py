@@ -32,10 +32,24 @@ class Narrative(InteractiveModule, TextDisplayModule):
                 c = viewer.get_submodule(Client)
                 viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
                 data = c.make_request("/narrative")
-                text = "Chapters:\n"
+                lines = [
+                    [
+                        {
+                            "text": "Chapters",
+                            "color": "Gold"
+                        }
+                    ]
+                ]
+                text = ""
                 for idx, chapter in enumerate(data["chapters"]):
                     text += ("%02d. %s\n" % (idx+1, chapter))
-                tb.set_text(text)
+                for line in text.split("\n"):
+                    lines.append([
+                        {
+                            "text": line,
+                            "color": None
+                        } ])
+                tb.set(lines)
 
                 self._dirty = True
 
@@ -51,7 +65,15 @@ class Narrative(InteractiveModule, TextDisplayModule):
                         bad_int = True
                     if not bad_int:
                         data = c.make_request("/narrative/%s" % (int(buff[2])-1))
-                        tb.set_text(data["text"])
+
+                        lines = []
+                        for line in data["text"].split("\n"):
+                            lines.append([
+                                {
+                                    "text": line,
+                                    "color": None
+                                } ])
+                        tb.set(lines)
 
                     self._dirty = True
 
@@ -79,7 +101,14 @@ class Narrative(InteractiveModule, TextDisplayModule):
 
                     # TODO: add a way to upload edited note to server
                     data = c.make_request('/narrative/%s' % id, payload=data)
-                    tb.set_text(text)
+                    lines = []
+                    for line in text.split("\n"):
+                        lines.append([
+                            {
+                                "text": line,
+                                "color": None
+                            } ])
+                    tb.set(lines)
 
                     # fix cursor mode
                     curses.curs_set(1)
@@ -116,7 +145,16 @@ class Narrative(InteractiveModule, TextDisplayModule):
         text = "Chapters:\n"
         for idx, chapter in enumerate(data["chapters"]):
             text += ("%02d. %s\n" % (idx+1, chapter))
-        tb.set_text(text)
+
+        lines = []
+        for line in text.split("\n"):
+            lines.append([
+                {
+                    "text": line,
+                    "color": None
+                } ])
+        tb.set(lines)
+
 
     def _hide(self, viewer):
         self._showing = False

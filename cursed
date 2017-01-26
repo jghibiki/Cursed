@@ -183,6 +183,10 @@ def _join(scr, ctx, role, host, port, username, wsad, password):
     map = Map()
     viewer.register_submodule(map)
 
+    from users import Users
+    users = Users()
+    viewer.register_submodule(users)
+
     if role == "gm":
         from gm import GM
         gm = GM()
@@ -198,6 +202,7 @@ def _join(scr, ctx, role, host, port, username, wsad, password):
         viewer.register_submodule(pc)
 
     log.debug("running viewer")
+    client.init(viewer)
     viewer.run()
 
 

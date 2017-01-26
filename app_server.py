@@ -19,6 +19,9 @@ chat_hash = None
 fow_hash = None
 unit_hash = None
 
+users = []
+user_hash = None
+
 
 @app.route("/map/data/", methods=["GET"])
 @app.route("/map/data/<index>/", methods=["GET"])
@@ -283,6 +286,56 @@ def add_chat_message():
 
     return jsonify({})
 
+@app.route('/users', methods=["GET"])
+@requires_auth
+def get_users():
+    return jsonify({"users": users})
+
+@app.route('/users', methods=["POST"])
+@requires_auth
+def set_user_info():
+    data = request.json
+
+    if "username" not in data:
+        return 'Payload missing field "username"', 400
+    if "current_map" not in data:
+        return 'Payload missing field "current_map"', 400
+
+    exists = False
+
+    global users
+
+    for user in users:
+        if user["username"] == data["username"]:
+            exists = True
+            break
+
+    if not exists:
+
+        new_user = {}
+
+        new_user["username"] = data["username"]
+        new_user["current_map"] = data["current_map"]
+
+        auth = request.authorization
+        if authentication.gm_password == auth.password:
+            new_user["role"] = "gm"
+        else:
+            new_user["role"] = "pc"
+
+        if new_user["current_map"] == None:
+            new_user["current_map"] == current_map
+
+
+        users.append(new_user)
+
+        data = json.dumps(users, sort_keys=True).encode("utf-8")
+        hsh = hashlib.md5(data).hexdigest()
+        user_hash = hsh
+
+    return jsonify({})
+
+
 @app.route('/chat/<username>', methods=["GET"])
 @requires_auth
 def get_chat_messages(username):
@@ -322,7 +375,8 @@ def get_hashes():
         "features": feature_hashes,
         "chat": chat_hash,
         "fow": fow_hash,
-        "unit": unit_hash
+        "unit": unit_hash,
+        "user": user_hash
     })
 
 @app.route('/save', methods=["GET"])

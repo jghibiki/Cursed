@@ -22,6 +22,11 @@ class Client(ClientModule, InitModule):
         state = viewer.get_submodule(State)
         self._username = state.get_state("username")
 
+        self.make_request("/users", payload={
+            "username": self._username,
+            "current_map": None
+        })
+
     def connect(self):
         """Deprecated"""
         pass

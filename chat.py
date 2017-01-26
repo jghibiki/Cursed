@@ -4,7 +4,9 @@ from narrative import Narrative
 from state import State
 from colon_line import ColonLine
 from text_box import TextBox
+from users import Users
 import logging
+
 
 log = logging.getLogger('simple_example')
 
@@ -24,8 +26,7 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
                 tb = viewer.get_submodule(TextBox)
                 username = state.get_state("username")
                 text = self._get_messages(viewer, username)
-                if text:
-                    tb.set_text(text)
+                tb.set(text)
 
     def _handle(self, viewer, ch):
         pass
@@ -37,7 +38,7 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
 
         buff = buff.split(" ")
 
-        if ( ( buff[0] == "send" or buff[0] == "s" ) and
+        if ( ( buff[0] == "chat" or buff[0] == "c" ) and
                  len(buff) > 1 ):
             username = state.get_state("username")
             viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
@@ -51,8 +52,8 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
                 })
 
                 text = self._get_messages(viewer, username)
-                if text:
-                    tb.set_text(text)
+                text = self._get_messages(viewer, username)
+                tb.set(text)
             else:
                 cl = viewer.get_submodule(ColonLine)
                 cl.set_msg("No username set. Set one with :set username <username>")
@@ -70,9 +71,8 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
                     "message": ' '.join(buff[2:])
                 })
 
-                text = self._get_messages(viewer, username)
-                if text:
-                    tb.set_text(text)
+                lines = self._get_messages(viewer, username)
+                tb.set(lines)
 
             else:
                 cl = viewer.get_submodule(ColonLine)
@@ -90,19 +90,8 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
             self._showing = True
             c = viewer.get_submodule(Client)
             tb = viewer.get_submodule(TextBox)
-            data = c.make_request("/chat/%s" % username)
-            text = "Chat:\n"
-            for message in data["messages"]:
-                if message["recipient"] is not None:
-                    text += ("<private> %s to %s: %s\n" % (
-                        message["sender"],
-                        message["recipient"],
-                        message["message"]))
-                else:
-                    text += ("%s: %s\n" % (
-                        message["sender"],
-                        message["message"]))
-            tb.set_text(text)
+            lines = self._get_messages(viewer, username)
+            tb.set(lines)
 
         else:
             cl = viewer.get_submodule(ColonLine)
@@ -110,21 +99,60 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
 
 
     def _get_messages(self, viewer, username):
+        tb = viewer.get_submodule(TextBox)
         c = viewer.get_submodule(Client)
+        u = viewer.get_submodule(Users)
         data = c.make_request("/chat/%s" % username)
-        text = "Chat:\n"
+
+
+        gm_user = None
+        for user in u.users:
+            if user["role"] == "gm":
+                gm_user = user["username"]
+
+
+        lines = [ [{
+            "text": "Chat:\n",
+            "color": "Gold"
+            }] ]
+
         for message in data["messages"]:
             if message["recipient"] is not None:
-                text += ("<private> %s to %s: %s\n" % (
-                    message["sender"],
-                    message["recipient"],
-                    message["message"]))
+                line = [
+                    {
+                        "text": "<private> {0} to {1}: ".format(message["sender"], message["recipient"]),
+                        "color": "Dark Green"
+                    },
+                    {
+                        "text": message["message"],
+                        "color": None
+                    }
+                ]
+            elif message["sender"] == gm_user:
+                line = [
+                    {
+                        "text": "{0}: ".format(message["sender"]),
+                        "color": "Gold"
+                    },
+                    {
+                        "text": message["message"],
+                        "color": None
+                    }
+                ]
             else:
-                text += ("%s: %s\n" % (
-                    message["sender"],
-                    message["message"]))
+                line = [
+                    {
+                        "text": "{0}: ".format(message["sender"]),
+                        "color": "Grey"
+                    },
+                    {
+                        "text": message["message"],
+                        "color": None
+                    }
+                ]
+            lines.append(line)
 
-        return text
+        return lines
 
 
 
