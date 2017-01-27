@@ -190,7 +190,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
 
     def get_feature_idx(self, y, x):
         for feature in self._features:
-            if feature.pos_y == y and feature.pos_x == x:
+            if feature["y"] == y and feature["x"] == x:
                 return self._features.index(feature)
 
     def get_feature(self, idx):

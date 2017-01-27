@@ -158,7 +158,7 @@ class GM(InteractiveModule, UserModule):
 
         if idx:
             feature = vp.get_feature(idx)
-            notes = feature.notes
+            notes = feature["notes"]
 
             EDITOR = os.environ.get('EDITOR','vim')
             with tempfile.NamedTemporaryFile(suffix=".md") as tf:
@@ -177,7 +177,7 @@ class GM(InteractiveModule, UserModule):
                 curses.curs_set(0)
 
                 # TODO: add a way to upload edited note to server
-                feature.notes = text
+                feature["notes"] = text
                 client = viewer.get_submodule(Client)
                 feature_dict = feature
                 client.make_request("/map/update/", payload=feature_dict)
