@@ -187,6 +187,10 @@ def _join(scr, ctx, role, host, port, username, wsad, password):
     users = Users()
     viewer.register_submodule(users)
 
+    from initiative_tracker import InitiativeTracker
+    initiative_tracker = InitiativeTracker()
+    viewer.register_submodule(initiative_tracker)
+
     if role == "gm":
         from gm import GM
         gm = GM()
