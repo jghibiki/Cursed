@@ -1,6 +1,6 @@
 from viewer import ViewerConstants
 from state import State
-from interactive import VisibleModule, FeatureModule, SavableModule
+from interactive import VisibleModule, FeatureModule, SavableModule, InteractiveModule
 from status_line import StatusLine
 import colors
 import features
@@ -12,7 +12,7 @@ log = logging.getLogger('simple_example')
 
 # TODO: Implement save method
 
-class Viewport(VisibleModule, FeatureModule, SavableModule):
+class Viewport(VisibleModule, FeatureModule, SavableModule, InteractiveModule):
     def __init__(self):
 
 
@@ -89,6 +89,36 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
             self._dirty = False
             return True
         return False
+
+    def _handle(self, viewer, ch):
+
+        if ch == ord("+") or ch == ord("="):
+
+            from client import Client
+            c = viewer.get_submodule(Client)
+
+            unit = self.get_current_unit()
+            if unit:
+                unit.current_health += 1
+
+                c.make_request("/unit/update", payload=unit.toDict())
+
+        elif ch == ord("-"):
+            from client import Client
+            c = viewer.get_submodule(Client)
+
+            unit = self.get_current_unit()
+            if unit:
+                unit.current_health -= 1
+
+                c.make_request("/unit/update", payload=unit.toDict())
+
+
+    def _handle_help(self, viewer, buf):
+        pass
+
+    def _handle_combo(self, viewer, buf):
+        pass
 
     def right(self):
         if self.w - self.x > math.floor(ViewerConstants.max_x/2)+1:
@@ -175,7 +205,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule):
 
                         bar = "|(-)"
                         bar += excess * "="
-                        bar = bar.rjust(width, "=")
+                        bar = bar.rjust(width, " ")
 
 
                 desc = "%s [%s]" % (text, bar)
