@@ -10,9 +10,14 @@ class Users(InteractiveModule, LiveModule, TextDisplayModule):
         self._showing = False
         self.users = []
 
+        self._previous_hash = None
+
 
     def _update(self, viewer, hashes):
-        pass
+        hash = hashes["users"]
+
+        if hash != self._previous_hash:
+            self._get_users(viewer)
 
     def _handle(self, viewer, ch):
         if ch == ord("U"):

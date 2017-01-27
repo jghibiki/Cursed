@@ -304,6 +304,7 @@ def set_user_info():
     exists = False
 
     global users
+    global user_hash
 
     for user in users:
         if user["username"] == data["username"]:
@@ -376,7 +377,7 @@ def get_hashes():
         "chat": chat_hash,
         "fow": fow_hash,
         "unit": unit_hash,
-        "user": user_hash
+        "users": user_hash
     })
 
 @app.route('/save', methods=["GET"])

@@ -48,7 +48,8 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
                 data = c.make_request("/chat", payload={
                     "sender": username,
                     "recipient": None,
-                    "message": ' '.join(buff[1:])
+                    "message": ' '.join(buff[1:]),
+                    "persona": None
                 })
 
                 text = self._get_messages(viewer, username)
@@ -68,7 +69,29 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
                 data = c.make_request("/chat", payload={
                     "sender": username,
                     "recipient": buff[1],
-                    "message": ' '.join(buff[2:])
+                    "message": ' '.join(buff[2:]),
+                    "persona": None
+                })
+
+                lines = self._get_messages(viewer, username)
+                tb.set(lines)
+
+            else:
+                cl = viewer.get_submodule(ColonLine)
+                cl.set_msg("No username set. Set one with :set username <username>")
+
+        elif ( ( buff[0] == "impersonate" or buff[0] == "imp" ) and
+                 len(buff) > 2 ):
+            username = state.get_state("username")
+            viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
+
+            if username:
+                c = viewer.get_submodule(Client)
+                data = c.make_request("/chat", payload={
+                    "sender": username,
+                    "persona": buff[1],
+                    "message": ' '.join(buff[2:]),
+                    "recipient": None
                 })
 
                 lines = self._get_messages(viewer, username)
@@ -109,7 +132,7 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
         for user in u.users:
             if user["role"] == "gm":
                 gm_user = user["username"]
-
+        log.error(u.users)
 
         lines = [ [{
             "text": "Chat:\n",
@@ -128,28 +151,55 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
                         "color": None
                     }
                 ]
-            elif message["sender"] == gm_user:
-                line = [
-                    {
-                        "text": "{0}: ".format(message["sender"]),
-                        "color": "Gold"
-                    },
-                    {
-                        "text": message["message"],
-                        "color": None
-                    }
-                ]
+            elif message["persona"] is not None:
+                log.error(gm_user)
+                if message["sender"] == gm_user:
+                    line = [
+                        {
+                            "text": "{0} <{1}>: ".format(message["persona"], message["sender"]),
+                            "color": "Gold"
+                        },
+                        {
+                            "text": message["message"],
+                            "color": None
+                        }
+                    ]
+                else:
+                    line = [
+                        {
+                            "text": "{0} <{1}>: ".format(message["persona"], message["sender"]),
+                            "color": "Grey"
+                        },
+                        {
+                            "text": message["message"],
+                            "color": None
+                        }
+                    ]
             else:
-                line = [
-                    {
-                        "text": "{0}: ".format(message["sender"]),
-                        "color": "Grey"
-                    },
-                    {
-                        "text": message["message"],
-                        "color": None
-                    }
-                ]
+                if message["sender"] == gm_user:
+                    line = [
+                        {
+                            "text": "{0}: ".format(message["sender"]),
+                            "color": "Gold"
+                        },
+                        {
+                            "text": message["message"],
+                            "color": None
+                        }
+                    ]
+                else:
+                    line = [
+                        {
+                            "text": "{0}: ".format(message["sender"]),
+                            "color": "Grey"
+                        },
+                        {
+                            "text": message["message"],
+                            "color": None
+                        }
+                    ]
+
+
             lines.append(line)
 
         return lines
