@@ -258,11 +258,10 @@ def set_map_name():
     return jsonify({"result": False})
 
 
-#TODO: determine relevence
 @app.route("/map", methods=["GET"])
 @requires_auth
 def get_map_name():
-    return jsonify({"map_name": current_map})
+    return jsonify({"maps": list(game_data["maps"].keys())})
 
 
 @app.route("/narrative", methods=["GET"])
@@ -866,4 +865,4 @@ def run(data, port, host, gm_passwd, passwd, map_name, save):
     authentication.password = passwd if passwd else tmp
     print("PC Password: %s" % authentication.password)
 
-    app.run(port=port, host=host, threaded=True, debug=False)
+    app.run(port=port, host=host, threaded=True, debug=True)

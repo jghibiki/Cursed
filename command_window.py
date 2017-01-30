@@ -109,19 +109,19 @@ class CommandWindow(VisibleModule, InteractiveModule):
                 self._mode = CommandMode.build
                 self._dirty = True
 
-            if ch == ord("c"):
+            elif ch == ord("c"):
                 from chat import Chat
                 chat = viewer.get_submodule(Chat)
                 viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
                 chat._show(viewer)
 
-            if ch == ord("n") and role == "gm":
+            elif ch == ord("n") and role == "gm":
                 from narrative import Narrative
                 narrative = viewer.get_submodule(Narrative)
                 viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
                 narrative._show(viewer)
 
-            if ch == ord("f") and role == "gm":
+            elif ch == ord("f") and role == "gm":
                 vp = viewer.get_submodule(Viewport)
                 current = state.get_state("fow")
                 if current == "on":
@@ -131,16 +131,20 @@ class CommandWindow(VisibleModule, InteractiveModule):
                 vp._dirty = True
                 viewer._draw(force=True)
 
-            if ch == ord("F") and role == "gm":
+            elif ch == ord("F") and role == "gm":
                 self._mode = CommandMode.fow
                 self._dirty = True
 
-            if ch == ord("u"):
+            elif ch == ord("u"):
                 state = viewer.get_submodule(State)
                 state.set_state("ignore_direction_keys", "on")
                 self._mode = CommandMode.units
                 self._dirty = True
 
+            elif ch == ord("m"):
+                from map import Map
+                m = viewer.get_submodule(Map)
+                m._show(viewer)
 
         elif self._mode is CommandMode.build: #gm only
             if ch == 27 or ch == curses.ascii.ESC: # escape
@@ -583,13 +587,14 @@ class CommandWindow(VisibleModule, InteractiveModule):
         line = self._draw_key(line, "n", "Narrative")
         line = self._draw_key(line, "f", "Toggle Fog of War for GM")
         line = self._draw_key(line, "F", "Edit Fog of War")
-        line = self._draw_key(line, "u", "units")
+        line = self._draw_key(line, "u", "Units")
+        line = self._draw_key(line, "m", "Maps")
 
     def _draw_pc_default_screen(self):
         line = self._draw_title(1, "Commands:")
 
         line = self._draw_key(line, "c", "Chat")
-        line = self._draw_key(line, "u", "units")
+        line = self._draw_key(line, "u", "Units")
 
     def _draw_fow_screen(self):
         if self._box:
