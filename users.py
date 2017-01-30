@@ -21,7 +21,8 @@ class Users(InteractiveModule, LiveModule, TextDisplayModule):
             self._get_users(viewer)
 
             m = viewer.get_submodule(Map)
-            #m.force_update(viewer)
+            if m._showing:
+                m.show_maps(viewer)
 
 
     def _handle(self, viewer, ch):

@@ -589,6 +589,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
         line = self._draw_key(line, "F", "Edit Fog of War")
         line = self._draw_key(line, "u", "Units")
         line = self._draw_key(line, "m", "Maps")
+        line = self._draw_key(line, "U", "Users")
 
     def _draw_pc_default_screen(self):
         line = self._draw_title(1, "Commands:")

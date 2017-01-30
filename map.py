@@ -108,12 +108,12 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
         if len(split) == 1 and (split[0] == "map" or split[0] == "m"):
             self._show(viewer)
 
-        elif len(split) == 3 and (split[0] == "map" or split[0] == "m"):
+        elif len(split) == 4 and (split[0] == "map" or split[0] == "m") and (split[1] == "move" or split[1] == "m"):
             from users import Users
             users = viewer.get_submodule(Users)
 
-            regex = split[1]
-            map_to_switch = split [2]
+            regex = split[2]
+            map_to_switch = split [3]
 
             valid_map = False
             for map_name in self._maps:
@@ -171,14 +171,14 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
         }] ]
         for map_name in self._maps:
             lines.append([{
-                "text": "- {0}".format(map_name),
+                "text": "{0}".format(map_name),
                 "color": "Gold"
             }])
 
             for user in users.users:
                 if user["current_map"] == map_name:
                     lines.append([{
-                        "text": "  - {0}".format(user["username"]),
+                        "text": "- {0}".format(user["username"]),
                         "color": None
                     }])
 
