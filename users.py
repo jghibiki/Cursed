@@ -1,6 +1,7 @@
 from interactive import  InteractiveModule, LiveModule, TextDisplayModule
 from text_box import TextBox
 from client import Client
+from map import Map
 import logging
 
 log = logging.getLogger('simple_example')
@@ -18,6 +19,10 @@ class Users(InteractiveModule, LiveModule, TextDisplayModule):
 
         if hash != self._previous_hash:
             self._get_users(viewer)
+
+            m = viewer.get_submodule(Map)
+            #m.force_update(viewer)
+
 
     def _handle(self, viewer, ch):
         if ch == ord("U"):

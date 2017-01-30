@@ -12,29 +12,42 @@ app = Flask(__name__)
 
 game_data = None
 save_callback = None
-current_map = None
-map_hash = None
-feature_hashes = []
-chat_hash = None
-fow_hash = None
-unit_hash = None
-
 users = []
-user_hash = None
 
+
+######
+## Helpers
+#####
+
+def _get_user():
+    auth = request.authorization
+    username = auth.username
+    map_name = None
+    for user in users:
+        if user["username"] == username:
+            return user
+
+    return None
+
+
+###
+# Routes
+###
 
 @app.route("/map/data/", methods=["GET"])
-@app.route("/map/data/<index>/", methods=["GET"])
 @requires_auth
 def get_map(index=None):
 
-    name = current_map
 
-    if not index:
-        return jsonify(
-                game_data["maps"][name])
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
 
-    return jsonify(game_data["maps"][name]["features"][index])
+    name = user["current_map"]
+    if not name:
+        return 'user current_map not set', 400
+
+    return jsonify(game_data["maps"][name])
 
 
 
@@ -55,25 +68,27 @@ def add_feature_to_map():
     if "notes" not in data:
         return ('Payload midding field "notes"', 400)
 
-    name = current_map
 
-    features = game_data["maps"][name]["features"]
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
+
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
+
+    features = game_data["maps"][map_name]["features"]
 
     for feature in features:
         if feature["y"] == data["y"] and feature["x"] == data["x"]:
             return ('', 500)
 
-    game_data["maps"][name]["features"].append(data)
+    game_data["maps"][map_name]["features"].append(data)
 
-    global map_hash
-    data = json.dumps(game_data["maps"][name], sort_keys=True).encode("utf-8")
+    data = json.dumps(game_data["maps"][map_name], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
-    map_hash = hsh
-
-    global feature_hashes
-    json_str = json.dumps(feature, sort_keys=True).encode("utf-8")
-    h = hashlib.md5(json_str).hexdigest()
-    feature_hashes.append(h)
+    game_data["map_hashes"][map_name]["map"] = hsh
 
     return jsonify({})
 
@@ -87,9 +102,15 @@ def bulk_add_feature_to_map():
 
     new_features = data["features"]
 
-    name = current_map
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
 
-    features = game_data["maps"][name]["features"]
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
+    features = game_data["maps"][map_name]["features"]
 
     already_exist = []
 
@@ -100,21 +121,16 @@ def bulk_add_feature_to_map():
 
     new_features = [ feature for feature in new_features if feature not in already_exist ]
     for new_feature in new_features:
-        game_data["maps"][name]["features"].append(new_feature)
+        game_data["maps"][map_name]["features"].append(new_feature)
 
-    global map_hash
     data = json.dumps(game_data["maps"][name], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
-    map_hash = hsh
-
-    global feature_hashes
-    json_str = json.dumps(feature, sort_keys=True).encode("utf-8")
-    h = hashlib.md5(json_str).hexdigest()
-    feature_hashes.append(h)
+    game_data["map_hashes"][map_name]["map"] = hsh
 
     return jsonify({})
 
 @app.route('/map/rm', methods=["POST"])
+@requires_gm_auth
 def rm_feature_from_map():
     data = request.json
 
@@ -123,29 +139,30 @@ def rm_feature_from_map():
          ( "x" not in data ) ):
         return ('', 400)
 
-    name = current_map
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
 
-    features = game_data["maps"][name]["features"]
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
+    features = game_data["maps"][map_name]["features"]
     for feature in features:
         if feature["y"] == data["y"] and feature["x"] == data["x"]:
                 features.remove(feature)
-                game_data["maps"][name]["features"] = features
+                game_data["maps"][map_name]["features"] = features
 
-                global map_hash
-                data = json.dumps(game_data["maps"][name], sort_keys=True).encode("utf-8")
+                data = json.dumps(game_data["maps"][map_name], sort_keys=True).encode("utf-8")
                 hsh = hashlib.md5(data).hexdigest()
-                map_hash = hsh
-
-                global feature_hashes
-                json_str = json.dumps(feature, sort_keys=True).encode("utf-8")
-                h = hashlib.md5(json_str).hexdigest()
-                feature_hashes.remove(h)
+                game_data["map_hashes"][map_name]["map"] = hsh
 
                 return jsonify({})
 
     return '', 500
 
 @app.route('/map/bulk/rm', methods=["POST"])
+@requires_gm_auth
 def bulk_rm_feature_from_map():
     data = request.json
 
@@ -154,7 +171,13 @@ def bulk_rm_feature_from_map():
 
     new_features = data["features"]
 
-    name = current_map
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
+
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
 
     features = game_data["maps"][name]["features"]
     for new_feature in new_features:
@@ -165,24 +188,18 @@ def bulk_rm_feature_from_map():
                 except:
                     pass
 
-    game_data["maps"][name]["features"] = features
+    game_data["maps"][map_name]["features"] = features
 
-    global map_hash
-    data = json.dumps(game_data["maps"][name], sort_keys=True).encode("utf-8")
+    data = json.dumps(game_data["maps"][map_name], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
-    map_hash = hsh
-
-    global feature_hashes
-    json_str = json.dumps(feature, sort_keys=True).encode("utf-8")
-    h = hashlib.md5(json_str).hexdigest()
-    feature_hashes.remove(h)
+    game_data["map_hashes"][map_name]["map"] = hsh
 
     return jsonify({})
 
 
 @app.route('/map/update/', methods=["POST"])
-@app.route('/map/update/<name>', methods=["POST"])
-def update_feature(name=None):
+@requires_gm_auth
+def update_feature():
     data = request.json
 
     # validate request data
@@ -197,35 +214,51 @@ def update_feature(name=None):
     if "notes" not in data:
         return ('Payload midding field "notes"', 400)
 
-    if not name:
-        name = current_map
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
 
-    features = game_data["maps"][name]["features"]
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
+    features = game_data["maps"][map_name]["features"]
     for idx, feature in enumerate(features):
         if feature["y"] == data["y"] and feature["x"] == data["x"]:
-            game_data["maps"][name]["features"][idx] = data
+            game_data["maps"][map_name]["features"][idx] = data
 
-    return jsonify({})
+            data = json.dumps(game_data["maps"][map_name], sort_keys=True).encode("utf-8")
+            hsh = hashlib.md5(data).hexdigest()
+            game_data["map_hashes"][map_name]["map"] = hsh
 
+            return jsonify({})
 
 
 @app.route("/map", methods=["POST"])
+@requires_gm_auth
 def set_map_name():
-    global current_map
     data = request.json
-    current_map = data["map_name"]
+    user_to_change = data["username"]
+    new_map = data["map_name"]
 
-    # generate feature hashes
-    global feature_hashes
-    feature_hashes = []
-    for feature in game_data["maps"][current_map]["features"]:
-        json_str = json.dumps(feature, sort_keys=True).encode("utf-8")
-        h = hashlib.md5(json_str).hexdigest()
-        feature_hashes.append(h)
+    valid_map = False
+    for map_name in game_data["maps"].keys():
+        if map_name == new_map:
+            valid_map = True
 
-    return jsonify({})
+    if not valid_map:
+        return "Invalid map name", 400
+
+    global users
+    for user in users:
+        if user["username"] == user_to_change:
+            user["current_map"] = new_map
+
+            return jsonify({"result": True})
+    return jsonify({"result": False})
 
 
+#TODO: determine relevence
 @app.route("/map", methods=["GET"])
 @requires_auth
 def get_map_name():
@@ -280,9 +313,9 @@ def add_chat_message():
     global game_data
     game_data["chat"].append(data)
 
-    global chat_hash
     data = json.dumps(game_data["chat"], sort_keys=True).encode("utf-8")
-    chat_hash = hashlib.md5(data).hexdigest()
+    hsh = hashlib.md5(data).hexdigest()
+    game_data["global_hashes"]["chat"] = hsh
 
     return jsonify({})
 
@@ -303,9 +336,8 @@ def set_user_info():
 
     exists = False
 
-    global users
-    global user_hash
 
+    global users
     for user in users:
         if user["username"] == data["username"]:
             exists = True
@@ -336,6 +368,32 @@ def set_user_info():
 
     return jsonify({})
 
+@app.route('/notes', methods=["GET"])
+@requires_auth
+def get_notes():
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
+
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
+    return jsonify(game_data["maps"][map_name]["notes"])
+
+#TODO: actually implement set notes (part of the point of interest replacement)
+@app.route('/notes', methods=["GET"])
+@requires_auth
+def set_notes():
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
+
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
+    return jsonify(game_data["maps"][map_name]["notes"])
 
 @app.route('/chat/<username>', methods=["GET"])
 @requires_auth
@@ -371,13 +429,20 @@ def get_chat_hash(username):
 @app.route('/hash', methods=["GET"])
 @requires_auth
 def get_hashes():
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
+
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
     return jsonify({
-        "map": map_hash,
-        "features": feature_hashes,
-        "chat": chat_hash,
-        "fow": fow_hash,
-        "unit": unit_hash,
-        "users": user_hash
+        "map": game_data["map_hashes"][map_name]["map"],
+        "fow": game_data["map_hashes"][map_name]["fow"],
+        "unit": game_data["map_hashes"][map_name]["unit"],
+        "chat": game_data["global_hashes"]["chat"],
+        "users": game_data["global_hashes"]["users"]
     })
 
 @app.route('/save', methods=["GET"])
@@ -399,13 +464,20 @@ def add_fow():
     x = data["x"]
     y = data["y"]
 
-    global dame_data
-    game_data["maps"][current_map]["fow"][x][y] = True
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
 
-    global fow_hash
-    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
+    global dame_data
+    game_data["maps"][map_name]["fow"][x][y] = True
+
+    data = json.dumps(game_data["maps"][map_name]["fow"], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
-    fow_hash = hsh
+    game_data["map_hashes"][map_name]["fow"] = hsh
 
     return jsonify({})
 
@@ -414,14 +486,21 @@ def add_fow():
 def bulk_add_fow():
     data = request.json
 
-    global dame_data
+    global game_data
     for row in data["fow"]:
         game_data["maps"][current_map]["fow"][row["x"]][row["y"]] = True
 
-    global fow_hash
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
+
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
     data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
-    fow_hash = hsh
+    game_data["map_hashes"][map_name]["fow"] = hsh
 
     return jsonify({})
 
@@ -439,13 +518,20 @@ def rm_fow():
     x = data["x"]
     y = data["y"]
 
-    global dame_data
-    game_data["maps"][current_map]["fow"][x][y] = False
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
 
-    global fow_hash
-    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
+    global game_data
+    game_data["maps"][map_name]["fow"][x][y] = False
+
+    data = json.dumps(game_data["maps"][map_name]["fow"], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
-    fow_hash = hsh
+    game_data["map_hashes"][map_name]["fow"] = hsh
 
     return jsonify({})
 
@@ -454,14 +540,21 @@ def rm_fow():
 def bulk_rm_fow():
     data = request.json
 
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
+
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
     global dame_data
     for row in data["fow"]:
-        game_data["maps"][current_map]["fow"][row["x"]][row["y"]] = False
+        game_data["maps"][map_name]["fow"][row["x"]][row["y"]] = False
 
-    global fow_hash
-    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    data = json.dumps(game_data["maps"][map_name]["fow"], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
-    fow_hash = hsh
+    game_data["map_hashes"][map_name]["fow"] = hsh
 
     return jsonify({})
 
@@ -470,24 +563,39 @@ def bulk_rm_fow():
 @requires_auth
 def get_fow():
 
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
+
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
     return jsonify({
-        "fow": game_data["maps"][current_map]["fow"]
+        "fow": game_data["maps"][map_name]["fow"]
     })
 
 @app.route('/fow/toggle', methods=["GET"])
 @requires_gm_auth
 def toggle_fow():
 
-    global dame_data
-    initial = not game_data["maps"][current_map]["fow"][0][0]
-    for x in range(0, game_data["maps"][current_map]["max_x"]):
-        for y in range(0, game_data["maps"][current_map]["max_y"]):
-            game_data["maps"][current_map]["fow"][x][y] = initial
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
 
-    global fow_hash
-    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
+    global game_data
+    initial = not game_data["maps"][map_name]["fow"][0][0]
+    for x in range(0, game_data["maps"][map_name]["max_x"]):
+        for y in range(0, game_data["maps"][map_name]["max_y"]):
+            game_data["maps"][map_name]["fow"][x][y] = initial
+
+    data = json.dumps(game_data["maps"][map_name]["fow"], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
-    fow_hash = hsh
+    game_data["map_hashes"][map_name]["fow"] = hsh
 
     return jsonify({})
 
@@ -495,15 +603,22 @@ def toggle_fow():
 @requires_gm_auth
 def all_fow():
 
-    global dame_data
-    for x in range(0, game_data["maps"][current_map]["max_x"]):
-        for y in range(0, game_data["maps"][current_map]["max_y"]):
-            game_data["maps"][current_map]["fow"][x][y] = True
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
 
-    global fow_hash
-    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
+    global game_data
+    for x in range(0, game_data["maps"][map_name]["max_x"]):
+        for y in range(0, game_data["maps"][map_name]["max_y"]):
+            game_data["maps"][map_name]["fow"][x][y] = True
+
+    data = json.dumps(game_data["maps"][map_name]["fow"], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
-    fow_hash = hsh
+    game_data["map_hashes"][map_name]["fow"] = hsh
 
     return jsonify({})
 
@@ -511,15 +626,22 @@ def all_fow():
 @requires_gm_auth
 def none_fow():
 
-    global dame_data
-    for x in range(0, game_data["maps"][current_map]["max_x"]):
-        for y in range(0, game_data["maps"][current_map]["max_y"]):
-            game_data["maps"][current_map]["fow"][x][y] = False
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
 
-    global fow_hash
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
+    global game_data
+    for x in range(0, game_data["maps"][map_name]["max_x"]):
+        for y in range(0, game_data["maps"][map_name]["max_y"]):
+            game_data["maps"][map_name]["fow"][x][y] = False
+
     data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
-    fow_hash = hsh
+    game_data["map_hashes"][map_name]["fow"] = hsh
 
     return jsonify({})
 
@@ -545,12 +667,19 @@ def add_unit():
 
     data["id"] = str(uuid4())
 
-    global game_data
-    game_data["maps"][current_map]["units"].append(data)
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
 
-    global unit_hash
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
+    global game_data
+    game_data["maps"][map_name]["units"].append(data)
+
     data = json.dumps(game_data["maps"][current_map]["units"], sort_keys=True).encode("utf-8")
-    unit_hash = hashlib.md5(data).hexdigest()
+    game_data["map_hashes"][map_name]["units"] = hashlib.md5(data).hexdigest()
 
     return jsonify({})
 
@@ -562,17 +691,24 @@ def rm_unit():
     if "id" not in data:
         return 'Payload missing field "id"', 400
 
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
+
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
     global game_data
-    units = game_data["maps"][current_map]["units"]
+    units = game_data["maps"][map_name]["units"]
 
     for unit in units:
         if unit["id"] == data["id"]:
-            game_data["maps"][current_map]["units"].remove(unit)
+            game_data["maps"][map_name]["units"].remove(unit)
             break
 
-    global unit_hash
     data = json.dumps(game_data["maps"][current_map]["units"], sort_keys=True).encode("utf-8")
-    unit_hash = hashlib.md5(data).hexdigest()
+    game_data["map_hashes"][map_name]["units"] = hashlib.md5(data).hexdigest()
 
     return jsonify({})
 
@@ -600,22 +736,37 @@ def update_unit():
 
     global game_data
 
-    for i in range(len(game_data["maps"][current_map]["units"])):
-        if game_data["maps"][current_map]["units"][i]["id"] == data["id"]:
-            game_data["maps"][current_map]["units"][i] = data
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
+
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
+    for i in range(len(game_data["maps"][map_name]["units"])):
+        if game_data["maps"][map_name]["units"][i]["id"] == data["id"]:
+            game_data["maps"][map_name]["units"][i] = data
             break
 
-    global unit_hash
-    a = unit_hash
-    data = json.dumps(game_data["maps"][current_map]["units"], sort_keys=True).encode("utf-8")
-    unit_hash = hashlib.md5(data).hexdigest()
+    data = json.dumps(game_data["maps"][map_name]["units"], sort_keys=True).encode("utf-8")
+    game_data["map_hashes"][map_name]["units"] = hashlib.md5(data).hexdigest()
 
     return jsonify({})
 
 @app.route('/unit', methods=["GET"])
 @requires_auth
 def get_units():
-    units = game_data["maps"][current_map]["units"]
+
+    user = _get_user()
+    if not user:
+        return 'username not set', 400
+
+    map_name = user["current_map"]
+    if not map_name:
+        return 'user current_map not set', 400
+
+    units = game_data["maps"][map_name]["units"]
     return jsonify({"units": units})
 
 
@@ -627,29 +778,85 @@ def run(data, port, host, gm_passwd, passwd, map_name, save):
     global save_callback
     save_callback = save
 
-    global current_map
-    current_map = map_name
+    # add staging map
+    game_data["maps"]["__staging__"] = {
+        "max_x": 100,
+        "max_y": 100,
+        "features": [{"y": 4,"x": 8,"type": "Snow","notes": ""},
+            {"y": 4,"x": 7,"type": "Snow","notes": ""},{"y": 4,"x": 6,"type": "Snow","notes": ""},
+            {"y": 4,"x": 5,"type": "Snow","notes": ""},{"y": 5,"x": 5,"type": "Snow","notes": ""},
+            {"y": 6,"x": 5,"type": "Snow","notes": ""},{"y": 6,"x": 6,"type": "Snow","notes": ""},
+            {"y": 6,"x": 7,"type": "Snow","notes": ""},{"y": 6,"x": 8,"type": "Snow","notes": ""},
+            {"y": 7,"x": 8,"type": "Snow","notes": ""},{"y": 8,"x": 8,"type": "Snow","notes": ""},
+            {"y": 8,"x": 7,"type": "Snow","notes": ""},{"y": 8,"x": 6,"type": "Snow","notes": ""},
+            {"y": 8,"x": 5,"type": "Snow","notes": ""},{"y": 6,"x": 10,"type": "Snow","notes": ""},
+            {"y": 6,"x": 11,"type": "Snow","notes": ""},{"y": 6,"x": 12,"type": "Snow","notes": ""},
+            {"y": 6,"x": 13,"type": "Snow","notes": ""},{"y": 6,"x": 14,"type": "Snow","notes": ""},
+            {"y": 4,"x": 12,"type": "Snow","notes": ""},{"y": 5,"x": 12,"type": "Snow","notes": ""},
+            {"y": 7,"x": 12,"type": "Snow","notes": ""},{"y": 8,"x": 12,"type": "Snow","notes": ""},
+            {"y": 6,"x": 19,"type": "Snow","notes": ""},{"y": 6,"x": 18,"type": "Snow","notes": ""},
+            {"y": 6,"x": 17,"type": "Snow","notes": ""},{"y": 6,"x": 16,"type": "Snow","notes": ""},
+            {"y": 7,"x": 16,"type": "Snow","notes": ""},{"y": 8,"x": 16,"type": "Snow","notes": ""},
+            {"y": 8,"x": 17,"type": "Snow","notes": ""},{"y": 8,"x": 18,"type": "Snow","notes": ""},
+            {"y": 8,"x": 19,"type": "Snow","notes": ""},{"y": 7,"x": 19,"type": "Snow","notes": ""},
+            {"y": 7,"x": 20,"type": "Snow","notes": ""},{"y": 8,"x": 21,"type": "Snow","notes": ""},
+            {"y": 6,"x": 23,"type": "Snow","notes": ""},{"y": 7,"x": 23,"type": "Snow","notes": ""},
+            {"y": 8,"x": 23,"type": "Snow","notes": ""},{"y": 8,"x": 24,"type": "Snow","notes": ""},
+            {"y": 8,"x": 25,"type": "Snow","notes": ""},{"y": 8,"x": 26,"type": "Snow","notes": ""},
+            {"y": 7,"x": 26,"type": "Snow","notes": ""},{"y": 6,"x": 26,"type": "Snow","notes": ""},
+            {"y": 6,"x": 25,"type": "Snow","notes": ""},{"y": 6,"x": 24,"type": "Snow","notes": ""},
+            {"y": 9,"x": 26,"type": "Snow","notes": ""},{"y": 10,"x": 26,"type": "Snow","notes": ""},
+            {"y": 10,"x": 25,"type": "Snow","notes": ""},{"y": 10,"x": 24,"type": "Snow","notes": ""},
+            {"y": 10,"x": 23,"type": "Snow","notes": ""},{"y": 6,"x": 28,"type": "Snow","notes": ""},
+            {"y": 7,"x": 28,"type": "Snow","notes": ""},{"y": 8,"x": 28,"type": "Snow","notes": ""},
+            {"y": 4,"x": 28,"type": "Snow","notes": ""},{"y": 6,"x": 30,"type": "Snow","notes": ""},
+            {"y": 7,"x": 30,"type": "Snow","notes": ""},{"y": 8,"x": 30,"type": "Snow","notes": ""},
+            {"y": 6,"x": 31,"type": "Snow","notes": ""},{"y": 6,"x": 32,"type": "Snow","notes": ""},
+            {"y": 6,"x": 33,"type": "Snow","notes": ""},{"y": 7,"x": 33,"type": "Snow","notes": ""},
+            {"y": 8,"x": 33,"type": "Snow","notes": ""},{"y": 6,"x": 35,"type": "Snow","notes": ""},
+            {"y": 7,"x": 35,"type": "Snow","notes": ""},{"y": 8,"x": 35,"type": "Snow","notes": ""},
+            {"y": 8,"x": 36,"type": "Snow","notes": ""},{"y": 8,"x": 37,"type": "Snow","notes": ""},
+            {"y": 8,"x": 38,"type": "Snow","notes": ""},{"y": 7,"x": 38,"type": "Snow","notes": ""},
+            {"y": 6,"x": 38,"type": "Snow","notes": ""},{"y": 6,"x": 37,"type": "Snow","notes": ""},
+            {"y": 6,"x": 36,"type": "Snow","notes": ""},{"y": 9,"x": 38,"type": "Snow","notes": ""},
+            {"y": 10,"x": 38,"type": "Snow","notes": ""},{"y": 10,"x": 37,"type": "Snow","notes": ""},
+            {"y": 10,"x": 36,"type": "Snow","notes": ""},{"y": 10,"x": 35,"type": "Snow","notes": ""}
+        ],
+        "notes": [],
+        "units": [],
+        "fow": [ [ False for y in range(100) ] for x in range(100) ]
+    }
 
+    game_data["map_hashes"] = {}
 
-    # calculate map hash
-    global map_hash
-    data = json.dumps(game_data["maps"][map_name], sort_keys=True).encode("utf-8")
+    for map in game_data["maps"].keys():
+
+        data = json.dumps(game_data["maps"][map], sort_keys=True).encode("utf-8")
+        map_hash = hashlib.md5(data).hexdigest()
+
+        data = json.dumps(game_data["maps"][map]["fow"], sort_keys=True).encode("utf-8")
+        fow_hash = hashlib.md5(data).hexdigest()
+
+        data = json.dumps(game_data["maps"][map]["units"], sort_keys=True).encode("utf-8")
+        unit_hash = hashlib.md5(data).hexdigest()
+
+        game_data["map_hashes"][map] = {
+            "map": map_hash,
+            "fow": fow_hash,
+            "unit": unit_hash,
+        }
+
+    data = json.dumps(users, sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
-    map_hash = hsh
+    user_hash = hsh
 
-    # calculate fow hash
-    global fow_hash
-    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
-    hsh = hashlib.md5(data).hexdigest()
-    fow_hash = hsh
-
-    global unit_hash
-    data = json.dumps(game_data["maps"][current_map]["units"], sort_keys=True).encode("utf-8")
-    unit_hash = hashlib.md5(data).hexdigest()
-
-    global chat_hash
     data = json.dumps(game_data["chat"], sort_keys=True).encode("utf-8")
     chat_hash = hashlib.md5(data).hexdigest()
+
+    game_data["global_hashes"] = {
+        "users": user_hash,
+        "chat": chat_hash
+    }
 
     tmp = "%s%s%s%s" % (random.randint(0, 9), random.randint(0, 9), random.randint(0, 9), random.randint(0, 9))
     authentication.gm_password = gm_passwd if gm_passwd else tmp

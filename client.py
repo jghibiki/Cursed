@@ -24,7 +24,7 @@ class Client(ClientModule, InitModule):
 
         self.make_request("/users", payload={
             "username": self._username,
-            "current_map": None
+            "current_map": "__staging__"
         })
 
     def connect(self):
@@ -53,7 +53,7 @@ class Client(ClientModule, InitModule):
     def make_request(self, url, payload=None):
         if not payload:
             log.debug("make_request GET %s" % url)
-            r = requests.get(self._base_url + url, auth=("user", self._password))
+            r = requests.get(self._base_url + url, auth=(self._username, self._password))
         else:
             log.debug("make_request POST %s %s" % (url, payload))
             r = requests.post(self._base_url + url,
