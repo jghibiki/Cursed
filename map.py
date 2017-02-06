@@ -105,40 +105,61 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
 
     def _handle_combo(self, viewer, buf):
         split = buf.split(" ")
-        if len(split) == 1 and (split[0] == "map" or split[0] == "m"):
-            self._show(viewer)
+        if split[0] == "map" or split[0] == "m":
+            if len(split) == 1 :
+                self._show(viewer)
 
-        elif len(split) == 4 and (split[0] == "map" or split[0] == "m") and (split[1] == "move" or split[1] == "m"):
-            from users import Users
-            users = viewer.get_submodule(Users)
+            elif len(split) == 4 and (split[1] == "move" or split[1] == "m"):
+                from users import Users
+                users = viewer.get_submodule(Users)
 
-            regex = split[2]
-            map_to_switch = split [3]
+                regex = split[2]
+                map_to_switch = split [3]
 
-            valid_map = False
-            for map_name in self._maps:
-                if map_name == map_to_switch:
-                    valid_map = True
-                    break
+                valid_map = False
+                for map_name in self._maps:
+                    if map_name == map_to_switch:
+                        valid_map = True
+                        break
 
-            if valid_map:
+                if valid_map:
 
-                usernames = [ user["username"] for user in users.users ]
+                    usernames = [ user["username"] for user in users.users ]
 
-                if len(regex) == 1 and regex == "*":
-                    regex = ".*"
-                regex = re.compile(regex)
+                    if len(regex) == 1 and regex == "*":
+                        regex = ".*"
+                    regex = re.compile(regex)
 
-                filtered_usernames = filter(regex.match, usernames)
+                    filtered_usernames = filter(regex.match, usernames)
+
+                    client = viewer.get_submodule(Client)
+
+                    for username in usernames:
+
+                        data = client.make_request("/map", payload={
+                            "username": username,
+                            "map_name": map_to_switch
+                        })
+
+            elif len(split) == 5 and (split[1] == "new" or split[1] == "n"):
+                name = split[2]
+                width = split[3]
+                height = split[4]
+
+                try:
+                    width = int(width)
+                    height = int(height)
+                except ValueError:
+                    return
 
                 client = viewer.get_submodule(Client)
+                data = client.make_request("/map/new", payload={
+                    "name": name,
+                    "width": width,
+                    "height": height
+                })
 
-                for username in usernames:
 
-                    data = client.make_request("/map", payload={
-                        "username": username,
-                        "map_name": map_to_switch
-                    })
 
 
 
