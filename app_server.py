@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS, cross_origin
 import sys
 import json
 import hashlib
@@ -9,6 +10,7 @@ from uuid import uuid4
 from authentication import requires_auth, requires_gm_auth
 
 app = Flask(__name__)
+CORS(app)
 
 game_data = None
 save_callback = None
@@ -160,6 +162,23 @@ def rm_feature_from_map():
                 return jsonify({})
 
     return '', 500
+
+@app.route('/map/new', methods=["POST"])
+@requires_gm_auth
+def create_new_map():
+    data = request.json
+    map_name = data["name"]
+    max_x = data["width"]
+    max_y = data["height"]
+
+    game_data["maps"][map_name] = {
+        "max_x": max_x,
+        "max_y": max_y,
+        "features": [],
+        "notes": [],
+        "units": [],
+        "fow": [ [ False for y in range(max_y) ] for x in range(max_x) ]
+    }
 
 @app.route('/map/bulk/rm', methods=["POST"])
 @requires_gm_auth
