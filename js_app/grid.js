@@ -8,8 +8,9 @@ grid.init = function(){
         "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
         "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
         "\u2588", // block character
-        "\u2588", // up arrow character
-        "\u2588", // down arrow character
+        "\u2191", // up arrow character
+        "\u2193", // down arrow character
+        "~", "^", "#", "!", "@", "&", ".",
         " "
     ];
 
@@ -77,8 +78,31 @@ grid.text = function(y, x, text, color){
         color = "White";
     }
 
-    grid._[y][x].text = text;
-    grid._[y][x].color = cursed.colors.get(color).value;
-    grid._[y][x].updateCache();
+    var color_obj = cursed.colors.get(color);
+
+
+    var update_text = true;
+    var current_text = grid._[y][x].text;
+
+    if(grid._[y][x].filters !== null){
+        var current_red = grid._[y][x].filters[0].redOffset;
+        var current_green = grid._[y][x].filters[0].greenOffset;
+        var current_blue = grid._[y][x].filters[0].blueOffset;
+
+        update_text = (
+            current_text !== text ||
+            (current_red !== color_obj.r || current_red === undefined) ||
+            (current_green !== color_obj.g || current_green === undefined) ||
+            (current_blue !== color_obj.b || current_blue == undefined) 
+        );
+    }
+
+    if(update_text){
+        grid._[y][x].text = text;
+        grid._[y][x].filters = [
+            new createjs.ColorFilter(0, 0, 0, 1, color_obj.r, color_obj.g, color_obj.b, 0)
+        ];
+        grid._[y][x].updateCache();
+    }
 
 }

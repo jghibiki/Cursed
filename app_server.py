@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort
 from flask_cors import CORS, cross_origin
 import sys
 import json
@@ -31,6 +31,23 @@ def _get_user():
 
     return None
 
+######
+## Error Handler
+#####
+class InvalidUsage(Exception):
+    status_code = 400
+
+    def __init__(self, message, status_code=None, payload=None):
+        Exception.__init__(self)
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv['message'] = self.message
+        return rv
 
 ###
 # Routes
@@ -125,7 +142,7 @@ def bulk_add_feature_to_map():
     for new_feature in new_features:
         game_data["maps"][map_name]["features"].append(new_feature)
 
-    data = json.dumps(game_data["maps"][name], sort_keys=True).encode("utf-8")
+    data = json.dumps(game_data["maps"][map_name], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
     game_data["map_hashes"][map_name]["map"] = hsh
 
@@ -198,7 +215,7 @@ def bulk_rm_feature_from_map():
     if not map_name:
         return 'user current_map not set', 400
 
-    features = game_data["maps"][name]["features"]
+    features = game_data["maps"][map_name]["features"]
     for new_feature in new_features:
         for feature in features:
             if feature["y"] == new_feature["y"] and feature["x"] == new_feature["x"]:
@@ -342,15 +359,16 @@ def add_chat_message():
 def get_users():
     return jsonify({"users": users})
 
+
 @app.route('/users', methods=["POST"])
 @requires_auth
 def set_user_info():
     data = request.json
 
     if "username" not in data:
-        return 'Payload missing field "username"', 400
+        raise InvalidUsage('Payload missing field "username')
     if "current_map" not in data:
-        return 'Payload missing field "current_map"', 400
+        raise InvalidUsage('Payload missing field "current_map')
 
     exists = False
 
@@ -366,7 +384,7 @@ def set_user_info():
         new_user = {}
 
         new_user["username"] = data["username"]
-        new_user["current_map"] = data["current_map"]
+        new_user["current_map"] = "__staging__"
 
         auth = request.authorization
         if authentication.gm_password == auth.password:
@@ -375,7 +393,7 @@ def set_user_info():
             new_user["role"] = "pc"
 
         if new_user["current_map"] == None:
-            new_user["current_map"] == current_map
+            new_user["current_map"] == "__staging__"
 
 
         users.append(new_user)

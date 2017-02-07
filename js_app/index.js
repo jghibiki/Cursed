@@ -4,13 +4,18 @@ var stage;
 var queue;
 var cursed = {
     constants: {
-        font_size: 14 ,
+        font_size: 14,
         font_width_offset: -5
     },
     state: {
         handling: false,
         username: "",
-        password: ""
+        password: "",
+        dirty : true,
+        fow: "on"
+    },
+    modules: {
+        live: []
     }
 };
 
@@ -27,8 +32,9 @@ function load(){
         {id: "colon_line", src: "./colon_line.js"},
         {id: "status_line", src: "./status_line.js"},
         {id: "client", src: "./client.js"},
-        {id: "viewer", src: "./viewer.js"}
-    ])
+        {id: "viewport", src: "./viewport.js"},
+        {id: "map", src: "./map.js"}
+    ]);
 }
 
 
@@ -39,7 +45,7 @@ function init(){
         cursed.state.username = window.prompt("Please enter a username.", "");
     }
     while(cursed.state.password == ""){
-        cursed.state.password = window.prompt("Please enter a username.", "");
+        cursed.state.password = window.prompt("Please enter session password.", "");
     }
     
 
@@ -48,13 +54,23 @@ function init(){
     build_namespace();
     init_modules();
 
-    cursed.viewer.draw();
+    cursed.viewport.draw();
     cursed.command_window.draw();
     cursed.text_box.draw();
     cursed.colon_line.draw();
     cursed.status_line.draw();
 
     document.onkeydown = handleKeypress;
+
+    // global draw loop
+    createjs.Ticker.framerate = 24;
+    createjs.Ticker.addEventListener("tick", ()=>{ 
+        if(cursed.state.dirty){
+            cursed.stage.update(); 
+
+            cursed.state.dirty = false;
+        }
+    });
 
 }
 
@@ -91,24 +107,27 @@ function build_namespace() {
     cursed.features = features;
     cursed.colors = colors;
     cursed.grid = grid;
-    cursed.viewer = viewer;
+    cursed.viewport = viewport;
     cursed.command_window = command_window;
     cursed.text_box = text_box; 
     cursed.colon_line = colon_line;
     cursed.status_line = status_line;
     cursed.client = client;
+    cursed.map = map;
 }
 
 function init_modules(){
     cursed.features.init(); //must be first
     cursed.grid.init(); //must be second
 
-    cursed.viewer.init(); 
+    cursed.viewport.init(); 
     cursed.command_window.init();
     cursed.text_box.init();
     cursed.colon_line.init();
     cursed.status_line.init();
+    cursed.map.init()
 
+    // do last
     cursed.client.init();
 
 }
@@ -118,7 +137,23 @@ function handleKeypress(e){
         cursed.state.handling = true;
         setTimeout(()=>{cursed.state.handling = false;}, 100);
         console.log(e);
-        cursed.viewer.handle(e);
+        cursed.viewport.handle(e);
+
+        //TODO: replace temporary fow toggle
+        if(e.key == "f"){
+            if(cursed.state.fow === "on"){
+                cursed.state.fow = "off";
+                cursed.viewport.dirty = true;
+                cursed.viewport.clear();
+                cursed.viewport.draw();
+            }
+            else if(cursed.state.fow == "off"){
+                cursed.state.fow = "on";
+                cursed.viewport.dirty = true;
+                cursed.viewport.clear();
+                cursed.viewport.draw();
+            }
+        }
     }
 }
 

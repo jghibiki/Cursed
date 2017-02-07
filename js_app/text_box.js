@@ -1,6 +1,8 @@
 "use strict";
 
-var text_box = {};
+var text_box = {
+    dirty: true
+};
 
 text_box.init = function(){
 
@@ -14,59 +16,62 @@ text_box.init = function(){
 
 };
 text_box.draw = function(){
+    if(text_box.dirty){
     
-    /* Top Box */
-    (function(){
-        var box = new createjs.Shape();
-        box.graphics.append(createjs.Graphics.beginCmd);
+        /* Top Box */
+        (function(){
+            var box = new createjs.Shape();
+            box.graphics.append(createjs.Graphics.beginCmd);
 
-        box.graphics.append(new createjs.Graphics.Rect(0, 0, text_box.width, cursed.constants.font_size));
-        
-        box.graphics.append(new createjs.Graphics.Fill(cursed.colors.get("Gold").value));
+            box.graphics.append(new createjs.Graphics.Rect(0, 0, text_box.width, cursed.constants.font_size));
+            
+            box.graphics.append(new createjs.Graphics.Fill(cursed.colors.get("Gold").value));
 
-        cursed.stage.addChild(box);
-    })();
+            cursed.stage.addChild(box);
+        })();
 
-    /* Bottom Box */
-    (function(){
-        var box = new createjs.Shape();
-        box.graphics.append(createjs.Graphics.beginCmd);
+        /* Bottom Box */
+        (function(){
+            var box = new createjs.Shape();
+            box.graphics.append(createjs.Graphics.beginCmd);
 
-        box.graphics.append(new createjs.Graphics.Rect(0, text_box.height-cursed.constants.font_size, text_box.width, cursed.constants.font_size));
-        
-        box.graphics.append(new createjs.Graphics.Fill(cursed.colors.get("Gold").value));
+            box.graphics.append(new createjs.Graphics.Rect(0, text_box.height-cursed.constants.font_size, text_box.width, cursed.constants.font_size));
+            
+            box.graphics.append(new createjs.Graphics.Fill(cursed.colors.get("Gold").value));
 
-        cursed.stage.addChild(box);
-    })();
+            cursed.stage.addChild(box);
+        })();
 
-    /* Left Box */
-    (function(){
-        var box = new createjs.Shape();
-        box.graphics.append(createjs.Graphics.beginCmd);
+        /* Left Box */
+        (function(){
+            var box = new createjs.Shape();
+            box.graphics.append(createjs.Graphics.beginCmd);
 
-        box.graphics.append(new createjs.Graphics.Rect(0, 0, cursed.constants.font_size + cursed.constants.font_width_offset, text_box.height));
-        
-        box.graphics.append(new createjs.Graphics.Fill(cursed.colors.get("Gold").value));
+            box.graphics.append(new createjs.Graphics.Rect(0, 0, cursed.constants.font_size + cursed.constants.font_width_offset, text_box.height));
+            
+            box.graphics.append(new createjs.Graphics.Fill(cursed.colors.get("Gold").value));
 
-        cursed.stage.addChild(box);
-    })();
+            cursed.stage.addChild(box);
+        })();
 
-    /* Right Box */
-    (function(){
-        var box = new createjs.Shape();
-        box.graphics.append(createjs.Graphics.beginCmd);
+        /* Right Box */
+        (function(){
+            var box = new createjs.Shape();
+            box.graphics.append(createjs.Graphics.beginCmd);
 
-        box.graphics.append(
-            new createjs.Graphics.Rect(
-                text_box.width - (cursed.constants.font_size + cursed.constants.font_width_offset), 
-                0, 
-                cursed.constants.font_size + cursed.constants.font_width_offset, 
-                text_box.height));
-        
-        box.graphics.append(new createjs.Graphics.Fill(cursed.colors.get("Gold").value));
+            box.graphics.append(
+                new createjs.Graphics.Rect(
+                    text_box.width - (cursed.constants.font_size + cursed.constants.font_width_offset), 
+                    0, 
+                    cursed.constants.font_size + cursed.constants.font_width_offset, 
+                    text_box.height));
+            
+            box.graphics.append(new createjs.Graphics.Fill(cursed.colors.get("Gold").value));
 
-        cursed.stage.addChild(box);
-    })();
+            cursed.stage.addChild(box);
+        })();
 
-    cursed.stage.update();
+        text_box.dirty = false;
+        cursed.state.dirty = true;
+    }
 }

@@ -25,12 +25,12 @@ features.objects = [
     },
     {
         name: "Up Stair",
-        character: "\u2588",
+        character: "\u2191",
         color: "Brown"
     },
     {
         name: "Down Stair",
-        character: "\u2588",
+        character: "\u2193",
         color: "Brown"
     },
     {
@@ -112,13 +112,6 @@ features.objects = [
 
 
 features.init = function(){
-    for(let feature of features.objects){
-        for(let color of cursed.colors.objects){
-            if(feature.color == color.name){
-                feature.color = color
-            }
-        }
-    }
 }
 
 features.test = function(){
@@ -161,4 +154,12 @@ features.new = function(feature_name, x, y){
         return text;
     }
     return null;
+}
+
+features.get = function(name){
+    for(var feature of features.objects){
+        if(feature.name == name){
+            return feature;
+        }
+    }
 }
