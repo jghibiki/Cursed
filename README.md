@@ -5,7 +5,7 @@ A tool for designing and playing DnD style games via a terminal using the curses
 
 
 ## Screenshots and Features: 
-### A castle with a coupe of huts out front.
+### A castle with a couple of huts out front.
 ![Huts](images/huts.png)
 ![Castle](images/castle.png)
 
