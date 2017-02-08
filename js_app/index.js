@@ -5,17 +5,24 @@ var queue;
 var cursed = {
     constants: {
         font_size: 14,
-        font_width_offset: -5
+        font_width_offset: -5,
+        NUMBERS: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+        IGNORE: ["Alt", "Ctrl", "Shift"]
     },
     state: {
-        handling: false,
         username: "",
         password: "",
-        dirty : true,
         fow: "on"
     },
+    viewer: {
+        handling: false,
+        dirty : true,
+        combo_buffer: "",
+        motion_buffer_count: ""
+    },
     modules: {
-        live: []
+        live: [],
+        interactive: []
     }
 };
 
@@ -63,12 +70,12 @@ function init(){
     document.onkeydown = handleKeypress;
 
     // global draw loop
-    createjs.Ticker.framerate = 24;
+    createjs.Ticker.framerate = 60;
     createjs.Ticker.addEventListener("tick", ()=>{ 
-        if(cursed.state.dirty){
+        if(cursed.viewer.dirty){
             cursed.stage.update(); 
 
-            cursed.state.dirty = false;
+            cursed.viewer.dirty = false;
         }
     });
 
@@ -133,27 +140,77 @@ function init_modules(){
 }
 
 function handleKeypress(e){
-    if(!cursed.state.handling){
-        cursed.state.handling = true;
-        setTimeout(()=>{cursed.state.handling = false;}, 100);
+    if(!cursed.viewer.handling){
         console.log(e);
-        cursed.viewport.handle(e);
 
-        //TODO: replace temporary fow toggle
-        if(e.key == "f"){
-            if(cursed.state.fow === "on"){
-                cursed.state.fow = "off";
-                cursed.viewport.dirty = true;
-                cursed.viewport.clear();
-                cursed.viewport.draw();
+        if(cursed.constants.IGNORE.indexOf(e.key) < 0){
+            if(cursed.viewer.combo_buffer.length > 0){
+                if(e.key === "Escape"){
+                    cursed.viewer.combo_buffer = "";
+                    cursed.colon_line.clear_buff();
+                }
+
+                else if (e.key === "Enter"){
+                    if(cursed.viewer.combo_buffer[0] == ":"){
+                        var buff = cursed.viewer.combo_buffer.substring(1);
+                        
+                        if(buff === "save"){
+                            //TODO: implement save
+                        }
+                        else{
+                            for(var module of cursed.modules.interactive){
+                                module.handle_combo(e);
+                            }
+                        }
+                    
+                    }
+                    cursed.viewer.combo_buffer = "";
+                    cursed.colon_line.clear_buff();
+                }
+
+                else if(e.key == "Backspace"){
+                    cursed.viewer.combo_buffer = cursed.viewer.combo_buffer.substring(0, cursed.viewer.combo_buffer.length-1);
+                    cursed.colon_line.set_buff(cursed.viewer.combo_buffer);
+                }
+                else{
+                    cursed.viewer.combo_buffer += e.key;
+                    cursed.colon_line.set_buff(cursed.viewer.combo_buffer);
+                }
             }
-            else if(cursed.state.fow == "off"){
-                cursed.state.fow = "on";
-                cursed.viewport.dirty = true;
-                cursed.viewport.clear();
-                cursed.viewport.draw();
+            else if(cursed.viewer.motion_buffer_count.length > 0){
+
+            }
+            else{
+                if(e.key === ":"){
+                    cursed.viewer.combo_buffer = ":"; 
+                    cursed.colon_line.set_buff(":");
+                }
+                else if (cursed.constants.NUMBERS.indexOf(e.key) >= 0){
+                    cursed.viewer.motion_buffer_count += e.key; 
+                }
+                else{
+                    for(var module of cursed.modules.interactive){
+                        module.handle(e);                     
+                    }
+                }
             }
         }
+
+        ////TODO: replace temporary fow toggle
+        //if(e.key == "f"){
+        //    if(cursed.state.fow === "on"){
+        //        cursed.state.fow = "off";
+        //        cursed.viewport.dirty = true;
+        //        cursed.viewport.clear();
+        //        cursed.viewport.draw();
+        //    }
+        //    else if(cursed.state.fow == "off"){
+        //        cursed.state.fow = "on";
+        //        cursed.viewport.dirty = true;
+        //        cursed.viewport.clear();
+        //        cursed.viewport.draw();
+        //    }
+        //}
     }
 }
 

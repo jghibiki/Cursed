@@ -3,6 +3,8 @@
 var viewport = {};
 
 viewport.init = function(){
+
+    cursed.modules.interactive.push(viewport);
     
     viewport.x = 0 
     viewport.y = 0;
@@ -23,6 +25,15 @@ viewport.init = function(){
 
     viewport.dirty = true;
 
+    var diff = new Array(cursed.grid._.length);
+    for(var i=0; i<cursed.grid._.length; i++){
+        diff[i] = new Array(cursed.grid._[0].length);
+        for(var j=0; j<cursed.grid._[0].length; j++){
+            diff[i][j] = null;
+        }
+    }
+    viewport.last = diff
+
     viewport.clear();
 }
 
@@ -30,22 +41,41 @@ viewport.draw = function(){
 
     if(viewport.dirty){
 
-        for(var feature of viewport.features){
+        var diff = new Array(cursed.grid._.length);
+        for(var i=0; i<cursed.grid._.length; i++){
+            diff[i] = new Array(cursed.grid._[0].length);
+            for(var j=0; j<cursed.grid._[0].length; j++){
+                diff[i][j] = null;
+            }
+        }
+
+        var keys = Object.keys(viewport.features);
+        var len = keys.length;
+        var i = 0;
+
+        while(i < len){
+            var feature = viewport.features[keys[i]];
             if(feature.x >= viewport.v_x && 
                feature.y >= viewport.v_y &&
                feature.x < (viewport.v_x + viewport.width) &&
                feature.y < (viewport.v_y + viewport.height) &&
-               ( cursed.state.fow == "off" || !viewport.fow[feature.x][feature.y])){
+               ( cursed.state.fow == "off" || 
+                   ( viewport.fow[feature.x] !== undefined && !viewport.fow[feature.x][feature.y] )
+               )){
 
                 var raw_feature = cursed.features.get(feature.type);
                 if(raw_feature !== null && raw_feature !== undefined){
                     var character = raw_feature.character;
                     if(character !== null && character !== undefined){
+                        diff[feature.y - viewport.v_y][feature.x - viewport.v_x] = feature.type;
                         cursed.grid.text(feature.y - viewport.v_y, feature.x - viewport.v_x, character, raw_feature.color);
                     }
                 }
             }
+
+            i++;
         }
+
 
         if(cursed.state.fow == "on"){
             for(var x=0; x<viewport.fow.length; x++){
@@ -56,8 +86,18 @@ viewport.draw = function(){
                        x < (viewport.v_x + viewport.width) &&
                        y < (viewport.v_y + viewport.height)){
 
+                        diff[y - viewport.v_y][x - viewport.v_x] = "FOW";;
                         cursed.grid.text(y - viewport.v_y, x - viewport.v_x, "\u2588", "Light Grey");
                     }
+                }
+            }
+        }
+
+        //clear blocks not in new rendering
+        for(var i=0; i<diff.length; i++){
+            for(var j=0; j<diff[i].length; j++){
+                if( viewport.last[i][j] === diff[i][j] ){
+                    cursed.grid.text(viewport.y + i, viewport.x + j, " ", "Gold");
                 }
             }
         }
@@ -66,7 +106,7 @@ viewport.draw = function(){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, "X", "Gold");
 
         viewport.dirty = false;
-        cursed.state.dirty = true;
+        cursed.viewer.dirty = true;
     }
     
 };
@@ -74,7 +114,7 @@ viewport.draw = function(){
 viewport.clear = function(){
     for(var y=0; y<viewport.height; y++){
         for(var x=0; x<viewport.width; x++){
-            cursed.grid.text(viewport.y + y, viewport.x + x, " ", "Gold");
+            //cursed.grid.text(viewport.y + y, viewport.x + x, " ", "Gold");
         }
     }
 }
@@ -92,7 +132,12 @@ viewport.handle = function(event){
     if(event.key === "L"){ viewport.right(); }
 }
 
+viewport.handle_combo = function(event){};
+
 viewport.cursor_up = function(){
+    cursed.viewer.handling = true;
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
+
     if(viewport.cursor_y > 0){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
         viewport.cursor_y -= 1;
@@ -103,6 +148,9 @@ viewport.cursor_up = function(){
 }
 
 viewport.cursor_down = function(){
+    cursed.viewer.handling = true;
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
+
     if(viewport.cursor_y < viewport.v_height-1){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
         viewport.cursor_y += 1;
@@ -113,6 +161,9 @@ viewport.cursor_down = function(){
 }
 
 viewport.cursor_left = function(){
+    cursed.viewer.handling = true;
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
+
     if(viewport.cursor_x > 0){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
         viewport.cursor_x -= 1;
@@ -123,6 +174,9 @@ viewport.cursor_left = function(){
 }
 
 viewport.cursor_right = function(){
+    cursed.viewer.handling = true;
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
+
     if(viewport.cursor_x < viewport.v_width-1){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
         viewport.cursor_x += 1;
@@ -134,8 +188,11 @@ viewport.cursor_right = function(){
 }
 
 viewport.up = function(){
-    if(viewport.v_y > 5){
-        viewport.v_y -= 5;
+    cursed.viewer.handling = true;
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
+
+    if(viewport.v_y > 2){
+        viewport.v_y -= 2;
         viewport.dirty = true;
         viewport.clear();
         viewport.draw();
@@ -149,8 +206,11 @@ viewport.up = function(){
 }
 
 viewport.down = function(){
-    if(viewport.v_y < ((viewport.v_height - viewport.height) - 5)){
-        viewport.v_y += 5;
+    cursed.viewer.handling = true;
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
+
+    if(viewport.v_y < ((viewport.v_height - viewport.height) - 2)){
+        viewport.v_y += 2;
         viewport.dirty = true;
         viewport.clear();
         viewport.draw();
@@ -164,8 +224,11 @@ viewport.down = function(){
 }
 
 viewport.left = function(){
-    if(viewport.v_x > 5){
-        viewport.v_x -= 5;
+    cursed.viewer.handling = true;
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
+
+    if(viewport.v_x > 2){
+        viewport.v_x -= 2;
         viewport.dirty = true;
         viewport.clear();
         viewport.draw();
@@ -179,8 +242,11 @@ viewport.left = function(){
 }
 
 viewport.right = function(){
-    if(viewport.v_x < ((viewport.v_width - viewport.width) - 5)){
-        viewport.v_x += 5;
+    cursed.viewer.handling = true;
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
+
+    if(viewport.v_x < ((viewport.v_width - viewport.width) - 2)){
+        viewport.v_x += 2;
         viewport.dirty = true;
         viewport.clear();
         viewport.draw();

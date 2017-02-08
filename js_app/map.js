@@ -8,6 +8,7 @@ var map = {
 
 map.init = function(){
     cursed.modules.live.push(map);
+    cursed.modules.interactive.push(map);
 }
 
 map.update = function(hashes){
@@ -35,4 +36,23 @@ map.update = function(hashes){
 
 }
 
+map.handle = function(e){
+    if(e.key == "f"){
+        if(cursed.state.fow === "on"){
+            cursed.state.fow = "off";
+            cursed.viewport.dirty = true;
+            cursed.viewport.clear();
+            cursed.viewport.draw();
+        }
+        else if(cursed.state.fow == "off"){
+            cursed.state.fow = "on";
+            cursed.viewport.dirty = true;
+            cursed.viewport.clear();
+            cursed.viewport.draw();
+        }
+    }
+};
 
+map.handle_combo = function(e){
+
+}

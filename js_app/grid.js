@@ -10,7 +10,7 @@ grid.init = function(){
         "\u2588", // block character
         "\u2191", // up arrow character
         "\u2193", // down arrow character
-        "~", "^", "#", "!", "@", "&", ".",
+        "~", "^", "#", "!", "@", "&", ".", ":",
         " "
     ];
 
@@ -23,10 +23,10 @@ grid.init = function(){
         builder.addAnimation(c, char_map[c]);
     }
 
-    grid.ss = builder.build();
+    cursed.ss = builder.build();
 
 
-    var bit_text = new createjs.BitmapText("Test", grid.ssss);
+    var bit_text = new createjs.BitmapText("Test", cursed.ss);
     //bit_text.x = 100;
     //bit_text.y = 100;
     //stage.addChild(bit_text);
@@ -50,7 +50,7 @@ grid.init = function(){
             var x = (j * (cursed.constants.font_size -5)) + grid_x;
             var y = (i * cursed.constants.font_size) + grid_y;
 
-            var text = new createjs.BitmapText("A", grid.ss);
+            var text = new createjs.BitmapText("A", cursed.ss);
             text.x = x;
             text.y = y;
 
