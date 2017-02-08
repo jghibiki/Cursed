@@ -27,18 +27,32 @@ To show the chat window, while on the main command window, press ```c```. To sen
 
 
 ### Fog of War
-To toggle FoW from the main command window press ```f```. To edit the FoW press ```F``` to enter the FoW editing menu. ```a``` will add fog to a space, ```r``` will remove fog from a space. As with all commands, they can be used with motions: e.g. ````20 a l``` to add 20 blocks of fog to the right of the initial cursor position.
+To toggle FoW from the main command window press ```f```. To edit the FoW press ```F``` to enter the FoW editing menu. ```a``` will add fog to a space, ```r``` will remove fog from a space. As with all commands, they can be used with motions: e.g. ```20 a l``` to add 20 blocks of fog to the right of the initial cursor position.
 
 ![Fog of War](images/fog_of_war.png)
 
 ### Editing Map
+The editor can be configured with custom map feature types, custom characters for displaying features, and defining custom colors.
+![Custom Features](images/custom_features.png)
 
-![Custom Features](images/custom_feature.png)
+The editor also supports block selecting so that instead of manually placing an entire building, you can bulk add features to a square region and then bulk remove the inside to hollow out the space, all using the block select tool.
 ![Block Select](images/block_select.png)
 
 ### Units
 
+  Units are almost the most important aspect of a DnD or other RPG campeign. Cursed allows you to easily create, place, and edit basic unit info. Units are displayed as @ symbols of varying colors.
+
+  Units in Cursed fall into one of three categories: PC, Enemy, or Neutral.
+PC: short for Player Character - is as its name describes, controlled by a player character and are by default displayed as green to everyone. When the DM makes a PC, it's controller field must be set to the username of the player who will be able to control it. If the controller field is not set, Cursed assumes that the DM should be the only one to control the unit. PCs can check to see if they have control of a unit by simply checking it's color. If a unit shows up as blue to a player, then they have control of the unit.
+
+Enemy: Denotes that a unit is an aknowledged enemy of the party, and that approaching the unit will probably aggrivate it into attack. Enemy units are represented as red.
+
+Neutral: Denotes that a unit is not an enemy, and not a pc, players may approach the unit at their discretion, however the GM desides if and when to edit the unit config to make it an enemy. Maybe that will teach the players not to kill the farmers chickens... Neutral units are colored grey.
+
+  When a user moves their cursor over a unit, the unit name and current health are shown in the status bar! Keep in mind that units in Cursed are like slightly fancier tokens in on a board, the token itself doesn't store any info about the unit (except health to be convinient).
 ![Unit Health Bar](images/unit_health_bar.png)
+
+Units are configured using a very simple JSON based file, when you wish to create a new unit, Cursed will launch the default terminal ```$EDITOR``` and will display something similar to the following (although it will be blank for a new unit). Note that the terminal colors for the editor will be based on your terminal color settings, so you probably won't have such an ugly red in your editor.
 ![Unit Config](images/unit_config.png)
 
 
