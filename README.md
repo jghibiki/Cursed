@@ -7,7 +7,7 @@ A tool for designing and playing DnD style games via a terminal using the curses
 ## Screenshots and Features: 
 ### A castle with a coupe of huts out front.
 ![Huts](images/huts.png)
-![Castle](image/castle.png)
+![Castle](images/castle.png)
 
 ### Editing Notes
 Objects with notes are indicated to the GM by flashing. The GM can add/edit the notes attatched to any object. The editor that is used is determined by the ```EDITOR``` environment variable. If ```EDITOR``` is not set, it defaults to ```vim```.
