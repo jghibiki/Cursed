@@ -22,6 +22,7 @@ viewport.init = function(){
 
     viewport.features = [];
     viewport.fow = [];
+    viewport.units = [];
 
     viewport.dirty = true;
 
@@ -53,13 +54,14 @@ viewport.draw = function(){
         var len = keys.length;
         var i = 0;
 
+        // Draw features
         while(i < len){
             var feature = viewport.features[keys[i]];
-            if(feature.x >= viewport.v_x && 
+            if(feature.x >= viewport.v_x &&  /* feature is within visible bounds */
                feature.y >= viewport.v_y &&
                feature.x < (viewport.v_x + viewport.width) &&
                feature.y < (viewport.v_y + viewport.height) &&
-               ( cursed.state.fow == "off" || 
+               ( cursed.state.fow == "off" ||  /* fog of war is not off and not occluding feature */
                    ( viewport.fow[feature.x] !== undefined && !viewport.fow[feature.x][feature.y] )
                )){
 
@@ -76,7 +78,38 @@ viewport.draw = function(){
             i++;
         }
 
+        // Draw units
+        for(var i=0; i<viewport.units.length; i++){
+            var unit = viewport.units[i];
 
+            if(unit.x >= viewport.v_x && /* unit is within visible bounds */
+               unit.y >= viewport.v_y &&
+               unit.x < (viewport.v_x + viewport.width) &&
+               unit.y < (viewport.v_y + viewport.height) &&
+               ( cursed.state.fow == "off" ||  /* fog of war is not off and not occluding unit */
+                   ( viewport.fow[unit.x] !== undefined && !viewport.fow[unit.x][unit.y] )
+                )){
+
+                var corrected_y = unit.y - viewport.v_y;
+                var corrected_x = unit.x - viewport.v_x;
+                diff[corrected_y][corrected_x] = "unit:" + unit.id;
+                if(unit.controller == cursed.state.username  && cursed.state.role != "gm"){
+                    cursed.grid.text(corrected_y, corrected_x, "@", "Light Blue");
+                }
+                else if(unit.type == "pc"){
+                    cursed.grid.text(corrected_y, corrected_x, "@", "Light Green");
+                }
+                else if(unit.type == "enemy"){
+                    cursed.grid.text(corrected_y, corrected_x, "@", "Light Red");
+                }
+                else if(unit.type == "neutral"){
+                    cursed.grid.text(corrected_y, corrected_x, "@", "Light Grey");
+                }
+            }
+        }
+
+
+        // Draw fog of war
         if(cursed.state.fow == "on"){
             for(var x=0; x<viewport.fow.length; x++){
                 for(var y=0; y<viewport.fow[x].length; y++){
@@ -278,3 +311,10 @@ viewport.updateFow = function(fow){
     viewport.clear();
     viewport.draw();
 }
+
+viewport.updateUnits = function(units){
+    viewport.units = units;
+    viewport.dirty = true;
+    viewport.clear();
+    viewport.draw();
+};

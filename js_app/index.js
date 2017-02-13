@@ -12,7 +12,8 @@ var cursed = {
     state: {
         username: "",
         password: "",
-        fow: "on"
+        fow: "on",
+        role: "pc"
     },
     viewer: {
         handling: false,

@@ -21,7 +21,13 @@ client.init = function(){
             xhr.setRequestHeader ("Authorization", "Basic " + btoa(cursed.state.username + ":" + cursed.state.password));
         },
     }).done((data)=>{
-        client.request("/users", null, (data)=>{console.log(data); });
+        client.request("/users", null, (data)=>{
+            for(var user of data.users){
+                if(user.username == cursed.state.username){
+                    cursed.state.role = user.role;
+                }
+            }
+        });
         client.timer = setInterval(client.update, 1000);
     });
 }

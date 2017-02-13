@@ -34,6 +34,15 @@ map.update = function(hashes){
 
     }
 
+    var unit_hash = hashes["unit"];
+    if(unit_hash !== map.unit_hash){
+        map.unit_hash = unit_hash;
+
+        cursed.client.request("/unit", null, (data)=>{
+            cursed.viewport.updateUnits(data["units"]);
+        });
+    }
+
 }
 
 map.handle = function(e){
