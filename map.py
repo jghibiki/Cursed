@@ -105,9 +105,11 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
 
     def _handle_combo(self, viewer, buf):
         split = buf.split(" ")
-        if split[0] == "map" or split[0] == "m":
+        if split[0] == "map" or split[0] == "m" or split[0] == "maps":
+            self._show(viewer)
+
             if len(split) == 1 :
-                self._show(viewer)
+                pass
 
             elif len(split) == 4 and (split[1] == "move" or split[1] == "m"):
                 from users import Users
@@ -121,6 +123,7 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
                     if map_name == map_to_switch:
                         valid_map = True
                         break
+                log.error("valid map {0}".format(valid_map))
 
                 if valid_map:
 
@@ -128,9 +131,10 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
 
                     if len(regex) == 1 and regex == "*":
                         regex = ".*"
+                    log.error(regex)
                     regex = re.compile(regex)
-
-                    filtered_usernames = filter(regex.match, usernames)
+                    filtered_usernames = list(filter(regex.match, usernames))
+                    log.error(filtered_usernames)
 
                     client = viewer.get_submodule(Client)
 
