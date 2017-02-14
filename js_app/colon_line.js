@@ -84,7 +84,7 @@ colon_line.draw = function(){
 
 
     colon_line.text = new createjs.BitmapText("asdfa", cursed.ss);
-    colon_line.text.letterSpacing = -3;
+    colon_line.text.letterSpacing = cursed.constants.font_spacing;
     colon_line.text.x = colon_line.x + 15; // TODO: figure out better colon_line placement
     colon_line.text.y = colon_line.y + 12;
 

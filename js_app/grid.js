@@ -3,6 +3,7 @@ var grid = {};
 
 grid.init = function(){
     var builder = new createjs.SpriteSheetBuilder();  
+    builder.padding = 3;
 
     var characters = [ 
         "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
@@ -11,7 +12,7 @@ grid.init = function(){
         "\u2191", // up arrow character
         "\u2193", // down arrow character
         "~", "^", "#", "!", "@", "&", ".", ":",
-        " "
+        " ", "-"
     ];
 
     var char_map = {};

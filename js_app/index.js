@@ -6,6 +6,8 @@ var cursed = {
     constants: {
         font_size: 14,
         font_width_offset: -5,
+        font_spacing: -6,
+        font_spaced_offset: -0,
         NUMBERS: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
         IGNORE: ["Alt", "Ctrl", "Shift"]
     },
@@ -214,7 +216,4 @@ function handleKeypress(e){
         //}
     }
 }
-
-
-
 
