@@ -21,7 +21,8 @@ var cursed = {
         handling: false,
         dirty : true,
         combo_buffer: "",
-        motion_buffer_count: ""
+        motion_buffer_count: "",
+        animation_running: true
     },
     modules: {
         live: [],
@@ -50,27 +51,53 @@ function load(){
 
 function init(){
 
+    // Do credential setup
 
-    while(cursed.state.username == ""){
-        cursed.state.username = window.prompt("Please enter a username.", "");
+    if(localStorage.username === undefined || localStorage.username == null){
+        while(cursed.state.username == ""){
+            cursed.state.username = window.prompt("Please enter a username.", "");
+            localStorage.username = cursed.state.username;
+        }
     }
-    while(cursed.state.password == ""){
-        cursed.state.password = window.prompt("Please enter session password.", "");
+    else{
+        cursed.state.username = localStorage.username;
+    }
+
+    if(localStorage.password == undefined || localStorage.password == null){
+        while(cursed.state.password == ""){
+            cursed.state.password = window.prompt("Please enter session password.", "");
+            localStorage.password = cursed.state.password;
+        }
+    }
+    else{
+        cursed.state.password = localStorage.password;
     }
     
 
+    // begin preparing the canvas
     set_canvas_size();
     stage = new createjs.Stage("canvas");
+
+    //Begin loading animation
+    begin_ani();
+
+    // begin with loading modules
     build_namespace();
     init_modules();
 
-    cursed.viewport.draw();
-    cursed.command_window.draw();
-    cursed.text_box.draw();
-    cursed.colon_line.draw();
-    cursed.status_line.draw();
+    setTimeout(()=>{
+        cursed.viewer.cont_tween.paused = true;
+        cursed.viewer.cont_tween.setPaused(true);
+        createjs.Tween.get(cursed.viewer.cont).to({alpha:1}, 1000).to({alpha:0}, 1000).call(()=>{
+            createjs.Tween.get(cursed.viewer.white_rect).to({alpha:0}, 1000).call(()=>{
+                begin_draw();
+                begin_keypress();
+                cursed.state.animation_running = false;
+            });
+        });
 
-    document.onkeydown = handleKeypress;
+    }, 5000);
+
 
     // global draw loop
     createjs.Ticker.framerate = 60;
@@ -78,10 +105,59 @@ function init(){
         if(cursed.viewer.dirty){
             cursed.stage.update(); 
 
-            cursed.viewer.dirty = false;
+            if(cursed.state.animation_running){
+                cursed.viewer.dirty = false;
+            }
         }
     });
 
+}
+
+function begin_ani(){
+    var cont = new createjs.Container();
+    var rect = new createjs.Graphics.Rect(0, 0, cursed.constants.width, cursed.constants.hight);
+    var rect_shape = new createjs.Shape(
+        new createjs.Graphics().beginFill("#fff").drawRect(0, 0, cursed.constants.width, cursed.constants.height)
+    );
+    cursed.viewer.white_rect = rect_shape
+    stage.addChild(rect_shape);
+
+    var c = new createjs.Text("C", "120px monospace", "#FFC800"); c.x=0; 
+    var u = new createjs.Text("u", "120px monospace", "#FFC800"); u.x=120*1;
+    var r = new createjs.Text("r", "120px monospace", "#FFC800"); r.x=120*2;
+    var s = new createjs.Text("s", "120px monospace", "#FFC800"); s.x=120*3;
+    var e = new createjs.Text("e", "120px monospace", "#FFC800"); e.x=120*4;
+    var d = new createjs.Text("d", "120px monospace", "#FFC800"); d.x=120*5;
+    var loading = new createjs.Text("Loading...", "40px monospace", "#FFC800"); loading.y=140;
+    cont.addChild(c, u, r, s, e, d, loading);
+    var bounds = cont.getBounds();
+    cont.x = Math.ceil(cursed.constants.width - bounds.width)/2;
+    cont.y = 200;
+    cont.alpha = 0
+    
+    var loading_bounds = loading.getBounds();
+    loading.x = Math.ceil(bounds.width - loading_bounds.width)/2;
+
+    stage.addChild(cont);
+    cursed.viewer.cont = cont;
+    
+    stage.update();
+    cursed.viewer.cont_tween = createjs.Tween.get(cont, {loop: true}).to({alpha: 1}, 2000).to({alpha: 0}, 1000);
+}
+
+function begin_draw(){
+    // draw initial module graphics
+    cursed.grid.ready(); // add grid objects to stage
+    cursed.viewport.draw();
+    cursed.command_window.draw();
+    cursed.text_box.draw();
+    cursed.colon_line.draw();
+    cursed.status_line.draw();
+}
+
+function begin_keypress(){
+    // register global key press handler
+    document.onkeydown = handleKeypress;
 }
 
 function set_canvas_size(){

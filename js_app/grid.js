@@ -60,12 +60,20 @@ grid.init = function(){
             var h = bounds.height;
             text.cache(0, 0, w*2, h*2);
 
-            stage.addChild(text);
 
             grid._[i][j] = text;
         }
     }
     stage.update();
+}
+
+grid.ready = function(){
+    for(var row of grid._){
+        for(var ch of row){
+            stage.addChild(ch);
+        }
+    }
+
 }
 
 grid.draw = function(){
