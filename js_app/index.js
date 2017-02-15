@@ -81,25 +81,38 @@ function init(){
     set_canvas_size();
     stage = new createjs.Stage("canvas");
 
-    //Begin loading animation
-    begin_ani();
+    if(localStorage.loading_screen !== undefined && localStorage.loading_screen == "true"){
+        //
+        //Begin loading animation
+        begin_ani();
 
-    // begin with loading modules
-    build_namespace();
-    init_modules();
+        // begin with loading modules
+        build_namespace();
+        init_modules();
 
-    setTimeout(()=>{
-        cursed.viewer.cont_tween.paused = true;
-        cursed.viewer.cont_tween.setPaused(true);
-        createjs.Tween.get(cursed.viewer.cont).to({alpha:1}, 1000).to({alpha:0}, 1000).call(()=>{
-            createjs.Tween.get(cursed.viewer.white_rect).to({alpha:0}, 1000).call(()=>{
-                begin_draw();
-                begin_keypress();
-                cursed.state.animation_running = false;
+        setTimeout(()=>{
+            cursed.viewer.cont_tween.paused = true;
+            cursed.viewer.cont_tween.setPaused(true);
+            createjs.Tween.get(cursed.viewer.cont).to({alpha:1}, 1000).to({alpha:0}, 1000).call(()=>{
+                createjs.Tween.get(cursed.viewer.white_rect).to({alpha:0}, 1000).call(()=>{
+                    begin_draw();
+                    begin_keypress();
+                    cursed.state.animation_running = false;
+                });
             });
-        });
 
-    }, 5000);
+        }, 5000);
+    }
+    else{
+        if(localStorage.loading_screen === undefined){
+            localStorage.loading_screen = true;
+        }
+        build_namespace();
+        init_modules();
+        begin_draw();
+        begin_keypress();
+        cursed.state.animation_running = false;
+    }
 
 
     // global draw loop
@@ -243,9 +256,11 @@ function handleKeypress(e){
                         if(buff === "save"){
                             //TODO: implement save
                         }
+                        else if(buff == "ls"){
+                            localStorage.loading_screen = !(localStorage.loading_screen == "true");
+                        }
                         else{
                             // get buff minus the colon
-                            var buff = cursed.viewer.combo_buffer.substring(1, cursed.viewer.combo_buffer.length);
                             for(var module of cursed.modules.interactive){
                                 module.handle_combo(buff);
                             }
@@ -283,22 +298,6 @@ function handleKeypress(e){
                 }
             }
         }
-
-        ////TODO: replace temporary fow toggle
-        //if(e.key == "f"){
-        //    if(cursed.state.fow === "on"){
-        //        cursed.state.fow = "off";
-        //        cursed.viewport.dirty = true;
-        //        cursed.viewport.clear();
-        //        cursed.viewport.draw();
-        //    }
-        //    else if(cursed.state.fow == "off"){
-        //        cursed.state.fow = "on";
-        //        cursed.viewport.dirty = true;
-        //        cursed.viewport.clear();
-        //        cursed.viewport.draw();
-        //    }
-        //}
     }
 }
 

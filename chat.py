@@ -53,7 +53,6 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
                 })
 
                 text = self._get_messages(viewer, username)
-                text = self._get_messages(viewer, username)
                 tb.set(text)
             else:
                 cl = viewer.get_submodule(ColonLine)

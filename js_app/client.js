@@ -72,7 +72,7 @@ client.request = function(url, payload, callback){
         if(typeof(callback) === "function"){
             $.ajax({
                 type: 'POST',
-                url: 'http://localhost:8080/users',
+                url: 'http://localhost:8080' + url,
                 crossDomain: true,
                 dataType: "json",
                 contentType: "application/json",
@@ -86,7 +86,7 @@ client.request = function(url, payload, callback){
         else {
             $.ajax({
                 type: 'POST',
-                url: 'http://localhost:8080/users',
+                url: 'http://localhost:8080' + url,
                 crossDomain: true,
                 dataType: "json",
                 contentType: "application/json",

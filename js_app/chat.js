@@ -27,7 +27,45 @@ chat.handle = function(e){
     }
 };
 
-chat.handle_combo = function(){
+chat.handle_combo = function(buff){
+    buff = buff.split(" ");
+    if( ( buff[0] === "chat" || buff[0] === "c" ) && buff.length > 1){
+        var data = {
+            sender: cursed.state.username,
+            recipient: null,
+            message: buff.slice(1).join(" "),
+            persona: null
+        };
+        cursed.client.request("/chat", data, ()=>{
+            chat.get_messages();
+        });
+        chat.show();
+
+    }
+    else if( (buff[0] === "whisper" || buff[0] === "w") && buff.length > 2){
+        var data = {
+            sender: cursed.state.username,
+            recipient: buff[1],
+            message: buff.slice(2).join(" "),
+            persona: null
+        };
+        cursed.client.request("/chat", data, ()=>{
+            chat.get_messages();
+            chat.show();
+        });
+    }
+    else if( (buff[0] === "impersonate" || buff[0] === "imp") && buff.length > 2){
+        var data = {
+            sender: cursed.state.username,
+            recipient: null,
+            message: buff.slice(2).join(" "),
+            persona: buff[1]
+        };
+        cursed.client.request("/chat", data, ()=>{
+            chat.get_messages();
+            chat.show();
+        });
+    }
 
 };
 
@@ -58,6 +96,7 @@ chat.get_messages = function(data){
         color: "Gold"
     }] ];
 
+    if(!data.hasOwnProperty("messages")){return;}
     for(var message of data.messages){
         if(message.recipient !== null){
             var line = [ {
