@@ -290,6 +290,10 @@ def set_map_name():
         if user["username"] == user_to_change:
             user["current_map"] = new_map
 
+            data = json.dumps(users, sort_keys=True).encode("utf-8")
+            hsh = hashlib.md5(data).hexdigest()
+            game_data["global_hashes"]["users"] = hsh
+
             return jsonify({"result": True})
     return jsonify({"result": False})
 
@@ -902,4 +906,4 @@ def run(data, port, host, gm_passwd, passwd, map_name, save):
     authentication.password = passwd if passwd else tmp
     print("PC Password: %s" % authentication.password)
 
-    app.run(port=port, host=host, threaded=True, debug=True)
+    app.run(port=port, host=host, threaded=True, debug=False)

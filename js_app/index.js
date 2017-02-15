@@ -104,6 +104,7 @@ function init(){
         }, 5000);
     }
     else{
+        cursed.state.animation_running = false;
         if(localStorage.loading_screen === undefined){
             localStorage.loading_screen = true;
         }
@@ -111,17 +112,16 @@ function init(){
         init_modules();
         begin_draw();
         begin_keypress();
-        cursed.state.animation_running = false;
     }
 
 
     // global draw loop
-    createjs.Ticker.framerate = 60;
+    createjs.Ticker.framerate = 15;
     createjs.Ticker.addEventListener("tick", ()=>{ 
         if(cursed.viewer.dirty){
             cursed.stage.update(); 
 
-            if(cursed.state.animation_running){
+            if(!cursed.state.animation_running){
                 cursed.viewer.dirty = false;
             }
         }

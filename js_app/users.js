@@ -18,6 +18,10 @@ users.update = function(hashes){
         users.previous_hash = hash;
         cursed.client.request("/users", null, (data)=>{
             users.users = data.users;
+
+            if(cursed.map.showing){
+                cursed.map.show();
+            }
         });
     }
 };
