@@ -132,6 +132,7 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
         for user in u.users:
             if user["role"] == "gm":
                 gm_user = user["username"]
+                break
         log.error(u.users)
 
         lines = [ [{

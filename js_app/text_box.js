@@ -292,6 +292,7 @@ text_box.set = function(text){
     text_box.text = text;
     text_box.dirty = true;
     text_box.page = 0;
+    text_box.draw();
 };
 
 text_box.handle = function(e){
@@ -310,4 +311,11 @@ text_box.handle = function(e){
 		}
     }
 
+}
+
+text_box.handle_combo = function(buff){
+    
+    if(buff == "clear"){
+        text_box.set(text_box.default_lines);
+    }
 }

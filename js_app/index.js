@@ -26,7 +26,8 @@ var cursed = {
     },
     modules: {
         live: [],
-        interactive: []
+        interactive: [],
+        text_display: []
     }
 };
 
@@ -44,7 +45,9 @@ function load(){
         {id: "status_line", src: "./status_line.js"},
         {id: "client", src: "./client.js"},
         {id: "viewport", src: "./viewport.js"},
-        {id: "map", src: "./map.js"}
+        {id: "map", src: "./map.js"},
+        {id: "users", src: "./users.js"},
+        {id: "chat", src: "./chat.js"},
     ]);
 }
 
@@ -200,6 +203,8 @@ function build_namespace() {
     cursed.status_line = status_line;
     cursed.client = client;
     cursed.map = map;
+    cursed.chat = chat;
+    cursed.users = users;
 }
 
 function init_modules(){
@@ -212,6 +217,8 @@ function init_modules(){
     cursed.colon_line.init();
     cursed.status_line.init();
     cursed.map.init()
+    cursed.users.init();
+    cursed.chat.init();
 
     // do last
     cursed.client.init();
@@ -237,8 +244,10 @@ function handleKeypress(e){
                             //TODO: implement save
                         }
                         else{
+                            // get buff minus the colon
+                            var buff = cursed.viewer.combo_buffer.substring(1, cursed.viewer.combo_buffer.length);
                             for(var module of cursed.modules.interactive){
-                                module.handle_combo(e);
+                                module.handle_combo(buff);
                             }
                         }
                     
