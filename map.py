@@ -50,7 +50,7 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
                 vp.update_fow(data["fow"])
                 updates = True
 
-        unit_hash = hashes["unit"]
+        unit_hash = hashes["units"]
         if unit_hash != self._previous_unit_hash:
             self._previous_unit_hash = unit_hash
             data = client.make_request('/unit')

@@ -80,6 +80,7 @@ function init(){
     // begin preparing the canvas
     set_canvas_size();
     stage = new createjs.Stage("canvas");
+    cursed.stage = stage;
 
     if(localStorage.loading_screen !== undefined && localStorage.loading_screen == "true"){
         //
@@ -87,24 +88,29 @@ function init(){
         begin_ani();
 
         // begin with loading modules
-        build_namespace();
-        init_modules();
 
         setTimeout(()=>{
             cursed.viewer.cont_tween.paused = true;
             cursed.viewer.cont_tween.setPaused(true);
-            createjs.Tween.get(cursed.viewer.cont).to({alpha:1}, 1000).to({alpha:0}, 1000).call(()=>{
-                createjs.Tween.get(cursed.viewer.white_rect).to({alpha:0}, 1000).call(()=>{
-                    begin_draw();
-                    begin_keypress();
-                    cursed.state.animation_running = false;
-                });
+
+            createjs.Tween.get(cursed.viewer.cont).to({alpha:1}, 1000).call(()=>{
+
+                build_namespace();
+                init_modules();
+
+                createjs.Tween.get(cursed.viewer.cont).wait(500).to({alpha:0}, 1000).wait(200).call(()=>{
+                    createjs.Tween.get(cursed.viewer.white_rect).to({alpha:0}, 1000).call(()=>{
+                        begin_draw();
+                        begin_keypress();
+                        cursed.viewer.animation_running = false;
+                    });
+                })
             });
 
         }, 5000);
     }
     else{
-        cursed.state.animation_running = false;
+        cursed.viewer.animation_running = false;
         if(localStorage.loading_screen === undefined){
             localStorage.loading_screen = true;
         }
@@ -116,14 +122,12 @@ function init(){
 
 
     // global draw loop
-    createjs.Ticker.framerate = 15;
+    createjs.Ticker.framerate = 60;
     createjs.Ticker.addEventListener("tick", ()=>{ 
-        if(cursed.viewer.dirty){
+        if(cursed.viewer.dirty || cursed.viewer.animation_running){
+            console.log("stage updated");
             cursed.stage.update(); 
-
-            if(!cursed.state.animation_running){
-                cursed.viewer.dirty = false;
-            }
+            cursed.viewer.dirty = false;
         }
     });
 
@@ -138,14 +142,9 @@ function begin_ani(){
     cursed.viewer.white_rect = rect_shape
     stage.addChild(rect_shape);
 
-    var c = new createjs.Text("C", "120px monospace", "#FFC800"); c.x=0; 
-    var u = new createjs.Text("u", "120px monospace", "#FFC800"); u.x=120*1;
-    var r = new createjs.Text("r", "120px monospace", "#FFC800"); r.x=120*2;
-    var s = new createjs.Text("s", "120px monospace", "#FFC800"); s.x=120*3;
-    var e = new createjs.Text("e", "120px monospace", "#FFC800"); e.x=120*4;
-    var d = new createjs.Text("d", "120px monospace", "#FFC800"); d.x=120*5;
+    var c = new createjs.Text("C u r s e d", "120px monospace", "#FFC800"); c.x=0; 
     var loading = new createjs.Text("Loading...", "40px monospace", "#FFC800"); loading.y=140;
-    cont.addChild(c, u, r, s, e, d, loading);
+    cont.addChild(c, loading);
     var bounds = cont.getBounds();
     cont.x = Math.ceil(cursed.constants.width - bounds.width)/2;
     cont.y = 200;
@@ -153,6 +152,9 @@ function begin_ani(){
     
     var loading_bounds = loading.getBounds();
     loading.x = Math.ceil(bounds.width - loading_bounds.width)/2;
+
+    bounds = cont.getBounds();
+    cont.cache(0, 0, bounds.width*2, bounds.height*2);
 
     stage.addChild(cont);
     cursed.viewer.cont = cont;
@@ -205,7 +207,6 @@ function test(){
 }
 
 function build_namespace() {
-    cursed.stage = stage;
     cursed.features = features;
     cursed.colors = colors;
     cursed.grid = grid;
@@ -240,7 +241,6 @@ function init_modules(){
 
 function handleKeypress(e){
     if(!cursed.viewer.handling){
-        console.log(e);
 
         if(cursed.constants.IGNORE.indexOf(e.key) < 0){
             if(cursed.viewer.combo_buffer.length > 0){

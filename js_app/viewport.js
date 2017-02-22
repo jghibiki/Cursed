@@ -180,6 +180,24 @@ viewport.handle = function(event){
             cursed.viewport.draw();
         }
     }
+    else if (event.key === "+" || event.key === "="){
+        var unit = viewport.getCurrentUnit();
+        
+        if(unit !== null){
+            unit.current_health += 1
+
+            cursed.client.request("/unit/update", unit, null);
+        }
+    }
+    else if (event.key === "-"){
+        var unit = viewport.getCurrentUnit();
+        
+        if(unit !== null){
+            unit.current_health -= 1
+
+            cursed.client.request("/unit/update", unit, null);
+        }
+    }
 }
 
 viewport.handle_combo = function(event){};
@@ -194,6 +212,8 @@ viewport.cursor_up = function(){
         viewport.dirty = true;
 
         viewport.draw();
+
+        cursed.status_line.draw();
     }
 }
 
@@ -207,6 +227,8 @@ viewport.cursor_down = function(){
         viewport.dirty = true;
 
         viewport.draw();
+
+        cursed.status_line.draw();
     }
 }
 
@@ -220,6 +242,8 @@ viewport.cursor_left = function(){
         viewport.dirty = true;
 
         viewport.draw();
+
+        cursed.status_line.draw();
     }
 }
 
@@ -234,6 +258,7 @@ viewport.cursor_right = function(){
 
         viewport.draw();
 
+        cursed.status_line.draw();
     }
 }
 
@@ -253,6 +278,8 @@ viewport.up = function(){
         viewport.clear();
         viewport.draw();
     }
+
+    cursed.status_line.draw();
 }
 
 viewport.down = function(){
@@ -264,13 +291,16 @@ viewport.down = function(){
         viewport.dirty = true;
         viewport.clear();
         viewport.draw();
+        cursed.status_line.draw();
     }
     else if(viewport.v_y < ((viewport.v_height - viewport.height) - 1)){
         viewport.v_y += 1;
         viewport.dirty = true;
         viewport.clear();
         viewport.draw();
+        cursed.status_line.draw();
     }
+    
 }
 
 viewport.left = function(){
@@ -282,12 +312,14 @@ viewport.left = function(){
         viewport.dirty = true;
         viewport.clear();
         viewport.draw();
+        cursed.status_line.draw();
     }
     else if(viewport.v_x > 0){
         viewport.v_x -= 1;
         viewport.dirty = true;
         viewport.clear();
         viewport.draw();
+        cursed.status_line.draw();
     }
 }
 
@@ -300,12 +332,14 @@ viewport.right = function(){
         viewport.dirty = true;
         viewport.clear();
         viewport.draw();
+        cursed.status_line.draw();
     }
     else if(viewport.v_x < ((viewport.v_width - viewport.width) - 1)){
         viewport.v_x += 1;
         viewport.dirty = true;
         viewport.clear();
         viewport.draw();
+        cursed.status_line.draw();
     }
 }
 
@@ -335,3 +369,96 @@ viewport.updateUnits = function(units){
     viewport.clear();
     viewport.draw();
 };
+
+viewport.getCursorFocus = function(){
+    var unit = null;
+    var feature = null;
+
+    var i = viewport.units.length;
+    while(i--){
+        var u = viewport.units[i];
+        if(u.x == viewport.cursor_x &&
+           u.y == viewport.cursor_y){
+            unit = u;
+            break;
+        }
+    }
+
+    if (unit === null){
+        var i = viewport.features.length;
+        // Draw features
+        while(i--){
+            var f = viewport.features[i];
+            if(f.x == viewport.cursor_x &&
+               f.y == viewport.cursor_y){
+                feature = f;
+                break;
+            }
+        }
+    }
+
+    if( !(  cursed.state.role === "pc" && viewport.fow[viewport.cursor_y] !== undefined && viewport.fow[viewport.cursor_y][viewport.cursor_x] )){
+        
+        if(unit !== null){
+            var text = unit.name + " " + unit.current_health + "/" + unit.max_health;
+            var bar = "";
+            
+            if(unit.max_health !== 0){
+                var font_width = cursed.constants.font_size + cursed.constants.font_width_offset;
+                var width = Math.floor((cursed.colon_line.width- (12 + (4+text.length)*font_width))/(font_width));
+
+                var percent = unit.current_health/(unit.max_health*1.0);
+
+                if(percent <= 1.0 && percent >= 0.0){
+                    var number_of_units =  Math.ceil(width*percent);
+                    bar = Array(number_of_units+1).join("=");
+                    var width_padding = Array(width).join(" ");
+                    bar = String(width_padding + bar).slice(-width);
+                }
+                else if(percent > 1.0){
+                    var diff = percent - 1.0;
+                    var diff_percent = diff/percent;
+                    var excess = Math.ceil(width * diff_percent);
+
+                    bar = Array(excess+1).join("=");
+                    bar += "(+)|";
+
+                    var width_padding = Array(width+1).join("=");
+                    bar = String(bar + width_padding ).substring(0, width);
+                }
+                else if(percent < 0.0){
+                    var diff = (-1 * percent)/(1.0 + (-1 * percent));
+                    var excess = Math.ceil(width * diff);
+
+                    bar = "|(-)"
+                    bar += Array(excess+1).join("=");
+
+                    var width_padding = Array(width).join(" ");
+                    bar = String(width_padding + bar).slice(-width);
+                }
+
+            }
+
+            return text + " [" + bar + "]";
+        }
+        else if (feature !== null){
+            var text = feature.type;
+            return text;
+        }
+        else{
+            return "";
+        }
+
+    }
+}
+
+viewport.getCurrentUnit = function(){
+    var i = viewport.units.length;
+    while(i--){
+        var u = viewport.units[i];
+        if(u.x === viewport.cursor_x && u.y === viewport.cursor_y){
+            return u;
+        }
+    }
+    return null;
+}

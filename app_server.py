@@ -480,7 +480,7 @@ def get_hashes():
     return jsonify({
         "map": game_data["map_hashes"][map_name]["map"],
         "fow": game_data["map_hashes"][map_name]["fow"],
-        "unit": game_data["map_hashes"][map_name]["unit"],
+        "units": game_data["map_hashes"][map_name]["units"],
         "chat": game_data["global_hashes"]["chat"],
         "users": game_data["global_hashes"]["users"]
     })
@@ -883,7 +883,7 @@ def run(data, port, host, gm_passwd, passwd, map_name, save):
         game_data["map_hashes"][map] = {
             "map": map_hash,
             "fow": fow_hash,
-            "unit": unit_hash,
+            "units": unit_hash,
         }
 
     data = json.dumps(users, sort_keys=True).encode("utf-8")
@@ -906,4 +906,4 @@ def run(data, port, host, gm_passwd, passwd, map_name, save):
     authentication.password = passwd if passwd else tmp
     print("PC Password: %s" % authentication.password)
 
-    app.run(port=port, host=host, threaded=True, debug=False)
+    app.run(port=port, host=host, threaded=True, debug=True)

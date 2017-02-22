@@ -12,6 +12,8 @@ map.init = function(){
     cursed.modules.live.push(map);
     cursed.modules.interactive.push(map);
     cursed.modules.text_display.push(map);
+
+    map.get_maps();
 }
 
 map.update = function(hashes){
@@ -37,15 +39,15 @@ map.update = function(hashes){
 
     }
 
-    var unit_hash = hashes["unit"];
+    var unit_hash = hashes["units"];
     if(unit_hash !== map.unit_hash){
         map.unit_hash = unit_hash;
 
         cursed.client.request("/unit", null, (data)=>{
             cursed.viewport.updateUnits(data["units"]);
+            cursed.status_line.draw();
         });
     }
-
 }
 
 map.handle = function(e){
