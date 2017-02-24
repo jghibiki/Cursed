@@ -6,6 +6,10 @@ import logging
 import json
 import hashlib
 
+# squash ssl verification warnings
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 log = logging.getLogger('simple_example')
 
 class Client(ClientModule, InitModule):
@@ -15,7 +19,7 @@ class Client(ClientModule, InitModule):
         self._previous_hash = None
         self._previous_feature_hashes = []
         self._password = password
-        self._base_url = "http://%s:%s" % (self._host, self._port)
+        self._base_url = "https://%s:%s" % (self._host, self._port)
         self._username = ""
 
     def init(self, viewer):
@@ -53,13 +57,13 @@ class Client(ClientModule, InitModule):
     def make_request(self, url, payload=None):
         if not payload:
             log.debug("make_request GET %s" % url)
-            r = requests.get(self._base_url + url, auth=(self._username, self._password))
+            r = requests.get(self._base_url + url, auth=(self._username, self._password), verify=False)
         else:
             log.debug("make_request POST %s %s" % (url, payload))
             r = requests.post(self._base_url + url,
                               auth=(self._username, self._password),
                               headers={'content-type': 'application/json'},
-                              data=json.dumps(payload))
+                              data=json.dumps(payload), verify=False)
 
         if r.status_code is not 200: # TODO: fix naiive checl
             log.warn("make_request http error: %s %s %s" % (url, r.status_code, r.text))

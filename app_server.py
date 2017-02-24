@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request, abort,send_from_directory
 from flask_cors import CORS, cross_origin
 import sys
 import json
@@ -9,7 +9,7 @@ import logging
 from uuid import uuid4
 from authentication import requires_auth, requires_gm_auth
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 CORS(app)
 
 game_data = None
@@ -52,6 +52,15 @@ class InvalidUsage(Exception):
 ###
 # Routes
 ###
+
+# STATIC FILES
+@app.route('/client/')
+def root():
+    return app.send_static_file('js_app/index.html')
+
+@app.route('/client/<path:path>')
+def send_static(path):
+    return send_from_directory("js_app", path)
 
 @app.route("/map/data/", methods=["GET"])
 @requires_auth
@@ -906,4 +915,4 @@ def run(data, port, host, gm_passwd, passwd, map_name, save):
     authentication.password = passwd if passwd else tmp
     print("PC Password: %s" % authentication.password)
 
-    app.run(port=port, host=host, threaded=True, debug=True)
+    app.run(port=port, host=host, threaded=True, debug=True, ssl_context=("ssl.crt", "ssl.key"))
