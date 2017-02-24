@@ -3,6 +3,8 @@ A tool for designing and playing DnD style games via a terminal using the curses
 
 *Disclaimer:* Running cursed in a tmux or gnu screen session, or any other screen, screen-256color, etc. term is NOT supported. To my knowledge, we cannot define colors in these terms, meaning color definitions are defined by the terminal color bindings. Running cursed in one of these environments may result in unexpected color behavior, and may in some cases render the program unusable (black screen, invisible characters, etc).
 
+[Launch the web client here](/js_app/)
+
 
 ## Screenshots and Features: 
 ### A castle with a couple of huts out front.
