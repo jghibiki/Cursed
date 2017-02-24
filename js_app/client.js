@@ -9,7 +9,7 @@ client.init = function(){
 
     $.ajax({
         type: 'POST',
-        url: 'http://localhost:8080/users',
+        url: 'https://' + cursed.state.server_ip + ':' + cursed.state.server_port + "/users",
         crossDomain: true,
         dataType: "json",
         contentType: "application/json",
@@ -49,7 +49,7 @@ client.request = function(url, payload, callback){
         if(typeof(callback) === "function"){
             $.ajax({
                 type: 'GET',
-                url: 'http://' + cursed.state.server_ip + ':' + cursed.state.server_port + url,
+                url: 'https://' + cursed.state.server_ip + ':' + cursed.state.server_port + url,
                 crossDomain: true,
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader ("Authorization", "Basic " + btoa(cursed.state.username + ":" + cursed.state.password));
@@ -60,7 +60,7 @@ client.request = function(url, payload, callback){
         else{
             $.ajax({
                 type: 'GET',
-                url: 'http://' + cursed.state.server_ip + ':' + cursed.state.server_port + url,
+                url: 'https://' + cursed.state.server_ip + ':' + cursed.state.server_port + url,
                 crossDomain: true,
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader ("Authorization", "Basic " + btoa(cursed.state.username + ":" + cursed.state.password));
@@ -72,7 +72,7 @@ client.request = function(url, payload, callback){
         if(typeof(callback) === "function"){
             $.ajax({
                 type: 'POST',
-                url: 'http://' + cursed.state.server_ip + ':' + cursed.state.server_port + url,
+                url: 'https://' + cursed.state.server_ip + ':' + cursed.state.server_port + url,
                 crossDomain: true,
                 dataType: "json",
                 contentType: "application/json",
@@ -86,7 +86,7 @@ client.request = function(url, payload, callback){
         else {
             $.ajax({
                 type: 'POST',
-                url: 'http://' + cursed.state.server_ip + ':' + cursed.state.server_port + url,
+                url: 'https://' + cursed.state.server_ip + ':' + cursed.state.server_port + url,
                 crossDomain: true,
                 dataType: "json",
                 contentType: "application/json",
