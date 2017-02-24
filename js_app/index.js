@@ -14,6 +14,8 @@ var cursed = {
     state: {
         username: "",
         password: "",
+        server_ip: "",
+        server_port: "",
         fow: "on",
         role: "pc"
     },
@@ -55,27 +57,7 @@ function load(){
 function init(){
 
     // Do credential setup
-
-    if(localStorage.username === undefined || localStorage.username == null){
-        while(cursed.state.username == ""){
-            cursed.state.username = window.prompt("Please enter a username.", "");
-            localStorage.username = cursed.state.username;
-        }
-    }
-    else{
-        cursed.state.username = localStorage.username;
-    }
-
-    if(localStorage.password == undefined || localStorage.password == null){
-        while(cursed.state.password == ""){
-            cursed.state.password = window.prompt("Please enter session password.", "");
-            localStorage.password = cursed.state.password;
-        }
-    }
-    else{
-        cursed.state.password = localStorage.password;
-    }
-    
+    cxnCredentials();
 
     // begin preparing the canvas
     set_canvas_size();
@@ -301,3 +283,44 @@ function handleKeypress(e){
     }
 }
 
+function cxnCredentials(){
+    if(localStorage.username === undefined || localStorage.username == null){
+        while(cursed.state.username == ""){
+            cursed.state.username = window.prompt("Please enter a username.", "");
+            localStorage.username = cursed.state.username;
+        }
+    }
+    else{
+        cursed.state.username = localStorage.username;
+    }
+
+    if(localStorage.password == undefined || localStorage.password == null){
+        while(cursed.state.password == ""){
+            cursed.state.password = window.prompt("Please enter session password.", "");
+            localStorage.password = cursed.state.password;
+        }
+    }
+    else{
+        cursed.state.password = localStorage.password;
+    }
+    
+    if(localStorage.server_ip == undefined || localStorage.server_ip == null){
+        while(cursed.state.server_ip == ""){
+            cursed.state.server_ip = window.prompt("Please enter a Cursed server ip address or hostname (e.g. 192.168.0.X).", "");
+            localStorage.server_ip = cursed.state.server_ip;
+        }
+    }
+    else{
+        cursed.state.server_ip = localStorage.server_ip;
+    }
+
+    if(localStorage.server_port == undefined || localStorage.server_port == null){
+        while(cursed.state.server_port == ""){
+            cursed.state.server_port = window.prompt("Please enter a Cursed server port number.", "8080");
+            localStorage.server_port = cursed.state.server_port;
+        }
+    }
+    else{
+        cursed.state.server_port = localStorage.server_port;
+    }
+}
