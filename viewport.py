@@ -65,7 +65,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule, InteractiveModule):
                 for x in range(0, self.w-2):
                     for y in range(0, self.h-2):
                         if self._fow[x][y]:
-                            self._screen.addstr(y+1, x+1, "▒", colors.get("Dark Grey"))
+                            self._screen.addstr(y, x, "▒", colors.get("Dark Grey"))
 
             if self.box_xy != None:
                 x_min = min(self.box_xy[0], self.cursor_x)

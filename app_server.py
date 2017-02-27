@@ -535,10 +535,6 @@ def add_fow():
 def bulk_add_fow():
     data = request.json
 
-    global game_data
-    for row in data["fow"]:
-        game_data["maps"][current_map]["fow"][row["x"]][row["y"]] = True
-
     user = _get_user()
     if not user:
         return 'username not set', 400
@@ -547,7 +543,12 @@ def bulk_add_fow():
     if not map_name:
         return 'user current_map not set', 400
 
-    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    global game_data
+    for row in data["fow"]:
+        game_data["maps"][map_name]["fow"][row["x"]][row["y"]] = True
+
+
+    data = json.dumps(game_data["maps"][map_name]["fow"], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
     game_data["map_hashes"][map_name]["fow"] = hsh
 
@@ -915,4 +916,4 @@ def run(data, port, host, gm_passwd, passwd, map_name, save):
     authentication.password = passwd if passwd else tmp
     print("PC Password: %s" % authentication.password)
 
-    app.run(port=port, host=host, threaded=True, debug=True, ssl_context=("ssl.crt", "ssl.key"))
+    app.run(port=port, host=host, threaded=True, debug=False, ssl_context=("ssl.crt", "ssl.key"))
