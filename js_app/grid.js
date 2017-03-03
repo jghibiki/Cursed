@@ -36,7 +36,9 @@ grid.init = function(){
     
     
     var width = Math.ceil(cursed.constants.grid_width/2);
-    var height = Math.floor(Math.floor((cursed.constants.height - (3 * cursed.constants.font_size))) / cursed.constants.font_size);
+    var height = Math.floor(
+        (cursed.constants.height - (3 * (cursed.constants.font_size+2))) //remove 3 lines from bottom of screen
+        / (cursed.constants.font_size+2)); //get number of lines -3 
 
 
     var grid_x = Math.ceil(cursed.constants.grid_width/3) * (cursed.constants.font_size + cursed.constants.font_width_offset);
@@ -48,8 +50,8 @@ grid.init = function(){
         grid._[i] = new Array(width);
         for(var j=0; j<width; j++){
 
-            var x = (j * (cursed.constants.font_size -5)) + grid_x;
-            var y = (i * cursed.constants.font_size) + grid_y;
+            var x = (j * (cursed.constants.font_size + cursed.constants.font_width_offset)) + grid_x;
+            var y = (i * (cursed.constants.font_size+2)) + grid_y;
 
             var text = new createjs.BitmapText("A", cursed.ss);
             text.x = x;

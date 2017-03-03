@@ -627,7 +627,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
         current_unit = vp.get_current_unit()
 
         if role == "gm":
-            line = self._draw_title(1, "Unites:")
+            line = self._draw_title(1, "Units:")
 
             line = self._draw_key(line, "a", "Add Unit")
 
@@ -648,7 +648,7 @@ class CommandWindow(VisibleModule, InteractiveModule):
             line = self._draw_key(line+1, "esc", "Back")
 
         elif role == "pc":
-            line = self._draw_title(1, "Unites:")
+            line = self._draw_title(1, "Units:")
 
             if current_unit != None:
                 line = self._draw_key(line, "m", "Move Unit")

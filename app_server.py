@@ -689,7 +689,7 @@ def none_fow():
         for y in range(0, game_data["maps"][map_name]["max_y"]):
             game_data["maps"][map_name]["fow"][x][y] = False
 
-    data = json.dumps(game_data["maps"][current_map]["fow"], sort_keys=True).encode("utf-8")
+    data = json.dumps(game_data["maps"][map_name]["fow"], sort_keys=True).encode("utf-8")
     hsh = hashlib.md5(data).hexdigest()
     game_data["map_hashes"][map_name]["fow"] = hsh
 

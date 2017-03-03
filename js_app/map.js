@@ -45,13 +45,15 @@ map.update = function(hashes){
 
         cursed.client.request("/unit", null, (data)=>{
             cursed.viewport.updateUnits(data["units"]);
-            cursed.status_line.draw();
+            if(!cursed.viewer.animation_running){ //prevents a bug where the animation is still running when the sl is drawn
+                cursed.status_line.draw();
+            }
         });
     }
 }
 
 map.handle = function(e){
-    if(e.key === "m"){
+    if(e.key === "m" && cursed.command_window.mode === cursed.command_window.command_modes.default){
         map.show();
     }
 };
