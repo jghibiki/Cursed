@@ -45,7 +45,7 @@ features.objects = [
     },
     {
         name: "Chest",
-        character: "%",
+        character: "#",
         color: "White"
     },
     {

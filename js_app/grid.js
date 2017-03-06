@@ -11,7 +11,7 @@ grid.init = function(){
         "\u2588", // block character
         "\u2191", // up arrow character
         "\u2193", // down arrow character
-        "~", "^", "#", "!", "@", "&", ".", ":", "_", "/", "|", "\\", "+", "-", "[", "]", "(", ")", "<", ">", "=", "+", " ", "-",
+        "~", "^", "#", "!", "@", "&", ".", ":", "_", "/", "|", "\\", "+", "-", "[", "]", "(", ")", "<", ">", "=", "+", " ", "-", "#", "%",
         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
     ];
 
@@ -35,21 +35,23 @@ grid.init = function(){
     
     
     
-    var width = Math.ceil(cursed.constants.grid_width/2);
-    var height = Math.floor(Math.floor((cursed.constants.height - (3 * cursed.constants.font_size))) / cursed.constants.font_size);
+    grid.width = Math.floor(cursed.constants.grid_width/2);
+    grid.height = Math.floor(
+        (cursed.constants.height - (3 * (cursed.constants.font_size+2))) //remove 3 lines from bottom of screen
+        / (cursed.constants.font_size+2)); //get number of lines -3 
 
 
-    var grid_x = Math.ceil(cursed.constants.grid_width/3) * (cursed.constants.font_size + cursed.constants.font_width_offset);
+    var grid_x = Math.floor(cursed.constants.grid_width/3) * (cursed.constants.font_size + cursed.constants.font_width_offset) + 2;
     var grid_y = 0;
 
     var canvas = document.getElementById("canvas");
-    grid._ = new Array(height);
-    for(var i=0; i<height; i++){
-        grid._[i] = new Array(width);
-        for(var j=0; j<width; j++){
+    grid._ = new Array(grid.height);
+    for(var i=0; i<grid.height; i++){
+        grid._[i] = new Array(grid.width);
+        for(var j=0; j<grid.width; j++){
 
-            var x = (j * (cursed.constants.font_size -5)) + grid_x;
-            var y = (i * cursed.constants.font_size) + grid_y;
+            var x = (j * (cursed.constants.font_size + cursed.constants.font_width_offset)) + grid_x;
+            var y = (i * (cursed.constants.font_size+2)) + grid_y;
 
             var text = new createjs.BitmapText("A", cursed.ss);
             text.x = x;

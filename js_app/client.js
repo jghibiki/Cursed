@@ -25,6 +25,11 @@ client.init = function(){
             for(var user of data.users){
                 if(user.username == cursed.state.username){
                     cursed.state.role = user.role;
+                    // update command window based on role, but not if animation is still running
+                    if(!cursed.viewer.animation_running){
+                        cursed.command_window.dirty = true;
+                        cursed.command_window.draw();
+                    }
                 }
             }
         });

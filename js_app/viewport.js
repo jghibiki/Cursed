@@ -8,8 +8,8 @@ viewport.init = function(){
     
     viewport.x = 0 
     viewport.y = 0;
-    viewport.width = Math.ceil(cursed.constants.grid_width/2);
-    viewport.height = cursed.constants.grid_height-3;
+    viewport.width = cursed.grid.width;
+    viewport.height = cursed.grid.height;
 
     viewport.cursor_x = 10;
     viewport.cursor_y = 10;
@@ -23,6 +23,7 @@ viewport.init = function(){
     viewport.features = [];
     viewport.fow = [];
     viewport.units = [];
+    viewport.box_xy = null;
 
     viewport.dirty = true;
 
@@ -102,7 +103,7 @@ viewport.draw = function(){
                 else if(unit.type == "enemy"){
                     cursed.grid.text(corrected_y, corrected_x, "@", "Light Red");
                 }
-                else if(unit.type == "neutral"){
+                else if(unit.type == "neutral" || unit.type === ""){
                     cursed.grid.text(corrected_y, corrected_x, "@", "Light Grey");
                 }
             }
@@ -119,8 +120,8 @@ viewport.draw = function(){
                        x < (viewport.v_x + viewport.width) &&
                        y < (viewport.v_y + viewport.height)){
 
-                        diff[y - viewport.v_y][x - viewport.v_x] = "FOW";;
-                        cursed.grid.text(y - viewport.v_y, x - viewport.v_x, "\u2588", "Light Grey");
+                        diff[y - viewport.v_y][x - viewport.v_x] = "FOW";
+                        cursed.grid.text(y - viewport.v_y, x - viewport.v_x, "\u2588", "Dark Grey");
                     }
                 }
             }
@@ -131,6 +132,22 @@ viewport.draw = function(){
             for(var j=0; j<diff[i].length; j++){
                 if( viewport.last[i][j] === diff[i][j] ){
                     cursed.grid.text(viewport.y + i, viewport.x + j, " ", "Gold");
+                }
+            }
+        }
+
+        //draw select box if an xy are set
+        if(viewport.box_xy !== null){
+
+            var x_min = Math.min(viewport.box_xy[0], viewport.cursor_x);
+            var x_max = Math.max(viewport.box_xy[0], viewport.cursor_x) + 1;
+            
+            var y_min = Math.min(viewport.box_xy[1], viewport.cursor_y);
+            var y_max = Math.max(viewport.box_xy[1], viewport.cursor_y) + 1;
+
+            for(var y=y_min; y<y_max; y++){
+                for(var x=x_min; x<x_max; x++){
+                    cursed.grid.text(viewport.y + y, viewport.x + x, "\u2588", "Orange");
                 }
             }
         }
@@ -154,7 +171,11 @@ viewport.clear = function(){
 
 
 viewport.handle = function(event){
-    if(!cursed.viewer.handling){
+    if(!cursed.viewer.handling && 
+        (cursed.command_window.mode === cursed.command_window.command_modes.default ||
+         cursed.command_window.mode === cursed.command_window.command_modes.fow ||
+         cursed.command_window.mode === cursed.command_window.command_modes.box_select) ){
+    
         if(event.key === "j"){ viewport.cursor_down(); }
         else if(event.key === "k"){ viewport.cursor_up(); }
         else if(event.key === "h"){ viewport.cursor_left(); }
@@ -166,7 +187,9 @@ viewport.handle = function(event){
         else if(event.key === "L"){ viewport.right(); }
     }
         
-    if(event.key == "f"){
+    if(event.key == "f" && 
+        (cursed.command_window.mode === cursed.command_window.command_modes.default ||
+         cursed.command_window.mode === cursed.command_window.command_modes.fow) ){
         if(cursed.state.fow === "on"){
             cursed.state.fow = "off";
             cursed.viewport.dirty = true;
@@ -204,7 +227,7 @@ viewport.handle_combo = function(event){};
 
 viewport.cursor_up = function(){
     cursed.viewer.handling = true;
-    setTimeout(()=>{cursed.viewer.handling = false;}, 200);
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
 
     if(viewport.cursor_y > 0){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
@@ -213,7 +236,11 @@ viewport.cursor_up = function(){
 
         viewport.draw();
 
+        cursed.status_line.dirty = true;
         cursed.status_line.draw();
+
+        //cursed.command_window.dirty = true;
+        //cursed.command_window.draw();
     }
 }
 
@@ -221,14 +248,19 @@ viewport.cursor_down = function(){
     cursed.viewer.handling = true;
     setTimeout(()=>{cursed.viewer.handling = false;}, 200);
 
-    if(viewport.cursor_y < viewport.v_height-1){
+    if(viewport.cursor_y < viewport.height-1){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
         viewport.cursor_y += 1;
         viewport.dirty = true;
 
         viewport.draw();
 
+        cursed.status_line.dirty = true;
         cursed.status_line.draw();
+
+        //cursed.command_window.dirty = true;
+        //cursed.command_window.draw();
+
     }
 }
 
@@ -243,7 +275,11 @@ viewport.cursor_left = function(){
 
         viewport.draw();
 
+        cursed.status_line.dirty = true;
         cursed.status_line.draw();
+
+        //cursed.command_window.dirty = true;
+        //cursed.command_window.draw();
     }
 }
 
@@ -251,14 +287,18 @@ viewport.cursor_right = function(){
     cursed.viewer.handling = true;
     setTimeout(()=>{cursed.viewer.handling = false;}, 200);
 
-    if(viewport.cursor_x < viewport.v_width-1){
+    if(viewport.cursor_x < viewport.width-1){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
         viewport.cursor_x += 1;
         viewport.dirty = true;
 
         viewport.draw();
 
+        cursed.status_line.dirty = true;
         cursed.status_line.draw();
+
+        //cursed.command_window.dirty = true;
+        //cursed.command_window.draw();
     }
 }
 
@@ -278,22 +318,20 @@ viewport.up = function(){
         viewport.clear();
         viewport.draw();
     }
-
-    cursed.status_line.draw();
 }
 
 viewport.down = function(){
     cursed.viewer.handling = true;
     setTimeout(()=>{cursed.viewer.handling = false;}, 200);
 
-    if(viewport.v_y < ((viewport.v_height - viewport.height) - 2)){
+    if(viewport.v_y < ((viewport.v_height - viewport.height - 2))){
         viewport.v_y += 2;
         viewport.dirty = true;
         viewport.clear();
         viewport.draw();
         cursed.status_line.draw();
     }
-    else if(viewport.v_y < ((viewport.v_height - viewport.height) - 1)){
+    else if(viewport.v_y < ((viewport.v_height - viewport.height))){
         viewport.v_y += 1;
         viewport.dirty = true;
         viewport.clear();
@@ -327,14 +365,14 @@ viewport.right = function(){
     cursed.viewer.handling = true;
     setTimeout(()=>{cursed.viewer.handling = false;}, 100);
 
-    if(viewport.v_x < ((viewport.v_width - viewport.width) - 2)){
+    if(viewport.v_x < ((viewport.v_width - viewport.width - 2))){
         viewport.v_x += 2;
         viewport.dirty = true;
         viewport.clear();
         viewport.draw();
         cursed.status_line.draw();
     }
-    else if(viewport.v_x < ((viewport.v_width - viewport.width) - 1)){
+    else if(viewport.v_x < ((viewport.v_width - viewport.width))){
         viewport.v_x += 1;
         viewport.dirty = true;
         viewport.clear();
@@ -404,8 +442,8 @@ viewport.getCursorFocus = function(){
             var bar = "";
             
             if(unit.max_health !== 0){
-                var font_width = cursed.constants.font_size + cursed.constants.font_width_offset;
-                var width = Math.floor((cursed.colon_line.width- (12 + (4+text.length)*font_width))/(font_width));
+                var font_width = cursed.constants.font_size + cursed.constants.font_width_offset + cursed.constants.font_spacing_offset;
+                var width = Math.floor((cursed.colon_line.width - ((16+text.length)*font_width))/(font_width)); // +16 for the side bars and the " " and [ ] characters
 
                 var percent = unit.current_health/(unit.max_health*1.0);
 

@@ -5,9 +5,9 @@ var queue;
 var cursed = {
     constants: {
         font_size: 14,
-        font_width_offset: -5,
+        font_width_offset: -6,
         font_spacing: -6,
-        font_spaced_offset: -0,
+        font_spacing_offset: -0,
         NUMBERS: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
         IGNORE: ["Alt", "Ctrl", "Shift"]
     },
@@ -24,7 +24,8 @@ var cursed = {
         dirty : true,
         combo_buffer: "",
         motion_buffer_count: "",
-        animation_running: true
+        animation_running: true,
+        editor_open: false
     },
     modules: {
         live: [],
@@ -37,7 +38,6 @@ function load(){
     queue = new createjs.LoadQueue(false);
     queue.addEventListener("complete", init);
     queue.loadManifest([
-        {id: "jquery", src:"./third_party/jquery-3.1.1.min.js"},
         {id: "features", src: "./features.js"},
         {id: "colors", src: "./colors.js"},
         {id: "grid", src: "./grid.js"},
@@ -50,6 +50,7 @@ function load(){
         {id: "map", src: "./map.js"},
         {id: "users", src: "./users.js"},
         {id: "chat", src: "./chat.js"},
+        {id: "narrative", src: "./narrative.js"}
     ]);
 }
 
@@ -106,9 +107,9 @@ function init(){
     // global draw loop
     createjs.Ticker.framerate = 60;
     createjs.Ticker.addEventListener("tick", ()=>{ 
-        if(cursed.viewer.dirty || cursed.viewer.animation_running){
-            console.log("stage updated");
+        if(true || cursed.viewer.dirty || cursed.viewer.animation_running){
             cursed.stage.update(); 
+            console.log("stage updated");
             cursed.viewer.dirty = false;
         }
     });
@@ -153,6 +154,7 @@ function begin_draw(){
     cursed.text_box.draw();
     cursed.colon_line.draw();
     cursed.status_line.draw();
+
 }
 
 function begin_keypress(){
@@ -170,7 +172,7 @@ function set_canvas_size(){
 
     cursed.constants.grid_width = Math.floor(window.innerWidth/(cursed.constants.font_size + cursed.constants.font_width_offset));
 
-    cursed.constants.grid_height = Math.floor(window.innerHeight/cursed.constants.font_size);
+    cursed.constants.grid_height = Math.floor(window.innerHeight/(cursed.constants.font_size+2));
 
     cursed.constants.width = window.innerWidth;
     cursed.constants.height = window.innerHeight;
@@ -201,6 +203,7 @@ function build_namespace() {
     cursed.map = map;
     cursed.chat = chat;
     cursed.users = users;
+    cursed.narrative = narrative;
 }
 
 function init_modules(){
@@ -215,6 +218,7 @@ function init_modules(){
     cursed.map.init()
     cursed.users.init();
     cursed.chat.init();
+    cursed.narrative.init();
 
     // do last
     cursed.client.init();
@@ -222,7 +226,7 @@ function init_modules(){
 }
 
 function handleKeypress(e){
-    if(!cursed.viewer.handling){
+    if(!cursed.viewer.handling && !cursed.viewer.editor_open){
 
         if(cursed.constants.IGNORE.indexOf(e.key) < 0){
             if(cursed.viewer.combo_buffer.length > 0){
@@ -235,8 +239,11 @@ function handleKeypress(e){
                     if(cursed.viewer.combo_buffer[0] == ":"){
                         var buff = cursed.viewer.combo_buffer.substring(1);
                         
-                        if(buff === "save"){
-                            //TODO: implement save
+                        if(buff === "save" || buff == "w"){
+                            console.log("Saving...");
+                            cursed.client.request("/save", null, ()=>{
+                                console.log("Saved."); 
+                            });
                         }
                         else if(buff == "ls"){
                             localStorage.loading_screen = !(localStorage.loading_screen == "true");
