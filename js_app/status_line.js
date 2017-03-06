@@ -89,7 +89,7 @@ status_line.draw = function(){
             })();
 
             /* draw and store text object */
-            status_line.text = new createjs.BitmapText("status line", cursed.ss);
+            status_line.text = new createjs.BitmapText("", cursed.ss);
             status_line.text.letterSpacing = cursed.constants.font_spacing;
             status_line.text.x = status_line.x+12;
             status_line.text.y = status_line.y+12;
