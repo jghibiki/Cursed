@@ -24,7 +24,8 @@ var cursed = {
         dirty : true,
         combo_buffer: "",
         motion_buffer_count: "",
-        animation_running: true
+        animation_running: true,
+        editor_open: false
     },
     modules: {
         live: [],
@@ -37,7 +38,6 @@ function load(){
     queue = new createjs.LoadQueue(false);
     queue.addEventListener("complete", init);
     queue.loadManifest([
-        {id: "jquery", src:"./third_party/jquery-3.1.1.min.js"},
         {id: "features", src: "./features.js"},
         {id: "colors", src: "./colors.js"},
         {id: "grid", src: "./grid.js"},
@@ -50,6 +50,7 @@ function load(){
         {id: "map", src: "./map.js"},
         {id: "users", src: "./users.js"},
         {id: "chat", src: "./chat.js"},
+        {id: "narrative", src: "./narrative.js"}
     ]);
 }
 
@@ -202,6 +203,7 @@ function build_namespace() {
     cursed.map = map;
     cursed.chat = chat;
     cursed.users = users;
+    cursed.narrative = narrative;
 }
 
 function init_modules(){
@@ -216,6 +218,7 @@ function init_modules(){
     cursed.map.init()
     cursed.users.init();
     cursed.chat.init();
+    cursed.narrative.init();
 
     // do last
     cursed.client.init();
@@ -223,7 +226,7 @@ function init_modules(){
 }
 
 function handleKeypress(e){
-    if(!cursed.viewer.handling){
+    if(!cursed.viewer.handling && !cursed.viewer.editor_open){
 
         if(cursed.constants.IGNORE.indexOf(e.key) < 0){
             if(cursed.viewer.combo_buffer.length > 0){

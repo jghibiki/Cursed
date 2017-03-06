@@ -26,7 +26,7 @@ class Narrative(InteractiveModule, TextDisplayModule):
         buff = buff.split(" ")
         if ( len(buff) > 1 and
              buff[0] == "n" or
-             buff[0] == "notes" ):
+             buff[0] == "narrative"):
 
             if buff[1] == "list" or buff[1] == "l":
                 c = viewer.get_submodule(Client)

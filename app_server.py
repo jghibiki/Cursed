@@ -320,6 +320,26 @@ def get_narratives():
 
     return jsonify({"chapters": narratives})
 
+@app.route("/narrative", methods=["POST"])
+@requires_gm_auth
+def add_narrative():
+    data = request.json
+    if "name" not in data:
+        return "Missing name field.", 400
+    game_data["story"].append({
+        "name": data["name"],
+        "text": ""
+    })
+
+    return jsonify({})
+
+@app.route("/narrative/delete/<int:index>", methods=["GET"])
+@requires_gm_auth
+def rm_narrative(index):
+    game_data["story"].pop(index)
+
+    return jsonify({})
+
 @app.route("/narrative/<int:index>", methods=["GET"])
 @requires_gm_auth
 def get_narrative_by_index(index):
@@ -916,4 +936,4 @@ def run(data, port, host, gm_passwd, passwd, map_name, save):
     authentication.password = passwd if passwd else tmp
     print("PC Password: %s" % authentication.password)
 
-    app.run(port=port, host=host, threaded=True, debug=False, ssl_context=("ssl.crt", "ssl.key"))
+    app.run(port=port, host=host, threaded=True, debug=True, ssl_context=("ssl.crt", "ssl.key"))

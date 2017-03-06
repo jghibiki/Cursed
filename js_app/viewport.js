@@ -8,8 +8,8 @@ viewport.init = function(){
     
     viewport.x = 0 
     viewport.y = 0;
-    viewport.width = Math.ceil(cursed.constants.grid_width/2);
-    viewport.height = cursed.constants.grid_height-3;
+    viewport.width = cursed.grid.width;
+    viewport.height = cursed.grid.height;
 
     viewport.cursor_x = 10;
     viewport.cursor_y = 10;
@@ -173,6 +173,7 @@ viewport.clear = function(){
 viewport.handle = function(event){
     if(!cursed.viewer.handling && 
         (cursed.command_window.mode === cursed.command_window.command_modes.default ||
+         cursed.command_window.mode === cursed.command_window.command_modes.fow ||
          cursed.command_window.mode === cursed.command_window.command_modes.box_select) ){
     
         if(event.key === "j"){ viewport.cursor_down(); }
@@ -226,7 +227,7 @@ viewport.handle_combo = function(event){};
 
 viewport.cursor_up = function(){
     cursed.viewer.handling = true;
-    setTimeout(()=>{cursed.viewer.handling = false;}, 200);
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
 
     if(viewport.cursor_y > 0){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
@@ -247,7 +248,7 @@ viewport.cursor_down = function(){
     cursed.viewer.handling = true;
     setTimeout(()=>{cursed.viewer.handling = false;}, 200);
 
-    if(viewport.cursor_y < viewport.v_height-1){
+    if(viewport.cursor_y < viewport.height-1){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
         viewport.cursor_y += 1;
         viewport.dirty = true;
@@ -286,7 +287,7 @@ viewport.cursor_right = function(){
     cursed.viewer.handling = true;
     setTimeout(()=>{cursed.viewer.handling = false;}, 200);
 
-    if(viewport.cursor_x < viewport.v_width-1){
+    if(viewport.cursor_x < viewport.width-1){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
         viewport.cursor_x += 1;
         viewport.dirty = true;
@@ -323,14 +324,14 @@ viewport.down = function(){
     cursed.viewer.handling = true;
     setTimeout(()=>{cursed.viewer.handling = false;}, 200);
 
-    if(viewport.v_y < ((viewport.v_height - viewport.height) - 2)){
+    if(viewport.v_y < ((viewport.v_height - viewport.height - 2))){
         viewport.v_y += 2;
         viewport.dirty = true;
         viewport.clear();
         viewport.draw();
         cursed.status_line.draw();
     }
-    else if(viewport.v_y < ((viewport.v_height - viewport.height) - 1)){
+    else if(viewport.v_y < ((viewport.v_height - viewport.height))){
         viewport.v_y += 1;
         viewport.dirty = true;
         viewport.clear();
@@ -364,14 +365,14 @@ viewport.right = function(){
     cursed.viewer.handling = true;
     setTimeout(()=>{cursed.viewer.handling = false;}, 100);
 
-    if(viewport.v_x < ((viewport.v_width - viewport.width) - 2)){
+    if(viewport.v_x < ((viewport.v_width - viewport.width - 2))){
         viewport.v_x += 2;
         viewport.dirty = true;
         viewport.clear();
         viewport.draw();
         cursed.status_line.draw();
     }
-    else if(viewport.v_x < ((viewport.v_width - viewport.width) - 1)){
+    else if(viewport.v_x < ((viewport.v_width - viewport.width))){
         viewport.v_x += 1;
         viewport.dirty = true;
         viewport.clear();

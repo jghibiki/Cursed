@@ -3,11 +3,17 @@
         <title>Cursed</title>
 
         <link rel="stylesheet" type="text/css" href="style.css">
+        <link href="third_party/jquery-ui/jquery-ui.css" rel="stylesheet">
 
+        <script src="third_party/jquery-3.1.1.min.js"></script>
         <script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
+        <script src="third_party/jquery-ui/jquery-ui.js"></script>
         <script src="index.js"></script>
     </head>
     <body onload="load()" style="background: #000">
         <canvas id="canvas" class="canvas" height="3000%" width="3000%" style="visibility: hidden"></canvas>
+        <div id="dialog" style="display:none" title="Edit Narrative">
+            <textarea id="text" rows="30" cols="100"></textarea>
+        </div>
     </body>
 </html>

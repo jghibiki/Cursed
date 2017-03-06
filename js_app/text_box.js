@@ -108,16 +108,6 @@ text_box.init = function(){
         ],
         [
             {
-                "text": ":n read <chapter number>",
-                "color": "Gold"
-            },
-            {
-                "text": " - read chapter. requires espeak.",
-                "color": null
-            }
-        ],
-        [
-            {
                 "text": "Chat:",
                 "color": "Gold"
             }
