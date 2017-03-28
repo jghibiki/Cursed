@@ -784,6 +784,7 @@ def addMapFow(client, req):
         return False
     y = req["details"]["y"]
 
+    user = _getUserInfo(id=req["id"])
     if not user:
         client.sendTarget(
             req["id"],
@@ -832,6 +833,7 @@ def removeMapFow(client, req):
         return False
     y = req["details"]["y"]
 
+    user = _getUserInfo(id=req["id"])
     if not user:
         client.sendTarget(
             req["id"],

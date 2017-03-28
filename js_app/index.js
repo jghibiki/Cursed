@@ -98,6 +98,10 @@ function init(){
             localStorage.loading_screen = true;
         }
         build_namespace();
+
+        //save handler
+        cursed.client.subscribe("save", ()=>{console.log("Game Saved");});
+
         init_modules();
         begin_draw();
         begin_keypress();
@@ -243,9 +247,7 @@ function handleKeypress(e){
                         
                         if(buff === "save" || buff == "w"){
                             console.log("Saving...");
-                            cursed.client.request("/save", null, ()=>{
-                                console.log("Saved."); 
-                            });
+                            cursed.client.send({ type: "command", key: "save"})
                         }
                         else if(buff == "ls"){
                             localStorage.loading_screen = !(localStorage.loading_screen == "true");

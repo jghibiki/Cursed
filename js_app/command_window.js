@@ -281,10 +281,20 @@ command_window.handle = function(e){
     }
     else if(command_window.mode === command_window.command_modes.build){
         if(e.key === "Escape"){
-            command_window.mode = command_window.command_modes.default;
-            command_window.dirty = true;
-            command_window.draw();
-            
+            if(command_window.box){
+                command_window.box = false;
+                command_window.dirty = true;
+                command_window.draw();
+
+                cursed.viewport.box_xy = null;
+                cursed.viewport.dirty = true;
+                cursed.viewport.draw();
+            }
+            else{
+                command_window.mode = command_window.command_modes.default;
+                command_window.dirty = true;
+                command_window.draw();
+            }
         }
 
         var keybindings = [
@@ -313,7 +323,44 @@ command_window.handle = function(e){
         for(var binding of keybindings){
             if(e.key === binding.key){
                 if(command_window.box){
-                    //TODO: implement build menu bulk add
+                    var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]);
+                    var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + 1;
+
+                    var y_min = Math.min(command_window.box_xy_1[1], command_window.box_xy_2[1]);
+                    var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + 1;
+
+                    var frames = [];
+
+                    var feature = cursed.features.get(binding.type);
+
+                    for(var i=y_min; i < y_max; i++){
+                        for(var j=x_min; j < x_max; j++){
+                            frames.push({
+                                type: "command",
+                                key: "add.map.feature",
+                                details: {
+                                    x: j,
+                                    y: i,
+                                    type: feature.name,
+                                    notes: ""
+                                }
+                            });
+                        }
+                    }
+
+                    cursed.client.sendBulk(frames, true);
+
+                    command_window.box_xy_1 = null;
+                    command_window.box_xy_2 = null;
+
+                    command_window.box = false;
+                    command_window.dirty = true;
+                    command_window.draw();
+
+                    cursed.viewport.box_xy = null;
+                    cursed.viewport.dirty = true;
+                    cursed.viewport.draw();
+
                 }
                 else{
                     var feature = cursed.features.get(binding.type);
@@ -334,7 +381,39 @@ command_window.handle = function(e){
 
         if(e.key === "x"){
             if(command_window.box){
-                //TODO: implement build menu bulk rm
+                var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]);
+                var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + 1;
+
+                var y_min = Math.min(command_window.box_xy_1[1], command_window.box_xy_2[1]);
+                var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + 1;
+
+                var frames = [];
+
+                for(var i=y_min; i < y_max; i++){
+                    for(var j=x_min; j < x_max; j++){
+                        frames.push({
+                            type: "command",
+                            key: "remove.map.feature",
+                            details: {
+                                x: j,
+                                y: i
+                            }
+                        });
+                    }
+                }
+
+                cursed.client.sendBulk(frames, true);
+
+                command_window.box_xy_1 = null;
+                command_window.box_xy_2 = null;
+
+                command_window.box = false;
+                command_window.dirty = true;
+                command_window.draw();
+
+                cursed.viewport.box_xy = null;
+                cursed.viewport.dirty = true;
+                cursed.viewport.draw();
             }
             else{
                 cursed.client.send({
@@ -347,13 +426,38 @@ command_window.handle = function(e){
                 }, true);
             }
         }
+        else if(e.key === " "){
+            command_window.box_referer = command_window.command_modes.build;
+            command_window.box_xy_1 = [ 
+                cursed.viewport.cursor_x,
+                cursed.viewport.cursor_y,
+            ];
+            cursed.viewport.box_xy = command_window.box_xy_1;
+            cursed.viewport.dirty = true;
+            cursed.viewport.draw();
+
+            command_window.mode = command_window.command_modes.box_select;
+            command_window.box = true;
+            command_window.dirty = true;
+            command_window.draw();
+        }
     }
     else if(command_window.mode === command_window.command_modes.fow){
         if(e.key === "Escape"){
-            command_window.mode = command_window.command_modes.default;
-            command_window.dirty = true;
-            command_window.draw();
-            
+            if(command_window.box){
+                command_window.box = false;
+                command_window.dirty = true;
+                command_window.draw();
+
+                cursed.viewport.box_xy = null;
+                cursed.viewport.dirty = true;
+                cursed.viewport.draw();
+            }
+            else{
+                command_window.mode = command_window.command_modes.default;
+                command_window.dirty = true;
+                command_window.draw();
+            }
         }
         else if(e.key === " "){
             command_window.box_referer = command_window.command_modes.fow;
@@ -366,12 +470,45 @@ command_window.handle = function(e){
             cursed.viewport.draw();
 
             command_window.mode = command_window.command_modes.box_select;
+            command_window.box = true;
             command_window.dirty = true;
             command_window.draw();
         }
         else if(e.key === "a"){
             if(command_window.box){
-                //TODO implement bulk add fow
+                var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]);
+                var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + 1;
+
+                var y_min = Math.min(command_window.box_xy_1[1], command_window.box_xy_2[1]);
+                var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + 1;
+
+                var frames = [];
+
+                for(var i=y_min; i < y_max; i++){
+                    for(var j=x_min; j < x_max; j++){
+                        frames.push({
+                            type: "command",
+                            key: "add.map.fow",
+                            details: {
+                                x: j,
+                                y: i
+                            }
+                        });
+                    }
+                }
+
+                cursed.client.sendBulk(frames, true);
+
+                command_window.box_xy_1 = null;
+                command_window.box_xy_2 = null;
+
+                command_window.box = false;
+                command_window.dirty = true;
+                command_window.draw();
+
+                cursed.viewport.box_xy = null;
+                cursed.viewport.dirty = true;
+                cursed.viewport.draw();
             }
             else{
                 cursed.client.send({
@@ -386,7 +523,39 @@ command_window.handle = function(e){
         }
         else if(e.key === "r"){
             if(command_window.box){
-                //TODO implement bulk rm fow
+                var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]);
+                var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + 1;
+
+                var y_min = Math.min(command_window.box_xy_1[1], command_window.box_xy_2[1]);
+                var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + 1;
+
+                var frames = [];
+
+                for(var i=y_min; i < y_max; i++){
+                    for(var j=x_min; j < x_max; j++){
+                        frames.push({
+                            type: "command",
+                            key: "remove.map.fow",
+                            details: {
+                                x: j,
+                                y: i
+                            }
+                        });
+                    }
+                }
+
+                cursed.client.sendBulk(frames, true);
+
+                command_window.box_xy_1 = null;
+                command_window.box_xy_2 = null;
+
+                command_window.box = false;
+                command_window.dirty = true;
+                command_window.draw();
+
+                cursed.viewport.box_xy = null;
+                cursed.viewport.dirty = true;
+                cursed.viewport.draw();
             }
             else{
                 cursed.client.send({
@@ -422,6 +591,22 @@ command_window.handle = function(e){
             command_window.mode = command_window.box_referer;
             command_window.box_referer = -1;
             command_window.dirty = true;
+            command_window.box = false;
+            command_window.draw();
+        }
+        else if(e.key === " "){
+            command_window.box_xy_2 = [ 
+                cursed.viewport.cursor_x,
+                cursed.viewport.cursor_y,
+            ];
+            cursed.viewport.dirty = true;
+            cursed.viewport.draw();
+
+
+            command_window.mode = command_window.box_referer;
+            command_window.box_referer = -1;
+            command_window.dirty = true;
+            command_window.box = true;
             command_window.draw();
         }
     }

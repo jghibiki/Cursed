@@ -57,17 +57,18 @@ class BroadcastServerProtocol(WebSocketServerProtocol):
 
         elif(obj["type"] == "command" and obj["key"] == "bulk"):
             if "frames" in obj:
+                success = True
                 for frame in obj["frames"]:
                     if(frame["key"] in magic.subscriptions.common_handlers):
                         if(obj["password"] == magic.gm_password
                             or obj["password"] == magic.password):
                             for handler in magic.subscriptions.common_handlers[frame["key"]]:
-                                success = handler(self, obj) or success
+                                handler(self, frame)
 
                     if(frame["key"] in magic.subscriptions.gm_handlers):
                         if obj["password"] == magic.gm_password:
                             for handler in magic.subscriptions.gm_handlers[frame["key"]]:
-                                success = handler(self, obj) or success
+                                handler(self, frame)
             else:
                 client.sendTarget(
                         req["id"],

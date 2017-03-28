@@ -40,16 +40,33 @@ var client = {
                 console.log("pong");
             }
             else if(data.type == "broadcast"){
-                if(client._.subs.hasOwnProperty(data.key)){
-                    for(var sub of client._.subs[data.key]){ //handle global broadcast
-                        sub(data);
+                if(data.key === "bulk"){
+                    for(var frame of data.frames){
+                        if(client._.subs.hasOwnProperty(frame.key)){
+                            for(var sub of client._.subs[frame.key]){ //handle global broadcast
+                                sub(frame);
+                            }
+                        }
+                        if(client._.once.hasOwnProperty(frame.key)){
+                            for(var sub of client._.once[frame.key]){
+                                sub(frame);
+                            }
+                            client._.once[frame.key] = [];
+                        }
                     }
                 }
-                if(client._.once.hasOwnProperty(data.key)){
-                    for(var sub of client._.once[data.key]){
-                        sub(data);
+                else{
+                    if(client._.subs.hasOwnProperty(data.key)){
+                        for(var sub of client._.subs[data.key]){ //handle global broadcast
+                            sub(data);
+                        }
                     }
-                    client._.once[data.key] = [];
+                    if(client._.once.hasOwnProperty(data.key)){
+                        for(var sub of client._.once[data.key]){
+                            sub(data);
+                        }
+                        client._.once[data.key] = [];
+                    }
                 }
             }
             else if(data.type == "broadcast_target"  // handle targeted broadcast
@@ -65,7 +82,7 @@ var client = {
                     }
                     client._.once[data.key] = [];
                 }
-            }
+            }   
             else if(data.type == "acknowledge"){
                 if(client._.debug){
                     console.log("Server acknowledged request for: " + data.key);
@@ -135,6 +152,6 @@ var client = {
             prepared_payloads.push(
                 client.prepareSend(payload, broadcast));
         }
-        client.send({ frames: prepared_payloads, key: "bulk"}, broadcast);
+        client.send({ frames: prepared_payloads, key: "bulk", type: "command"}, broadcast);
     }
 }

@@ -88,6 +88,20 @@ map.init = function(){
         }
     });
 
+    cursed.client.subscribe("add.map.fow", (data)=>{
+        var new_fow = data.details;
+        cursed.viewport.fow[new_fow.x][new_fow.y] = true;
+        cursed.viewport.dirty = true;
+        cursed.viewport.draw();
+    });
+
+    cursed.client.subscribe("remove.map.fow", (data)=>{
+        var new_fow = data.details;
+        cursed.viewport.fow[new_fow.x][new_fow.y] = false;
+        cursed.viewport.dirty = true;
+        cursed.viewport.draw();
+    });
+
     cursed.client.registerInitHook(()=>{
         map.load_map();
         map.get_maps();
