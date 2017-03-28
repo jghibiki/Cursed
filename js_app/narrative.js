@@ -9,11 +9,67 @@ narrative.init = function(){
     cursed.modules.interactive.push(narrative);
     cursed.modules.text_display.push(narrative);
 
+    cursed.client.subscribe("list.narratives", (data)=>{
+        var lines = [
+            [
+                {
+                    "text": "Chapters:",
+                    "color": "Gold"
+                }
+            ]
+        ]
+        
+        for(var i=0; i<data.payload.length; i++){
+            lines.push([
+                {
+                    text: ("00" + (i+1)).slice(-2) + ". " + data.payload[i],
+                    color: "White"
+                }
+            ])
+        }
+
+        narrative.show();
+        cursed.text_box.set(lines);
+    });
+
+    cursed.client.subscribe("get.narrative", (data)=>{
+        var lines = [];
+
+        var text = data.payload.name + ":\n";
+        if(data.payload.text !== null){
+            text = data.payload.text
+        }
+        for(var line of text.split("\n")){
+            lines.push([
+                {
+                    text: line,
+                    color: "White"
+                }
+            ]);
+        }
+
+        narrative.show();
+        cursed.text_box.set(lines);
+    })
+
+    cursed.client.ack("add.narrative", ()=>{
+        if(narrative.showing){
+            narrative.list();
+        }
+    });
+
+    cursed.client.ack("remove.narrative", ()=>{
+        if(narrative.showing){
+            narrative.list();
+        }
+    });
+
 };
 
 narrative.handle = function(event){
 
     if(event.key === "n"){
+        narrative.show();
         narrative.list();
     }
 }
@@ -28,44 +84,41 @@ narrative.handle_combo = function(buf){
         }
 
         else if((buf [1] === "v" || buf[1] === "view") && buf.length > 2){
-            var url = "/narrative/" + (parseInt(buf[2]) - 1);
-            cursed.client.request(url, null, (data)=>{
-                var lines = [];
-
-                for(var line of data.text.split("\n")){
-                    lines.push([
-                        {
-                            text: line,
-                            color: "White"
-                        }
-                    ]);
+            cursed.client.send({
+                type: "command",
+                key: "get.narrative",
+                details: {
+                    chapter_no:  parseInt(buf[2])
                 }
-
-                narrative.show();
-                cursed.text_box.set(lines);
-                
-            })
+            });
         }
 
         else if((buf[1] === "a" || buf[1] === "add") && buf.length > 2){
 
             var name = buf.slice(2, buf.length).join(" ");
-            cursed.client.request("/narrative", { name: name}, ()=>{
-                narrative.list();
+            cursed.client.send({
+                type: "command",
+                key: "add.narrative",
+                details: {
+                    name: name
+                }
             });
         }
         else if((buf [1] === "r" || buf[1] === "rm" || buf[1] === "remove") && buf.length > 2){
-            var url = "/narrative/delete/" + (parseInt(buf[2]) - 1);
-            cursed.client.request(url, null, (data)=>{
-                narrative.list();
+            cursed.client.send({
+                type: "command",
+                key: "remove.narrative",
+                details: {
+                    chapter_no: parseInt(buf[2]) 
+                }
             });
         }
 
         else if((buf[1] === "e" || buf[1] === "edit") && buf.length > 2){ // requires a chapter no
-            var url = "/narrative/" + (parseInt(buf[2]) - 1);
-            cursed.client.request(url, null, (data)=>{
 
+            cursed.client.once("get.narrative", (data)=>{
                 cursed.viewer.editor_open = true;
+                data = data.payload;
                 $("#text").val(data.text);
                 $("#dialog").dialog({
                     resizable: true,
@@ -78,9 +131,14 @@ narrative.handle_combo = function(buf){
                             cursed.viewer.editor_open = false;
 
                             data.text = $("#text").val();
-                            var url = "/narrative/" + (parseInt(buf[2]) - 1);
-                            cursed.client.request(url, data, ()=>{
-                                narrative.list(); 
+                            cursed.client.send({
+                                type: "command",
+                                key: "modify.narrative",
+                                details: {
+                                    chapter_no: parseInt(buf[2]),
+                                    name: data.name,
+                                    text: data.text
+                                }
                             });
                         },
                         "Cancel": function(){
@@ -88,6 +146,14 @@ narrative.handle_combo = function(buf){
                         }
                     }
                 });
+            });
+
+            cursed.client.send({
+                type: "command",
+                key: "get.narrative",
+                details: {
+                    chapter_no: parseInt(buf[2])
+                }
             });
         }
     }
@@ -98,8 +164,8 @@ narrative.handle_help = function(buf){
 }
 
 narrative.show = function(){
-    narrative.showing = true;
     cursed.modules.text_display.map((e)=>{e.hide();});
+    narrative.showing = true;
 }
 
 narrative.hide = function(){
@@ -108,26 +174,8 @@ narrative.hide = function(){
 
 narrative.list = function(){
     narrative.show();
-    cursed.client.request("/narrative", null, (data)=>{
-        var lines = [
-            [
-                {
-                    "text": "Chapters:",
-                    "color": "Gold"
-                }
-            ]
-        ]
-        
-        for(var i=0; i<data.chapters.length; i++){
-            lines.push([
-                {
-                    text: ("00" + (i+1)).slice(-2) + ". " + data.chapters[i],
-                    color: "White"
-                }
-            ])
-        }
-
-        narrative.show();
-        cursed.text_box.set(lines);
+    cursed.client.send({
+        type: "command",
+        key: "list.narratives"
     });
 }

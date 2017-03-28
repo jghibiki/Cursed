@@ -1,6 +1,9 @@
 "use strict";
 
-var chat = {};
+var chat = {
+    raw_messages: [],
+    messages: []
+};
 
 chat.init = function(){
     cursed.modules.interactive.push(chat);
@@ -9,16 +12,27 @@ chat.init = function(){
     chat.showing = false;
     chat.previous_hash = null;
     chat.messages = [];
+
+    cursed.client.subscribe("get.chat", (data)=>{
+        chat.raw_messages = data.payload
+        chat.get_messages(chat.raw_messages);        
+    });
+
+    cursed.client.subscribe("add.chat.message", (data)=>{
+        chat.raw_messages.push(data.details);
+        chat.get_messages(chat.raw_messages);        
+    });
+
+    cursed.client.registerInitHook(()=>{
+        cursed.client.send({
+            type: "command",
+            key: "get.chat"
+        });
+    });
+
 };
 
 chat.update = function(hashes){
-    var hash = hashes["chat"];
-
-    if(hash !== chat.previous_hash){
-        chat.previous_hash = hash;
-
-        cursed.client.request("/chat/"+cursed.state.username, null, cursed.chat.get_messages);
-    }
 };
 
 chat.handle = function(e){
@@ -36,9 +50,11 @@ chat.handle_combo = function(buff){
             message: buff.slice(1).join(" "),
             persona: null
         };
-        cursed.client.request("/chat", data, ()=>{
-            chat.get_messages();
-        });
+        cursed.client.send({
+            type: "command",
+            key: "add.chat.message",
+            details: data
+        }, true);
         chat.show();
 
     }
@@ -49,10 +65,12 @@ chat.handle_combo = function(buff){
             message: buff.slice(2).join(" "),
             persona: null
         };
-        cursed.client.request("/chat", data, ()=>{
-            chat.get_messages();
-            chat.show();
-        });
+        cursed.client.send({
+            type: "command",
+            key: "add.chat.message",
+            details: data
+        }, true);
+        chat.show();
     }
     else if( (buff[0] === "impersonate" || buff[0] === "imp") && buff.length > 2){
         var data = {
@@ -61,10 +79,12 @@ chat.handle_combo = function(buff){
             message: buff.slice(2).join(" "),
             persona: buff[1]
         };
-        cursed.client.request("/chat", data, ()=>{
-            chat.get_messages();
-            chat.show();
-        });
+        cursed.client.send({
+            type: "command",
+            key: "add.chat.message",
+            details: data
+        }, true);
+        chat.show();
     }
 
 };
@@ -96,8 +116,7 @@ chat.get_messages = function(data){
         color: "Gold"
     }] ];
 
-    if(!data.hasOwnProperty("messages")){return;}
-    for(var message of data.messages){
+    for(var message of data){
         if(message.recipient !== null){
             var line = [ {
                 text: "<private> " + message.sender + " to " + message.recipient + ":",

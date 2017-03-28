@@ -173,6 +173,7 @@ viewport.clear = function(){
 viewport.handle = function(event){
     if(!cursed.viewer.handling && 
         (cursed.command_window.mode === cursed.command_window.command_modes.default ||
+         cursed.command_window.mode === cursed.command_window.command_modes.build ||
          cursed.command_window.mode === cursed.command_window.command_modes.fow ||
          cursed.command_window.mode === cursed.command_window.command_modes.box_select) ){
     
@@ -188,6 +189,7 @@ viewport.handle = function(event){
     }
         
     if(event.key == "f" && 
+        cursed.state.role === "gm" &&
         (cursed.command_window.mode === cursed.command_window.command_modes.default ||
          cursed.command_window.mode === cursed.command_window.command_modes.fow) ){
         if(cursed.state.fow === "on"){
@@ -207,18 +209,44 @@ viewport.handle = function(event){
         var unit = viewport.getCurrentUnit();
         
         if(unit !== null){
-            unit.current_health += 1
+            var modified_unit = {
+                name: unit.name,
+                id: unit.id,
+                current_health: unit.current_health + 1,
+                max_health: unit.max_health,
+                x: unit.x,
+                y: unit.y,
+                controller: unit.controller,
+                type: unit.type
+            }
 
-            cursed.client.request("/unit/update", unit, null);
+            cursed.client.send({
+                type: "command",
+                key: "modify.map.unit",
+                details: modified_unit
+            }, true);
         }
     }
     else if (event.key === "-"){
         var unit = viewport.getCurrentUnit();
         
         if(unit !== null){
-            unit.current_health -= 1
+            var modified_unit = {
+                name: unit.name,
+                id: unit.id,
+                current_health: unit.current_health - 1,
+                max_health: unit.max_health,
+                x: unit.x,
+                y: unit.y,
+                controller: unit.controller,
+                type: unit.type
+            }
 
-            cursed.client.request("/unit/update", unit, null);
+            cursed.client.send({
+                type: "command",
+                key: "modify.map.unit",
+                details: modified_unit
+            }, true);
         }
     }
 }
@@ -443,7 +471,7 @@ viewport.getCursorFocus = function(){
             
             if(unit.max_health !== 0){
                 var font_width = cursed.constants.font_size + cursed.constants.font_width_offset + cursed.constants.font_spacing_offset;
-                var width = Math.floor((cursed.colon_line.width - ((16+text.length)*font_width))/(font_width)); // +16 for the side bars and the " " and [ ] characters
+                var width = Math.floor((cursed.colon_line.width - ((16+text.length)*font_width))/(font_width)) - 4; // +16 for the side bars and the " " and [ ] characters
 
                 var percent = unit.current_health/(unit.max_health*1.0);
 

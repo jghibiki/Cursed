@@ -19,7 +19,7 @@ class Client(ClientModule, InitModule):
         self._previous_hash = None
         self._previous_feature_hashes = []
         self._password = password
-        self._base_url = "https://%s:%s" % (self._host, self._port)
+        self._base_url = "http://%s:%s" % (self._host, self._port)
         self._username = ""
 
     def init(self, viewer):

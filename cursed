@@ -6,7 +6,8 @@ import json
 import click
 import os.path
 from utils import save, load
-from app_server import run as start_app_server
+#from app_server import run as start_app_server
+import magic
 import curses
 import logging
 
@@ -76,23 +77,19 @@ def init(ctx, campaign_title, campaign_description, overwrite):
         print("Campaign file already exists. Use --overwrite to overwrite existing file.")
 
 @click.command()
-@click.option("--port", default=8080, help="The port the server should run on.")
+@click.option("--port", default=9000, help="The port the server should run on.")
 @click.option("--host", default="0.0.0.0", help="The host ip to use. 127.0.0.1 will only allow connections from localhost clients. 0.0.0.0 will allow connections from any client.")
 @click.option("--gm-password", default=None, help="Set a gm password. If not set, the gm password will be a randomly generated four digit code.")
 @click.option("--password", default=None, help="Set a pc password. If not set, the pc password will be a randomly generated four digit code.") 
-@click.argument("map_name")
 @click.pass_context
-def server(ctx, port, host, map_name, gm_password, password):
+def server(ctx, port, host, gm_password, password):
     """
     Starts a server
     """
     game_data = load(ctx)
-    if map_name in game_data["maps"]:
-        def save_callback(data):
-            save(ctx, data)
-        start_app_server(game_data, port, host, gm_password, password, map_name, save_callback)
-    else:
-        click.echo("Map %s does not exist. Please create map with:\n cursed map add OPTIONS MAP_NAME" % map_name)
+
+    save_loc = ctx.obj["data_location"]
+    magic.start_server(host, port, gm_password, password, save_loc)
 
 
 @click.command("gm")

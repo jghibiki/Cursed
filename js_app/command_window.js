@@ -323,7 +323,11 @@ command_window.handle = function(e){
                         type: feature.name,
                         notes: ""
                     };
-                    cursed.client.request("/map/add", new_feature, ()=>{});
+                    cursed.client.send({
+                        type: "command",
+                        key: "add.map.feature",
+                        details: new_feature
+                    }, true);
                 }
             }
         }
@@ -333,11 +337,14 @@ command_window.handle = function(e){
                 //TODO: implement build menu bulk rm
             }
             else{
-                cursed.client.request("/map/rm", {
-                    x: cursed.viewport.cursor_x,
-                    y: cursed.viewport.cursor_y,
-                    
-                }, ()=>{});
+                cursed.client.send({
+                    type: "command",
+                    key: "remove.map.feature",
+                    details: {
+                        x: cursed.viewport.cursor_x,
+                        y: cursed.viewport.cursor_y,
+                    }
+                }, true);
             }
         }
     }
@@ -367,10 +374,14 @@ command_window.handle = function(e){
                 //TODO implement bulk add fow
             }
             else{
-                cursed.client.request("/fow/add", {
-                    x: cursed.viewport.cursor_x,
-                    y: cursed.viewport.cursor_y
-                }, ()=>{});
+                cursed.client.send({
+                    type: "command",
+                    key: "add.map.fow",
+                    details: {
+                        x: cursed.viewport.cursor_x,
+                        y: cursed.viewport.cursor_y,
+                    }
+                }, true);
             }
         }
         else if(e.key === "r"){
@@ -378,19 +389,25 @@ command_window.handle = function(e){
                 //TODO implement bulk rm fow
             }
             else{
-                cursed.client.request("/fow/rm", {
-                    x: cursed.viewport.cursor_x,
-                    y: cursed.viewport.cursor_y
-                }, ()=>{});
+                cursed.client.send({
+                    type: "command",
+                    key: "remove.map.fow",
+                    details: {
+                        x: cursed.viewport.cursor_x,
+                        y: cursed.viewport.cursor_y,
+                    }
+                }, true);
             }
         }
 
         if(!command_window.box){
             if(e.key === "A"){
-                cursed.client.request("/fow/fill", null, ()=>{});
+                // TODO: implement fow fill
+                //cursed.client.request("/fow/fill", null, ()=>{});
             }
             else if(e.key === "R"){
-                cursed.client.request("/fow/clear", null, ()=>{});
+                // TODO: implement fow clear
+                // cursed.client.request("/fow/clear", null, ()=>{});
             }
 
         }
@@ -437,36 +454,88 @@ command_window.handle = function(e){
             var current_unit = cursed.viewport.getCurrentUnit();
 
             if(current_unit.y +1 <= cursed.viewport.height){
-                current_unit.y += 1;
+                var modified_unit = {
+                    "x": current_unit["x"],
+                    "y": current_unit["y"] + 1,
+                    "max_health": current_unit["max_health"],
+                    "current_health": current_unit["current_health"],
+                    "controller": current_unit["controller"],
+                    "type": current_unit["type"],
+                    "id": current_unit["id"],
+                    "name": current_unit["name"]
+                }
                 cursed.viewport.cursor_down();
-                cursed.client.request("/unit/update", current_unit, ()=>{});
+                cursed.client.send({
+                    type: "command",
+                    key: "modify.map.unit",
+                    details: modified_unit
+                }, true);
             }
         }
         else if(e.key === "k"){
             var current_unit = cursed.viewport.getCurrentUnit();
 
             if(current_unit.y-1 >= 0){
-                current_unit.y -= 1;
+                var modified_unit = {
+                    "x": current_unit["x"],
+                    "y": current_unit["y"] - 1,
+                    "max_health": current_unit["max_health"],
+                    "current_health": current_unit["current_health"],
+                    "controller": current_unit["controller"],
+                    "type": current_unit["type"],
+                    "id": current_unit["id"],
+                    "name": current_unit["name"]
+                }
                 cursed.viewport.cursor_up();
-                cursed.client.request("/unit/update", current_unit, ()=>{});
+                cursed.client.send({
+                    type: "command",
+                    key: "modify.map.unit",
+                    details: modified_unit
+                }, true);
             }
         }
         else if(e.key === "h"){
             var current_unit = cursed.viewport.getCurrentUnit();
 
             if(current_unit.x-1 >= 0){
-                current_unit.x -= 1;
+                var modified_unit = {
+                    "x": current_unit["x"] - 1,
+                    "y": current_unit["y"],
+                    "max_health": current_unit["max_health"],
+                    "current_health": current_unit["current_health"],
+                    "controller": current_unit["controller"],
+                    "type": current_unit["type"],
+                    "id": current_unit["id"],
+                    "name": current_unit["name"]
+                }
                 cursed.viewport.cursor_left();
-                cursed.client.request("/unit/update", current_unit, ()=>{});
+                cursed.client.send({
+                    type: "command",
+                    key: "modify.map.unit",
+                    details: modified_unit
+                }, true);
             }
         }
         else if(e.key === "l"){
             var current_unit = cursed.viewport.getCurrentUnit();
 
             if(current_unit.x+1 <= cursed.viewport.width){
-                current_unit.x += 1;
+                var modified_unit = {
+                    "x": current_unit["x"] + 1,
+                    "y": current_unit["y"],
+                    "max_health": current_unit["max_health"],
+                    "current_health": current_unit["current_health"],
+                    "controller": current_unit["controller"],
+                    "type": current_unit["type"],
+                    "id": current_unit["id"],
+                    "name": current_unit["name"]
+                }
                 cursed.viewport.cursor_right();
-                cursed.client.request("/unit/update", current_unit, ()=>{});
+                cursed.client.send({
+                    type: "command",
+                    key: "modify.map.unit",
+                    details: modified_unit
+                }, true);
             }
         }
     }

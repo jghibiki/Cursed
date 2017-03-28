@@ -8,22 +8,36 @@ users.init = function(){
     users.showing = false;
     users.previous_hash = null;
     users.users = [];
+
+    cursed.client.subscribe("get.users", (data)=>{
+        users.users = data.payload;
+        if(cursed.map.showing){
+            cursed.map.show();
+        }
+    });
+
+    cursed.client.registerInitHook(()=>{
+        cursed.client.once("get.users", (data)=>{
+            for(var user of data.payload){
+                if(user.username == cursed.state.username){
+                    cursed.state.role = user.role;
+                    // update command window based on role, but not if animation is still running
+                    if(!cursed.viewer.animation_running){
+                        cursed.command_window.dirty = true;
+                        cursed.command_window.draw();
+                    }
+                }
+            }
+        });
+        cursed.client.send({
+            type: "command",
+            key: "get.users"
+        });
+
+    });
 };
 
 users.update = function(hashes){
-    
-    var hash = hashes["users"];
-
-    if(hash !== users.previous_hash){
-        users.previous_hash = hash;
-        cursed.client.request("/users", null, (data)=>{
-            users.users = data.users;
-
-            if(cursed.map.showing){
-                cursed.map.show();
-            }
-        });
-    }
 };
 
 users.handle = function(){

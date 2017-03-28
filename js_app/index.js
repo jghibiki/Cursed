@@ -45,7 +45,7 @@ function load(){
         {id: "text_box", src: "./text_box.js"},
         {id: "colon_line", src: "./colon_line.js"},
         {id: "status_line", src: "./status_line.js"},
-        {id: "client", src: "./client.js"},
+        {id: "client", src: "./new_client.js"},
         {id: "viewport", src: "./viewport.js"},
         {id: "map", src: "./map.js"},
         {id: "users", src: "./users.js"},
@@ -107,7 +107,7 @@ function init(){
     // global draw loop
     createjs.Ticker.framerate = 60;
     createjs.Ticker.addEventListener("tick", ()=>{ 
-        if(true || cursed.viewer.dirty || cursed.viewer.animation_running){
+        if(cursed.viewer.dirty || cursed.viewer.animation_running){
             cursed.stage.update(); 
             console.log("stage updated");
             cursed.viewer.dirty = false;
@@ -229,6 +229,7 @@ function handleKeypress(e){
     if(!cursed.viewer.handling && !cursed.viewer.editor_open){
 
         if(cursed.constants.IGNORE.indexOf(e.key) < 0){
+
             if(cursed.viewer.combo_buffer.length > 0){
                 if(e.key === "Escape"){
                     cursed.viewer.combo_buffer = "";
@@ -238,6 +239,7 @@ function handleKeypress(e){
                 else if (e.key === "Enter"){
                     if(cursed.viewer.combo_buffer[0] == ":"){
                         var buff = cursed.viewer.combo_buffer.substring(1);
+                        var split = buff.split(" ")
                         
                         if(buff === "save" || buff == "w"){
                             console.log("Saving...");
@@ -247,6 +249,17 @@ function handleKeypress(e){
                         }
                         else if(buff == "ls"){
                             localStorage.loading_screen = !(localStorage.loading_screen == "true");
+                        }
+                        else if(split[0] === "set" && split.length > 2){
+                            var var_name = split[1];
+                            var var_value = split.slice(2, split.length).join(" ");
+                            if(var_name === "server_ip" || var_name === "server_port" || var_name === "username" || var_name === "password"){
+                                localStorage.setItem(var_name, var_value);                      
+                                cursed.state[var_name] = var_value;
+                            }
+                            else{
+                                cursed.state[var_name] = var_value;
+                            }
                         }
                         else{
                             // get buff minus the colon
