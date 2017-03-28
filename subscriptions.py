@@ -957,7 +957,7 @@ def addMapUnit(client, req):
                 key="add.map.unit",
                 payload={"msg": "Request details missing \"type\""})
         return False
-    type = req["details"]["type"]
+    _type = req["details"]["type"]
 
     if "id" not in req["details"]:
         client.sendTarget(
@@ -966,7 +966,7 @@ def addMapUnit(client, req):
                 key="add.map.unit",
                 payload={"msg": "Request details missing \"id\""})
         return False
-    type = req["details"]["id"]
+    _id = req["details"]["id"]
 
     user = _getUserInfo(id=req["id"])
     if not user:
@@ -990,7 +990,7 @@ def addMapUnit(client, req):
 
         return False
 
-    units = magic.game_data[user["current_map"]]["units"]
+    units = magic.game_data["maps"][user["current_map"]]["units"]
     units.append({
         "x": x,
         "y": y,
@@ -998,8 +998,8 @@ def addMapUnit(client, req):
         "max_health": max_health,
         "current_health": current_health,
         "controller": controller,
-        "type": type,
-        "id": id
+        "type": _type,
+        "id": _id
     })
 
     client.sendTarget(
@@ -1165,7 +1165,7 @@ def removeMapUnit(client, req):
 
         return False
 
-    units = magic.game_data[user["current_map"]]["units"]
+    units = magic.game_data["maps"][user["current_map"]]["units"]
 
     for unit in units:
         if unit["id"] == id:

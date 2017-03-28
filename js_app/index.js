@@ -232,6 +232,8 @@ function init_modules(){
 function handleKeypress(e){
     if(!cursed.viewer.handling && !cursed.viewer.editor_open){
 
+        e.stopPropagation();
+
         if(cursed.constants.IGNORE.indexOf(e.key) < 0){
 
             if(cursed.viewer.combo_buffer.length > 0){

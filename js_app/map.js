@@ -44,6 +44,48 @@ map.init = function(){
         map.load_map();
     });
 
+    cursed.client.subscribe("add.map.unit", (data)=>{
+        cursed.viewport.units.push(data.details);
+
+        cursed.viewport.dirty = true;
+        cursed.viewport.draw();
+
+        cursed.status_line.dirty = true;
+        cursed.status_line.draw();
+    });
+
+    cursed.client.subscribe("modify.map.unit", (data)=>{
+        var mod_unit = data.details;
+        for(var i=0; i<cursed.viewport.units.length; i++){
+            var unit = cursed.viewport.units[i];
+            if(unit["id"] == mod_unit.id){
+                cursed.viewport.units[i] = mod_unit;
+
+                cursed.viewport.dirty = true;
+                cursed.viewport.draw();
+
+                cursed.status_line.dirty = true;
+                cursed.status_line.draw();
+            }
+        }
+    });
+
+    cursed.client.subscribe("remove.map.unit", (data)=>{
+        var unit_id = data.details.id;
+        for(var i=0; i<cursed.viewport.units.length; i++){
+            var unit = cursed.viewport.units[i];
+            if(unit["id"] == unit_id){
+                cursed.viewport.units.splice(i, 1);
+
+                cursed.viewport.dirty = true;
+                cursed.viewport.draw();
+
+                cursed.status_line.dirty = true;
+                cursed.status_line.draw();
+            }
+        }
+    })
+
     cursed.client.subscribe("modify.map.unit", (data)=>{
         var units = cursed.viewport.units;
         for(var unit of units){

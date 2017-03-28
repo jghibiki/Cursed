@@ -12,8 +12,41 @@
     </head>
     <body onload="load()" style="background: #000">
         <canvas id="canvas" class="canvas" height="3000%" width="3000%" style="visibility: hidden"></canvas>
+
+        <!-- narrative dialog -->
         <div id="dialog" style="display:none" title="Edit Narrative">
             <textarea id="text" rows="30" cols="100"></textarea>
+        </div>
+
+        <!-- error message dialog -->
+        <div id="error_dialog" style="display:none" title="Error">
+        </div>
+        
+        <!-- unit menu dialog -->
+        <div id="unit_menu" style="display:none; padding:2px; margin:2px; width: 400px;" title="">
+            <p id="validation">All fields are required.</p>
+            <form>
+                <fieldset style="padding:0; border:0; margin-top:25px; display:block">
+                    <label>Unit Name:</label>
+                    <input id="unit_name" style="margin-bottom:12px; padding: .4em; display:block;"/>
+
+                    <label>Current Health: </label>
+                    <input id="current_health"style="margin-bottom:12px; padding: .4em; display:block;"/>
+
+                    <label>Max Health:</label>
+                    <input id="max_health" style="margin-bottom:12px; padding: .4em; display:block;"/>
+
+                    <label>Controller Username:</label>
+                    <input id="controller" style="margin-bottom:12px; padding: .4em; display:block;"/>
+
+                    <label>Unit Type</label>
+                    <select id="unit_type" style="margin-bottom:12px;  padding: .4em; display:block;">
+                        <option value="pc">Player Chatacter</option>
+                        <option value="enemy">Enemy Character</option>
+                        <option value="neutral">Neutral Character</option>
+                    </select>
+                </fieldset>
+            </form>
         </div>
     </body>
 </html>

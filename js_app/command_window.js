@@ -627,6 +627,248 @@ command_window.handle = function(e){
                 command_window.draw();
             }
         }
+        else if(e.key === "a"){
+            //$("#text").val(data.text);
+            var el = $("#unit_menu");
+            el.prop("title", "Add Unit");
+
+
+            el.dialog({
+                resizable: true,
+                height: "auto",
+                width: "20%",
+                modal: true,
+                open: function(){
+
+                    // pause keypress handling
+                    cursed.viewer.editor_open = true;               
+
+                    //blur text box - prevents issue with keybind char getting caught
+                    $("#unit_name").val("");
+                    $("#unit_name").blur();
+
+                    $("#current_health").val("");
+                    $("#max_health").val("");
+                    $("#controller").val("");
+                    $("#unit_type").val("");
+                },
+                close: function(){
+                    // allow client to handle keypresses again
+                    cursed.viewer.editor_open = false;               
+                },
+                buttons: {
+                    "Add": function(){
+
+                        var unit_name = $("#unit_name").val();
+                        if(unit_name === null 
+                            || unit_name === undefined
+                            || unit_name === ""){
+                            $("#validation").text("Unit Name must not be empty");
+                            return;
+                        }
+
+                        var current_health = $("#current_health").val();
+                        var valid_int = false;
+                        try{
+                            current_health = parseInt(current_health);
+                            valid_int = true;
+                        }
+                        catch(e){
+                            valid_int = false;
+                        }
+                        if(current_health === null 
+                            || current_health === undefined 
+                            || current_health === ""
+                            || !valid_int){
+                            $("#validation").text("Current Health must not be empty and be a valid integer.");
+                            return;
+                        }
+
+                        var max_health = $("#max_health").val();
+                        var valid_int = false;
+                        try{
+                            max_health = parseInt(max_health);
+                            valid_int = true;
+                        }
+                        catch(e){
+                            valid_int = false;
+                        }
+                        if(max_health === null 
+                            || max_health === undefined 
+                            || max_health === ""
+                            || !valid_int){
+                            $("#validation").text("Max Health must not be empty and be a valid integer.");
+                            return;
+                        }
+
+                        var controller = $("#controller").val();
+                        if(controller === null 
+                            || controller === undefined
+                            || controller === ""){
+                            $("#validation").text("Controller Name must not be empty");
+                            return;
+                        }
+
+                        var type = $("#unit_type").val();
+                        if(type === null 
+                            || type === undefined
+                            || type === ""){
+                            $("#validation").text("A Unit Type must be selected.");
+                            return;
+                        }
+
+                        var details = {
+                            x: cursed.viewport.cursor_x,
+                            y: cursed.viewport.cursor_y,
+                            name: unit_name,
+                            current_health: current_health,
+                            max_health: max_health,
+                            controller: controller,
+                            type: type,
+                            id: Math.random().toString(36).substring(7)
+                        }
+
+                        cursed.client.send({
+                            type: "command",
+                            key: "add.map.unit",
+                            details: details
+                        }, true);
+
+                        cursed.viewer.editor_open = false;               
+                        $(this).dialog("close");
+                    },
+                    "Cancel": function(){
+                        cursed.viewer.editor_open = false;               
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        }
+        else if(e.key === "e"){
+            var el = $("#unit_menu");
+            el.prop("title", "Edit Unit");
+
+            var unit = cursed.viewport.getCurrentUnit();
+
+            $("#unit_name").val(unit.name);
+            $("#current_health").val(unit.current_health);
+            $("#max_health").val(unit.max_health);
+            $("#controller").val(unit.controller);
+            $("#unit_type").val(unit.type);
+
+            el.dialog({
+                resizable: true,
+                height: "auto",
+                width: "20%",
+                modal: true,
+                open: function(){
+
+                    // pause keypress handling
+                    cursed.viewer.editor_open = true;               
+
+                    //blur text box - prevents issue with keybind char getting caught
+                    $("#unit_name").blur();
+                },
+                close: function(){
+                    // allow client to handle keypresses again
+                    cursed.viewer.editor_open = false;               
+                },
+                buttons: {
+                    "Save": function(){
+
+                        var unit_name = $("#unit_name").val();
+                        if(unit_name === null 
+                            || unit_name === undefined
+                            || unit_name === ""){
+                            $("#validation").text("Unit Name must not be empty");
+                            return;
+                        }
+
+                        var current_health = $("#current_health").val();
+                        var valid_int = false;
+                        try{
+                            current_health = parseInt(current_health);
+                            valid_int = true;
+                        }
+                        catch(e){
+                            valid_int = false;
+                        }
+                        if(current_health === null 
+                            || current_health === undefined 
+                            || current_health === ""
+                            || !valid_int){
+                            $("#validation").text("Current Health must not be empty and be a valid integer.");
+                            return;
+                        }
+
+                        var max_health = $("#max_health").val();
+                        var valid_int = false;
+                        try{
+                            max_health = parseInt(max_health);
+                            valid_int = true;
+                        }
+                        catch(e){
+                            valid_int = false;
+                        }
+                        if(max_health === null 
+                            || max_health === undefined 
+                            || max_health === ""
+                            || !valid_int){
+                            $("#validation").text("Max Health must not be empty and be a valid integer.");
+                            return;
+                        }
+
+                        var controller = $("#controller").val();
+                        if(controller === null 
+                            || controller === undefined
+                            || controller === ""){
+                            $("#validation").text("Controller Name must not be empty");
+                            return;
+                        }
+
+                        var type = $("#unit_type").val();
+                        if(type === null 
+                            || type === undefined
+                            || type === ""){
+                            $("#validation").text("A Unit Type must be selected.");
+                            return;
+                        }
+
+                        var unit = cursed.viewport.getCurrentUnit();
+                        unit.name = unit_name;
+                        unit.current_health = current_health;
+                        unit.max_health = max_health;
+                        unit.controller = controller;
+                        unit.type = type;
+
+                        cursed.client.send({
+                            type: "command",
+                            key: "modify.map.unit",
+                            details: unit
+                        }, true);
+
+                        cursed.viewer.editor_open = false;               
+                        $(this).dialog("close");
+                    },
+                    "Cancel": function(){
+                        cursed.viewer.editor_open = false;               
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        }
+        if(e.key === "r"){
+            //TODO: add dialog to confirm?
+            var unit = cursed.viewport.getCurrentUnit();
+
+            cursed.client.send({
+                type: "command",
+                key: "remove.map.unit",
+                details: {
+                    id: unit.id
+                }
+            }, true);
+        }
     }
     else if(command_window.mode === command_window.command_modes.unit_move){
         if(e.key === "Escape"){

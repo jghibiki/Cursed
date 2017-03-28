@@ -72,8 +72,8 @@ with open("data.json", "r") as f:
 
 def gen_save(save_loc):
     def save():
-        with open("data.json", "w") as f:
-            json.dump(save_loc, f, indent=4)
+        with open(save_loc, "w") as f:
+            json.dump(magic.game_data, f, indent=4)
     return save
 
 
