@@ -7,12 +7,10 @@ var client = {
         ack_once: {},
         once: {},
         init_hooks: [],
-        username: "jghibiki",
-        password: "1111",
         debug: false 
     },
     init: function(){
-        client.ws = new WebSocket("ws://localhost:9000")
+        client.ws = new WebSocket("ws://" + cursed.state.server_ip + ":" + cursed.state.server_port )
         client.ws.onopen = function(event){
             client.send({"type": "ping"});
             client.send({"type": "register"});
@@ -21,7 +19,7 @@ var client = {
                 "type": "command",
                 "key": "register.user",
                 "details": {
-                    "username": client._.username,
+                    "username": cursed.state.username,
                     "current_map": null
                 }
             });
@@ -138,7 +136,7 @@ var client = {
         payload.broadcast = broadcast;
 
         payload.id = client._.id;
-        payload.password = client._.password;
+        payload.password = cursed.state.password;
 
         return payload
     },

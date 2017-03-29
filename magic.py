@@ -81,6 +81,8 @@ def start_server(host, port, _gm_password, _password, save_loc):
     global save
     save = gen_save(save_loc) # currey save func
 
+    print("Server url: ws://{0}:{1}".format(host, port))
+
     global gm_password
     gm_password = _gm_password
 

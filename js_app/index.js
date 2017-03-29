@@ -254,6 +254,9 @@ function handleKeypress(e){
                         else if(buff == "ls"){
                             localStorage.loading_screen = !(localStorage.loading_screen == "true");
                         }
+                        else if(buff == "reset"){
+                            localStorage.clear();
+                        }
                         else if(split[0] === "set" && split.length > 2){
                             var var_name = split[1];
                             var var_value = split.slice(2, split.length).join(" ");

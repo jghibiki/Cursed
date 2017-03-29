@@ -199,7 +199,21 @@ map.handle_combo = function(buff){
                     return user.username;
                 });
 
-                if(usernames.indexOf(user_to_switch) > -1){
+                if(user_to_switch === "*"){
+                    var frames = []
+                    for(var username of usernames){
+                        frames.push({ 
+                            type: "command",
+                            key: "move.user",
+                            details: {
+                                username: username,
+                                map_name: map_to_switch
+                            }
+                        });
+                    }
+                    cursed.client.sendBulk(frames);
+                }
+                else if(usernames.indexOf(user_to_switch) > -1){
                     cursed.client.send({
                         type: "command",
                         key: "move.user",

@@ -165,7 +165,10 @@ command_window.draw_title = function(line_no, text){
 }
 
 command_window.draw_key = function(line_no, ch, text, color){
-    var offset_width = Math.floor(command_window.width/(cursed.constants.font_size + cursed.constants.font_width_offset))-3;
+    var offset_width = Math.floor(
+        command_window.width/(
+            cursed.constants.font_size + cursed.constants.font_width_offset)
+    )-5;
 
     
     var split_text = text.match(new RegExp('.{1,' + offset_width + '}', "g"));
@@ -201,10 +204,10 @@ command_window.draw_key = function(line_no, ch, text, color){
     command_window.cont.addChild(text_obj);
     text_obj.cache(0, 0, w*2, h*2);
 
-    ch_no += ch.length
+    ch_no += ch.length 
 
-    text = ": " + text;
-    var length = 1 + text.length; // +1 for :
+    text = " : " + text;
+    var length =  2 + text.length; // +1 for :
 
     var initial_text = text.slice(0, offset_width-ch_no);
     
@@ -228,7 +231,7 @@ command_window.draw_key = function(line_no, ch, text, color){
 
 
     if(ch_no + length > offset_width){
-        var left_over = text.slice(offset_width - ch_no, text.length);
+        var left_over = text.slice(offset_width - ch_no -1, text.length);
         var split_text = left_over.match(new RegExp('.{1,' + offset_width + '}', "g"));
 
         for(var t of split_text){
