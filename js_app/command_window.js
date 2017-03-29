@@ -634,8 +634,6 @@ command_window.handle = function(e){
             //$("#text").val(data.text);
             var el = $("#unit_menu");
             el.prop("title", "Add Unit");
-
-
             el.dialog({
                 resizable: true,
                 height: "auto",

@@ -275,6 +275,63 @@ function handleKeypress(e){
                                 cursed.state[var_name] = var_value;
                             }
                         }
+                        else if(buff === "help"){
+                            e.preventDefault(); // prevents propogation of enter keypress to done
+                            var el = $("#help_dialog");
+                            el.prop("title", "Help Overview");
+
+                            var content = $("#help_content");
+                            content.html(`
+                                <p>
+                                    Cursed is a very complex system with lots of very powerful (but not evident) features. This help overview is intended to confortable with using the Cursed help system and will aid you in viewing other help articles about the various facets of Cursed.
+                                </p>
+                                <br>
+
+                                <b><u>Interface:</u></b>
+                                <p>
+                                    The interface is broken up into five major regions. The text box (left), the map viewer (center), the command window (right), the colon line (bottom left), and the status line (bottom right). The help articles for each of these sections can be viewed by first typing colon to enter colon mode and then any of the following: 
+                                    <pre>help text box</pre>
+                                    <pre>help map viewer</pre>
+                                    <pre>help command window</pre>
+                                    <pre>help colon line</pre>
+                                    <pre>help status line</pre>
+                                    <br>
+
+                                    Reading these help articles will explain how each section of the interface works togeather. Additionally you can view the following help articles for more advanced features:
+                                    <pre>help reset</pre>
+                                    <pre>help set</pre>
+                                    <pre>help chat</pre>
+                                    <pre>help fow</pre>
+                                    <pre>help build</pre>
+                                    <pre>help units</pre>
+                                    <pre>help narrative</pre>
+                                    <pre>help gm</pre>
+                                    <pre>help pc</pre>
+                                    <pre>help move_mode</pre>
+                                </p>
+                            `);
+                            el.dialog({
+                                resizable: true,
+                                height: "auto",
+                                width: "75%",
+                                modal: true,
+                                open: function(){
+                                    // pause keypress handling
+                                    cursed.viewer.editor_open = true;               
+                                    $("#help_dialog").blur();
+                                },
+                                close: function(){
+                                    // allow client to handle keypresses again
+                                    cursed.viewer.editor_open = false;               
+                                },
+                                buttons: {
+                                    "Close": function(){
+                                        $(this).dialog("close");
+                                    }
+                                }
+                            });
+
+                        }
                         else{
                             // get buff minus the colon
                             for(var module of cursed.modules.interactive){
