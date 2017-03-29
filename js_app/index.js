@@ -17,7 +17,8 @@ var cursed = {
         server_ip: "",
         server_port: "",
         fow: "on",
-        role: "pc"
+        role: "pc",
+        move_mode: "hjkl"
     },
     viewer: {
         handling: false,
@@ -264,6 +265,12 @@ function handleKeypress(e){
                                 localStorage.setItem(var_name, var_value);                      
                                 cursed.state[var_name] = var_value;
                             }
+                            else if(var_name === "move_mode"){ // verify valid move_mode settings
+                                if(var_value === "hjkl" || var_value === "ijkl"){
+                                    localStorage.setItem(var_name, var_value);                      
+                                    cursed.state[var_name] = var_value;
+                                }
+                            }
                             else{
                                 cursed.state[var_name] = var_value;
                             }
@@ -349,5 +356,13 @@ function cxnCredentials(){
     }
     else{
         cursed.state.server_port = localStorage.server_port;
+    }
+
+    if(localStorage.move_mode == undefined || localStorage.move_mode == null){
+        cursed.state.move_mode = "hjkl";
+        localStorage.move_mode = "hjkl";
+    }
+    else{
+        cursed.state.move_mode = localStorage.move_mode;
     }
 }

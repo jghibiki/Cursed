@@ -880,7 +880,9 @@ command_window.handle = function(e){
             command_window.draw();
             
         }
-        else if(e.key === "j"){
+        else if(
+            (cursed.state.move_mode === "hjkl" && e.key === "j") ||
+            (cursed.state.move_mode === "ijkl" && e.key === "k") ){
             var current_unit = cursed.viewport.getCurrentUnit();
 
             if(current_unit.y +1 <= cursed.viewport.height){
@@ -902,7 +904,9 @@ command_window.handle = function(e){
                 }, true);
             }
         }
-        else if(e.key === "k"){
+        else if(
+            (cursed.state.move_mode === "hjkl" && e.key === "k") ||
+            (cursed.state.move_mode === "ijkl" && e.key === "i") ){
             var current_unit = cursed.viewport.getCurrentUnit();
 
             if(current_unit.y-1 >= 0){
@@ -924,7 +928,9 @@ command_window.handle = function(e){
                 }, true);
             }
         }
-        else if(e.key === "h"){
+        else if(
+            (cursed.state.move_mode === "hjkl" && e.key === "h") ||
+            (cursed.state.move_mode === "ijkl" && e.key === "j") ){
             var current_unit = cursed.viewport.getCurrentUnit();
 
             if(current_unit.x-1 >= 0){
@@ -946,7 +952,9 @@ command_window.handle = function(e){
                 }, true);
             }
         }
-        else if(e.key === "l"){
+        else if(
+            (cursed.state.move_mode === "hjkl" && e.key === "l") ||
+            (cursed.state.move_mode === "ijkl" && e.key === "l") ){
             var current_unit = cursed.viewport.getCurrentUnit();
 
             if(current_unit.x+1 <= cursed.viewport.width){

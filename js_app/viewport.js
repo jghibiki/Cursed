@@ -177,15 +177,28 @@ viewport.handle = function(event){
          cursed.command_window.mode === cursed.command_window.command_modes.fow ||
          cursed.command_window.mode === cursed.command_window.command_modes.box_select) ){
     
-        if(event.key === "j"){ viewport.cursor_down(); }
-        else if(event.key === "k"){ viewport.cursor_up(); }
-        else if(event.key === "h"){ viewport.cursor_left(); }
-        else if(event.key === "l"){ viewport.cursor_right(); }
+        if(cursed.state.move_mode === "hjkl"){
+            if(event.key === "j"){ viewport.cursor_down(); }
+            else if(event.key === "k"){ viewport.cursor_up(); }
+            else if(event.key === "h"){ viewport.cursor_left(); }
+            else if(event.key === "l"){ viewport.cursor_right(); }
 
-        else if(event.key === "J"){ viewport.down(); }
-        else if(event.key === "K"){ viewport.up(); }
-        else if(event.key === "H"){ viewport.left(); }
-        else if(event.key === "L"){ viewport.right(); }
+            else if(event.key === "J"){ viewport.down(); }
+            else if(event.key === "K"){ viewport.up(); }
+            else if(event.key === "H"){ viewport.left(); }
+            else if(event.key === "L"){ viewport.right(); }
+        }
+        else if(cursed.state.move_mode === "ijkl"){
+            if(event.key === "k"){ viewport.cursor_down(); }
+            else if(event.key === "i"){ viewport.cursor_up(); }
+            else if(event.key === "j"){ viewport.cursor_left(); }
+            else if(event.key === "l"){ viewport.cursor_right(); }
+
+            else if(event.key === "K"){ viewport.down(); }
+            else if(event.key === "I"){ viewport.up(); }
+            else if(event.key === "J"){ viewport.left(); }
+            else if(event.key === "L"){ viewport.right(); }
+        }
     }
         
     if(event.key == "f" && 

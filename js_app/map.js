@@ -52,6 +52,9 @@ map.init = function(){
 
         cursed.status_line.dirty = true;
         cursed.status_line.draw();
+
+        cursed.command_window.dirty = true;
+        cursed.command_window.draw();
     });
 
     cursed.client.subscribe("modify.map.unit", (data)=>{
@@ -82,6 +85,10 @@ map.init = function(){
 
                 cursed.status_line.dirty = true;
                 cursed.status_line.draw();
+
+                cursed.command_window.dirty = true;
+                cursed.command_window.draw();
+                break;
             }
         }
     })
