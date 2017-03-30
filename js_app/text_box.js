@@ -303,6 +303,10 @@ text_box.handle = function(e){
 
 }
 
+text_box.handle_help = function(buff){
+
+}
+
 text_box.handle_combo = function(buff){
     
     if(buff == "clear"){

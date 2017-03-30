@@ -169,6 +169,9 @@ viewport.clear = function(){
     }
 }
 
+viewport.handle_help = function(buff){
+
+}
 
 viewport.handle = function(event){
     if(!cursed.viewer.handling && 

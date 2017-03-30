@@ -35,6 +35,10 @@ chat.init = function(){
 chat.update = function(hashes){
 };
 
+chat.handle_help = function(buff){
+
+}
+
 chat.handle = function(e){
     if(e.key === "c"){
         chat.show();        

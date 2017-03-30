@@ -166,6 +166,10 @@ map.handle = function(e){
     }
 };
 
+map.handle_help = function(buff){
+
+}
+
 map.load_map = function(){
 
     cursed.client.send({

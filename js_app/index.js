@@ -51,7 +51,8 @@ function load(){
         {id: "map", src: "./map.js"},
         {id: "users", src: "./users.js"},
         {id: "chat", src: "./chat.js"},
-        {id: "narrative", src: "./narrative.js"}
+        {id: "narrative", src: "./narrative.js"},
+        {id: "roll", src: "./roll.js"}
     ]);
 }
 
@@ -209,6 +210,7 @@ function build_namespace() {
     cursed.chat = chat;
     cursed.users = users;
     cursed.narrative = narrative;
+    cursed.roll = roll;
 }
 
 function init_modules(){
@@ -224,6 +226,7 @@ function init_modules(){
     cursed.users.init();
     cursed.chat.init();
     cursed.narrative.init();
+    cursed.roll.init();
 
     // do last
     cursed.client.init();
@@ -331,6 +334,13 @@ function handleKeypress(e){
                                 }
                             });
 
+                        }
+                        else if(split[0] === "help" && split.length > 1){
+                            var help_buff = split.splice(1, split.length).join(" ");
+                            e.preventDefault(); // prevents propogation of enter keypress to done
+                            for(var module of cursed.modules.interactive){
+                                module.handle_help(help_buff);
+                            }
                         }
                         else{
                             // get buff minus the colon
