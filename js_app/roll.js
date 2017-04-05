@@ -3,6 +3,7 @@
 var roll = {
     dirty : false,
     showing: false,
+    previous_roll: null
 };
 
 roll.init = function(){
@@ -15,19 +16,26 @@ roll.handle = function(){};
 roll.handle_combo = function(buff){
     var split = buff.split(" ");
 
-    if(split[0] == "roll" && split.length == 2){
+    if((split[0] === "roll" || split[0] === "r" ) && split.length == 2){
         var text = split[1];
         var log = roll.parse(text);
+        roll.previous_roll = text;
 
         cursed.text_box.set(log);
         narrative.show();
     }
 
+    if((split[0] === "reroll" || split[0] === "rr" )){
+        var text = roll.previous_roll;
+        if(text !== null){
+            var log = roll.parse(text);
+            roll.previous_roll = text;
+
+            cursed.text_box.set(log);
+            narrative.show();
+        }
+    }
 };
-
-roll.handleHelp = function(buff){
-
-}
 
 roll.show = function(){
     cursed.modules.text_display.map((e)=>{e.hide();});
@@ -111,7 +119,7 @@ roll.handle_help = function(buff){
     if(buff === "roll"){
 
         var el = $("#help_dialog");
-        el.prop("title", "Help: roll");
+        el.prop("title", "Help: rolling dice and rerolling dice");
 
         var content = $("#help_content");
         content.html(`
@@ -130,6 +138,21 @@ roll.handle_help = function(buff){
                 <pre>:roll 2d6+3</pre>
                 <pre>:roll 2d4-1</pre>
 
+                Abbreviated form:
+                <pre>:r 2d20</pre>
+                <pre>:r 2d6+3</pre>
+
+                <br>
+                <hr>
+                <br>
+
+                The reroll tool allows you to reroll the last roll that was made. In order to reroll you must have used the roll tool at least once previously. In this browser session.
+
+                Examples:
+                <pre>:reroll</pre>
+
+                Abbreviated form:
+                <pre>:rr</pre>
 
             </p>
         `);
