@@ -178,6 +178,7 @@ viewport.handle = function(event){
         (cursed.command_window.mode === cursed.command_window.command_modes.default ||
          cursed.command_window.mode === cursed.command_window.command_modes.build ||
          cursed.command_window.mode === cursed.command_window.command_modes.fow ||
+         cursed.command_window.mode === cursed.command_window.command_modes.initiative_unit_select ||
          cursed.command_window.mode === cursed.command_window.command_modes.box_select) ){
     
         if(cursed.state.move_mode === "hjkl"){
@@ -538,8 +539,17 @@ viewport.getCurrentUnit = function(){
     var i = viewport.units.length;
     while(i--){
         var u = viewport.units[i];
-        if(u.x === viewport.cursor_x && u.y === viewport.cursor_y){
+        if(u.x === (viewport.cursor_x + viewport.v_x) && u.y === (viewport.cursor_y + viewport.v_y)){
             return u;
+        }
+    }
+    return null;
+}
+
+viewport.getUnit = function(id){
+    for(var i=0; i<viewport.units.length; i++){
+        if(viewport.units[i].id === id){
+            return viewport.units[i];
         }
     }
     return null;

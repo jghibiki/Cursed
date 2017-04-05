@@ -1,4 +1,3 @@
-
 var map = {
     map_hash: null,
     fow_hash: null,

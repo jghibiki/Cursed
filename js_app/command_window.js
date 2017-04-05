@@ -10,7 +10,9 @@ var command_window = {
         fow: 2,
         units: 3,
         unit_move: 4,
-        box_select: 5
+        box_select: 5,
+        initiative: 6,
+        initiative_unit_select: 7
     },
     
     //box select vars
@@ -127,6 +129,12 @@ command_window.draw = function(){
         }
         else if(command_window.mode === command_window.command_modes.unit_move){
             command_window.draw_unit_move_screen();
+        }
+        else if(command_window.mode === command_window.command_modes.initiative){
+            command_window.draw_initiative_screen();
+        }
+        else if(command_window.mode === command_window.command_modes.initiative_unit_select){
+            command_window.draw_initiative_unit_select_screen();
         }
 
         command_window.dirty = false;
@@ -280,6 +288,11 @@ command_window.handle = function(e){
             command_window.mode = command_window.command_modes.units;
             command_window.dirty = true;
             command_window.draw();
+        }else if(e.key === "!"){
+            command_window.mode = command_window.command_modes.initiative;
+            command_window.dirty = true;
+            command_window.draw();
+            cursed.initiative.show();
         }
     }
     else if(command_window.mode === command_window.command_modes.build){
@@ -975,6 +988,54 @@ command_window.handle = function(e){
             }
         }
     }
+    else if(command_window.mode === command_window.command_modes.initiative){
+        if(e.key === "Escape"){
+            command_window.mode = command_window.command_modes.default;
+            command_window.dirty = true;
+            command_window.draw();
+        }
+        else if(e.key === "s" && !cursed.initiative.encounter_started){
+            cursed.initiative.show();
+            command_window.mode = command_window.command_modes.initiative_unit_select;
+            command_window.dirty = true;
+            command_window.draw();
+        }
+        else if(e.key === "!"){
+            cursed.initiative.show();
+        }
+        else if(e.key === "p"){
+            cursed.initiative.selectPrevious();
+        }
+        else if(e.key === "n"){
+            cursed.initiative.selectNext();
+        }
+        else if(e.key === "b" && !cursed.initiative.encounter_started){
+            cursed.initiative.beginEncounter();
+            command_window.mode = command_window.command_modes.initiative;
+            command_window.dirty = true;
+            command_window.draw();
+        }
+        else if(e.key === "e" && cursed.initiative.encounter_started){
+            cursed.initiative.endEncounter();
+            command_window.mode = command_window.command_modes.initiative;
+            command_window.dirty = true;
+            command_window.draw();
+        }
+    }
+    else if(command_window.mode === command_window.command_modes.initiative_unit_select){
+        if(e.key === "Escape"){
+            command_window.mode = command_window.command_modes.initiative;
+            command_window.dirty = true;
+            command_window.draw();
+            
+        }
+        else if(e.key === "a"){
+            cursed.initiative.addUnit();
+        }
+        else if(e.key === "r"){
+            cursed.initiative.removeUnit();
+        }
+    }
 }
 
 command_window.handle_combo = function(buf){
@@ -1001,6 +1062,7 @@ command_window.draw_gm_default_screen = function(){
     line = command_window.draw_key(line, "u", "Units");
     line = command_window.draw_key(line, "m", "Maps");
     line = command_window.draw_key(line, "u", "Users");
+    line = command_window.draw_key(line, "!", "Initiative");
 }
 
 command_window.draw_build_screen = function(){
@@ -1129,3 +1191,30 @@ command_window.draw_box_select_screen = function(){
     line = command_window.draw_key(line, "esc", "Cancel");
 }
 
+command_window.draw_initiative_screen = function(){
+    var line = command_window.draw_title(0, "Initiative:");
+    if(!cursed.initiative.encounter_started){
+        line = command_window.draw_key(line, "s", "Select/Unselect Units");
+    }
+    line = command_window.draw_key(line, "!", "Show encounter units");
+
+    if(!cursed.initiative.encounter_started){
+        line = command_window.draw_key(line, "b", "Begin Encounter");
+    }
+    else if(cursed.initiative.encounter_started){
+        line = command_window.draw_key(line, "e", "End Encounter");
+    }
+
+    line = command_window.draw_key(line+1, "n", "Next Unit");
+    line = command_window.draw_key(line, "p", "Previous Unit");
+
+    line = command_window.draw_key(line+2, "esc", "Back");
+}
+
+command_window.draw_initiative_unit_select_screen = function(){
+    var line = command_window.draw_title(0, "Initiative Unit Select:");
+    line = command_window.draw_key(line, "a", "Select Unit");
+    line = command_window.draw_key(line, "r", "Unselect Unit");
+
+    line = command_window.draw_key(line+2, "esc", "Back");
+}

@@ -258,6 +258,27 @@ text_box.draw = function(){
                         overflow_buff = "";
 
                     }
+                    else if(buff.length === 1 && overflow_buff.length == 0){ //handles the case of only one character to print
+                        text.x = ch;
+                        text.y = (line_no * cursed.constants.font_size);
+                        text.letterSpacing = cursed.constants.font_spacing;
+                        text.lineHeight = cursed.constants.font_size*2;
+
+                        text.filters = [
+                            new createjs.ColorFilter(0, 0, 0, 1, color_obj.r, color_obj.g, color_obj.b, 0)
+                        ];
+
+                        var bounds = text.getBounds();
+                        var w = bounds.width;
+                        var h = bounds.height;
+                        text.cache(0, 0, w*2, h*2);
+                        text_box.text_container.addChild(text);
+
+                        ch += w - 4;
+
+                        buff = overflow_buff;
+                        overflow_buff = "";
+                    }
                     else{
                         ch = 0;
                         line_no += 1;

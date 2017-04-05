@@ -18,7 +18,8 @@ var cursed = {
         server_port: "",
         fow: "on",
         role: "pc",
-        move_mode: "hjkl"
+        move_mode: "hjkl",
+        initiative_die_sides: 20
     },
     viewer: {
         handling: false,
@@ -52,7 +53,8 @@ function load(){
         {id: "users", src: "./users.js"},
         {id: "chat", src: "./chat.js"},
         {id: "narrative", src: "./narrative.js"},
-        {id: "roll", src: "./roll.js"}
+        {id: "roll", src: "./roll.js"},
+        {id: "initiative", src: "./initiative.js"}
     ]);
 }
 
@@ -211,6 +213,7 @@ function build_namespace() {
     cursed.users = users;
     cursed.narrative = narrative;
     cursed.roll = roll;
+    cursed.initiative = initiative;
 }
 
 function init_modules(){
@@ -227,6 +230,7 @@ function init_modules(){
     cursed.chat.init();
     cursed.narrative.init();
     cursed.roll.init();
+    cursed.initiative.init();
 
     // do last
     cursed.client.init();
