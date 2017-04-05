@@ -291,7 +291,7 @@ viewport.cursor_up = function(){
 
 viewport.cursor_down = function(){
     cursed.viewer.handling = true;
-    setTimeout(()=>{cursed.viewer.handling = false;}, 200);
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
 
     if(viewport.cursor_y < viewport.height-1){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
@@ -311,7 +311,7 @@ viewport.cursor_down = function(){
 
 viewport.cursor_left = function(){
     cursed.viewer.handling = true;
-    setTimeout(()=>{cursed.viewer.handling = false;}, 200);
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
 
     if(viewport.cursor_x > 0){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
@@ -330,7 +330,7 @@ viewport.cursor_left = function(){
 
 viewport.cursor_right = function(){
     cursed.viewer.handling = true;
-    setTimeout(()=>{cursed.viewer.handling = false;}, 200);
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
 
     if(viewport.cursor_x < viewport.width-1){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
@@ -349,7 +349,7 @@ viewport.cursor_right = function(){
 
 viewport.up = function(){
     cursed.viewer.handling = true;
-    setTimeout(()=>{cursed.viewer.handling = false;}, 200);
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
 
     if(viewport.v_y > 2){
         viewport.v_y -= 2;
@@ -367,7 +367,7 @@ viewport.up = function(){
 
 viewport.down = function(){
     cursed.viewer.handling = true;
-    setTimeout(()=>{cursed.viewer.handling = false;}, 200);
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
 
     if(viewport.v_y < ((viewport.v_height - viewport.height - 2))){
         viewport.v_y += 2;
