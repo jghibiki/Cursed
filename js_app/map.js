@@ -160,8 +160,10 @@ map.update = function(hashes){
 }
 
 map.handle = function(e){
-    if(e.key === "m" && cursed.command_window.mode === cursed.command_window.command_modes.default){
-        map.show();
+    if(cursed.state.role === "gm"){
+        if(e.key === "m" && cursed.command_window.mode === cursed.command_window.command_modes.default){
+            map.show();
+        }
     }
 };
 
@@ -184,6 +186,11 @@ map.load_map = function(){
     cursed.client.send({
         type: "command",
         key: "get.map.units"
+    });
+
+    cursed.client.send({
+        type: "command",
+        key: "get.users"
     });
 }
 

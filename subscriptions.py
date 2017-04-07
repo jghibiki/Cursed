@@ -1417,6 +1417,10 @@ common_handlers = {
     "register.user": [registerUser],
 
     "get.chat": [getChat],
+
+    "get.map.units": [getMapUnits],
+
+    "get.map.fow": [getMapFow],
 }
 
 gm_handlers = {
@@ -1442,12 +1446,10 @@ gm_handlers = {
 
     "add.map.fow": [addMapFow],
     "remove.map.fow": [removeMapFow],
-    "get.map.fow": [getMapFow],
 
     "add.map.unit": [addMapUnit],
     "remove.map.unit": [removeMapUnit],
     "modify.map.unit": [modifyMapUnit],
-    "get.map.units": [getMapUnits],
 
     "add.narrative": [addNarrative],
     "remove.narrative": [removeNarrative],
