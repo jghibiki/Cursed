@@ -1021,6 +1021,12 @@ command_window.handle = function(e){
             command_window.dirty = true;
             command_window.draw();
         }
+        else if(e.key === "<" && !cursed.initiative.encounter_started){
+            cursed.initiative.decreaseModifier();
+        }
+        else if(e.key === ">" && !cursed.initiative.encounter_started){
+            cursed.initiative.increaseModifier();
+        }
     }
     else if(command_window.mode === command_window.command_modes.initiative_unit_select){
         if(e.key === "Escape"){
@@ -1205,8 +1211,14 @@ command_window.draw_initiative_screen = function(){
         line = command_window.draw_key(line, "e", "End Encounter");
     }
 
+
     line = command_window.draw_key(line+1, "n", "Next Unit");
     line = command_window.draw_key(line, "p", "Previous Unit");
+
+    if(!cursed.initiative.encounter_started){
+        line = command_window.draw_key(line+1, "<", "Decrease Unit Modifier");
+        line = command_window.draw_key(line, ">", "Increase Unit Modifier");
+    }
 
     line = command_window.draw_key(line+2, "esc", "Back");
 }

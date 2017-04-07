@@ -77,9 +77,12 @@ initiative.beginEncounter = function(){
     for(var i=0; i<initiative.units.length; i++){
         initiative.units[i].selected = false;
 
-        initiative.units[i].roll = Math.floor(Math.random() * cursed.state.initiative_die_sides);
+        initiative.units[i].roll = Math.ceil(Math.random() * (cursed.state.initiative_die_sides));
+        if(initiative.units[i].roll === 0){ initiative.units[i].roll = 1; } //lazily handle the case of rolling 0
         initiative.units[i].initiative = initiative.units[i].roll + initiative.units[i].modifier;
     }
+
+    initiative.units = initiative.units.sort((a,b)=>{ return b.initiative-a.initiative; });
 
     if(initiative.units.length > 0){
         initiative.units[0].selected = true;
@@ -107,7 +110,12 @@ initiative.updateText = function(){
         color: "Gold"
     }] ];
 
-    initiative.units = initiative.units.sort((a,b)=>{ return b.initiative-a.initiative; });
+    if(!initiative.encoiunter_started){
+        initiative.units = initiative.units.sort();
+    }
+    else {
+        initiative.units = initiative.units.sort((a,b)=>{ return b.initiative-a.initiative; });
+    }
 
     for(var unit of initiative.units){
         var color = null;
@@ -142,6 +150,10 @@ initiative.updateText = function(){
             {
                 text: unit.name,
                 color: color
+            },
+            {
+                text: "[Mod:" + (unit.modifier>=0?"+":"-") +  unit.modifier + "]",
+                color: "White"
             },
             {
                 text: "(x:" + unit.x.toString() + ", y:" + unit.y.toString() + ")",
@@ -196,4 +208,25 @@ initiative.selectPrevious = function(){
             return;
         }
     }
+}
+
+initiative.increaseModifier = function(){
+    for(var unit of initiative.units){
+        if(unit.selected){
+            unit.modifier += 1;
+            initiative.updateText();
+            break;
+        }
+    }
+}
+
+initiative.decreaseModifier = function(){
+    for(var unit of initiative.units){
+        if(unit.selected){
+            unit.modifier -= 1;
+            initiative.updateText();
+            break;
+        }
+    }
+
 }

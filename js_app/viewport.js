@@ -454,18 +454,10 @@ viewport.updateUnits = function(units){
 };
 
 viewport.getCursorFocus = function(){
-    var unit = null;
+    var unit = viewport.getCurrentUnit();
     var feature = null;
 
-    var i = viewport.units.length;
-    while(i--){
-        var u = viewport.units[i];
-        if(u.x == viewport.cursor_x &&
-           u.y == viewport.cursor_y){
-            unit = u;
-            break;
-        }
-    }
+
 
     if (unit === null){
         var i = viewport.features.length;
