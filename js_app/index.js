@@ -351,6 +351,7 @@ function handleKeypress(e){
                             for(var module of cursed.modules.interactive){
                                 module.handle_combo(buff);
                             }
+                            e.preventDefault();
                         }
                     
                     }

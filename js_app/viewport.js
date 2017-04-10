@@ -434,23 +434,23 @@ viewport.updateBounds = function(y, x){
 
 viewport.updateFeatures = function(features){
     viewport.features = features;
-    viewport.dirty = true;
-    viewport.clear();
-    viewport.draw();
+    //viewport.dirty = true;
+    //viewport.clear();
+    //viewport.draw();
 }
 
 viewport.updateFow = function(fow){
     viewport.fow = fow;
-    viewport.dirty = true;
-    viewport.clear();
-    viewport.draw();
+    //viewport.dirty = true;
+    //viewport.clear();
+    //viewport.draw();
 }
 
 viewport.updateUnits = function(units){
     viewport.units = units;
-    viewport.dirty = true;
-    viewport.clear();
-    viewport.draw();
+    //viewport.dirty = true;
+    //viewport.clear();
+    //viewport.draw();
 };
 
 viewport.getCursorFocus = function(){

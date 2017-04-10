@@ -313,31 +313,8 @@ command_window.handle = function(e){
             }
         }
 
-        var keybindings = [
-            { key: "w", type: "Wall" },
-            { key: "t", type: "Table" },
-            { key: "c", type: "Chair" },
-            { key: "d", type: "Door" },
-            { key: ">", type: "Up Stair" },
-            { key: "<", type: "Down Stair" },
-            { key: "%", type: "Lantern" },
-            { key: "r", type: "Road" },
-            { key: "G", type: "Gate" },
-            { key: "~", type: "Water" },
-            { key: "t", type: "Tree" },
-            { key: "o", type: "Bush" },
-            { key: ".", type: "Grass" },
-            { key: "^", type: "Hill" },
-            { key: "b", type: "Bed" },
-            { key: "&", type: "Statue" },
-            { key: "B", type: "Blood" },
-            { key: "f", type: "Fire" },
-            { key: "s", type: "Snow" },
-            { key: "O", type: "Boulder" }
-        ];
-
-        for(var binding of keybindings){
-            if(e.key === binding.key){
+        for(var feature of cursed.features.objects){
+            if(e.key === feature.key){
                 if(command_window.box){
                     var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]);
                     var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + 1;
@@ -346,8 +323,6 @@ command_window.handle = function(e){
                     var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + 1;
 
                     var frames = [];
-
-                    var feature = cursed.features.get(binding.type);
 
                     for(var i=y_min; i < y_max; i++){
                         for(var j=x_min; j < x_max; j++){
@@ -379,10 +354,9 @@ command_window.handle = function(e){
 
                 }
                 else{
-                    var feature = cursed.features.get(binding.type);
                     var new_feature =  {
-                        x: cursed.viewport.cursor_x,
-                        y: cursed.viewport.cursor_y,
+                        x: cursed.viewport.cursor_x + cursed.viewport.v_x,
+                        y: cursed.viewport.cursor_y + cursed.viewport.v_y,
                         type: feature.name,
                         notes: ""
                     };
@@ -436,8 +410,8 @@ command_window.handle = function(e){
                     type: "command",
                     key: "remove.map.feature",
                     details: {
-                        x: cursed.viewport.cursor_x,
-                        y: cursed.viewport.cursor_y,
+                        x: cursed.viewport.cursor_x + cursed.viewport.v_x,
+                        y: cursed.viewport.cursor_y + cursed.viewport.v_y,
                     }
                 }, true);
             }
@@ -1080,27 +1054,11 @@ command_window.draw_build_screen = function(){
         line = command_window.draw_title(0, "Build:");
     }
 
-    line = command_window.draw_key(line, "w", "Wall");
-    line = command_window.draw_key(line, "t", "Table");
-    line = command_window.draw_key(line, "c", "Chair");
-    line = command_window.draw_key(line, "d", "Door");
-    line = command_window.draw_key(line, ">", "Up Stair");
-    line = command_window.draw_key(line, "<", "Down Stair");
-    line = command_window.draw_key(line, "%", "Lantern");
-    line = command_window.draw_key(line, "r", "Road");
-    line = command_window.draw_key(line, "#", "Chest");
-    line = command_window.draw_key(line, "G", "Gate");
-    line = command_window.draw_key(line, "~", "Water");
-    line = command_window.draw_key(line, "t", "Tree");
-    line = command_window.draw_key(line, "o", "Bush");
-    line = command_window.draw_key(line, ".", "Grass");
-    line = command_window.draw_key(line, "^", "Hill");
-    line = command_window.draw_key(line, "b", "Bed");
-    line = command_window.draw_key(line, "&", "Statue");
-    line = command_window.draw_key(line, "B", "Blood");
-    line = command_window.draw_key(line, "f", "Fire");
-    line = command_window.draw_key(line, "s", "Snow");
-    line = command_window.draw_key(line, "O", "Boulder");
+    for(var feature of cursed.features.objects.sort((a, b)=>{
+        return a.name.localeCompare(b.name);
+    })){
+        line = command_window.draw_key(line, feature.key, feature.name);
+    }
 
     line = command_window.draw_key(line+1, "x", "Remove Object");
     line = command_window.draw_key(line, "space", "Select box corner");

@@ -1,117 +1,182 @@
 "use strict";
 
-var features = {};
+var features = {
+    
+};
 
-features.objects = [
+features.objects = [];
+features._objects = [
     {
         name: "Wall",
         character: "\u2588",
-        color: "Brown"
+        color: "Brown",
+        key: "w"
     },
     {
         name: "Table",
         character: "T",
-        color: "Brown"
+        color: "Brown",
+        key: "T"
     },
     {
         name: "Chair",
         character: "c",
-        color: "Brown"
+        color: "Brown",
+        key: "c"
     },
     {
         name: "Door",
         character: "d",
-        color: "Brown"
+        color: "Brown",
+        key: "d"
     },
     {
         name: "Up Stair",
         character: "\u2191",
-        color: "Brown"
+        color: "Brown",
+        key: ">"
     },
     {
         name: "Down Stair",
         character: "\u2193",
-        color: "Brown"
+        color: "Brown",
+        key: "<"
     },
     {
         name: "Lantern",
         character: "%",
-        color: "Gold"
+        color: "Gold",
+        key: "%"
     },
     {
         name: "Road",
         character: "\u2588",
-        color: "Grey"
+        color: "Grey",
+        key: "r"
     },
     {
         name: "Chest",
         character: "#",
-        color: "White"
+        color: "White",
+        key: "#"
     },
     {
         name: "Gate",
         character: "G",
-        color: "Brown"
+        color: "Brown",
+        key: "G"
     },
     {
         name: "Water",
         character: "~",
-        color: "Light Blue"
+        color: "Light Blue",
+        key: "~"
     },
     {
         name: "Tree",
         character: "O",
-        color: "Brown"
+        color: "Brown",
+        key: "t"
     },
     {
         name: "Bush",
         character: "o",
-        color: "Dark Green"
+        color: "Dark Green",
+        key: "o"
     },
     {
         name: "Grass",
         character: ".",
-        color: "Dark Green"
+        color: "Dark Green",
+        key: "."
     },
     {
         name: "Hill",
         character: "^",
-        color: "White"
+        color: "White",
+        key: "^"
     },
     {
         name: "Bed",
         character: "b",
-        color: "Brown"
+        color: "Brown",
+        key: "b"
     },
     {
         name: "Statue",
         character: "&",
-        color: "White"
+        color: "White",
+        key: "&"
     },
     {
         name: "Blood",
         character: "\u2588",
-        color: "Dark Red"
+        color: "Dark Red",
+        key: "B"
     },
     {
         name: "Fire",
         character: "~",
-        color: "Orange"
+        color: "Orange",
+        key: "f"
     },
     {
         name: "Snow",
         character: "\u2588",
-        color: "White"
+        color: "White", 
+        key: "s"
     },
     {
         name: "Boulder",
         character: "O",
-        color: "Dark Grey"
+        color: "Dark Grey",
+        key: "O"
     }
 ];
 
 
 features.init = function(){
+    cursed.client.subscribe("get.map.feature.types", (data)=>{
+        features.objects = data.payload;
+        cursed.map.loading.types  = false;
+        if(!cursed.map.is_loading()){
+            viewport.dirty = true;
+            viewport.clear();
+            viewport.draw();
+        }
+    });
+
+    cursed.client.subscribe("add.map.feature.type", (data)=>{
+        features.objects.push(data.details);
+    });
+
+    cursed.client.subscribe("remove.map.feature.type", (data)=>{
+        for(var i=0; i<features.objects.length; i++){
+            if(features.objects[i].name == data.details.name){
+                features.objects.splice(i, 1);
+                break;
+            }
+        }
+    });
+
+    cursed.client.registerInitHook(()=>{
+        cursed.client.send({
+            type: "command",
+            key: "get.map.feature.types"
+        });
+    });
+
+    cursed.modules.interactive.push(features);
+}
+
+features.handle = function(e){
+}
+
+features.handle_combo = function(buff){
+}
+
+features.handle_help = function(buff){
+
 }
 
 features.test = function(){

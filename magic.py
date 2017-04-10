@@ -16,6 +16,29 @@ game_data["maps"] = {}
 game_data["maps"]["__staging__"] = {
     "max_x": 100,
     "max_y": 100,
+    "feature_types": [
+        { "name": "Wall",       "character": "\u2588",  "color": "Brown",       "key": "w" },
+        { "name": "Table",      "character": "T",       "color": "Brown",       "key": "T" },
+        { "name": "Chair",      "character": "c",       "color": "Brown",       "key": "c" },
+        { "name": "Door",       "character": "d",       "color": "Brown",       "key": "d" },
+        { "name": "Up Stair",   "character": "\u2191",  "color": "Brown",       "key":">" },
+        { "name": "Down Stair", "character": "\u2193",  "color": "Brown",       "key": "<" },
+        { "name": "Lantern",    "character": "%",       "color": "Gold",        "key": "%" },
+        { "name": "Road",       "character": "\u2588",  "color": "Grey",        "key": "r" },
+        { "name": "Chest",      "character": "#",       "color": "White",       "key": "#" },
+        { "name": "Gate",       "character": "G",       "color": "Brown",       "key": "G" },
+        { "name": "Water",      "character": "~",       "color": "Light Blue",  "key": "~" },
+        { "name": "Tree",       "character": "O",       "color": "Brown",       "key": "t" },
+        { "name": "Bush",       "character": "o",       "color": "Dark Green",  "key":"o" },
+        { "name": "Grass",      "character": ".",       "color": "Dark Green",  "key": "." },
+        { "name": "Hill",       "character": "^",       "color": "White",       "key": "^" },
+        { "name": "Bed",        "character": "b",       "color": "Brown",       "key": "b" },
+        { "name": "Statue",     "character": "&",       "color": "White",       "key":"&" },
+        { "name": "Blood",      "character": "\u2588",  "color": "Dark Red",    "key":"B" },
+        { "name": "Fire",       "character": "~",       "color": "Orange",      "key": "f"},
+        { "name": "Snow",       "character": "\u2588",  "color": "White",       "key":"s" },
+        { "name": "Boulder",    "character": "O",       "color": "Dark Grey",   "key": "O"}
+    ],
     "features": [{"y": 4,"x": 8,"type": "Snow","notes": ""},
         {"y": 4,"x": 7,"type": "Snow","notes": ""},{"y": 4,"x": 6,"type": "Snow","notes": ""},
         {"y": 4,"x": 5,"type": "Snow","notes": ""},{"y": 5,"x": 5,"type": "Snow","notes": ""},
@@ -73,7 +96,7 @@ with open("data.json", "r") as f:
 def gen_save(save_loc):
     def save():
         with open(save_loc, "w") as f:
-            json.dump(magic.game_data, f, indent=4)
+            json.dump(game_data, f, indent=4)
     return save
 
 

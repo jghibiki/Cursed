@@ -242,6 +242,7 @@ def addMap(client, req):
     magic.game_data["maps"][new_map_name] = {
         "max_x": width,
         "max_y": height,
+        "feature_types": [],
         "features": [],
         "notes": [],
         "units": [],
@@ -588,6 +589,158 @@ def modifyMapNote(client, req):
 # Feature Operations
 #
 
+def getMapFeatureTypes(client, req):
+    user = _getUserInfo(id=req["id"])
+    if not user:
+        client.sendTarget(
+            req["id"],
+            type="error",
+            key="get.map.feature.types",
+            payload={
+                "msg": "User with id \"{0}\" has not been registered.".format(req["id"])
+        })
+        return False
+
+    if user["current_map"] not in magic.game_data["maps"]:
+        client.sendTarget(
+            req["id"],
+            type="error",
+            key="get.map.feature.types",
+            payload={
+                "msg": "User \"{0}\" is on map \"{1}\", however this map could not be found.".format(user["username"], user["current_map"])
+        })
+        return False
+
+    types = magic.game_data["maps"][user["current_map"]]["feature_types"]
+    client.sendTarget(req["id"], key="get.map.feature.types", payload={"payload": types})
+    return True
+
+def removeMapFeatureType(client, req):
+    if "name" not in req["details"]:
+        client.sendTarget(
+                req["id"],
+                type="error",
+                key="remove.map.feature.type",
+                payload={"msg": "Request details missing \"name\""})
+        return False
+    name = req["details"]["name"]
+
+    user = _getUserInfo(id=req["id"])
+    if not user:
+        client.sendTarget(
+            req["id"],
+            type="error",
+            key="remove.map.feature.type",
+            payload={
+                "msg": "User with id \"{0}\" has not been registered.".format(req["id"])
+        })
+        return False
+
+    if user["current_map"] not in magic.game_data["maps"]:
+        client.sendTarget(
+            req["id"],
+            type="error",
+            key="remove.map.feature.type",
+            payload={
+                "msg": "User \"{0}\" is on map \"{1}\", however this map could not be found.".format(user["username"], user["current_map"])
+        })
+        return False
+
+    for feature_type in magic.game_data["maps"][user["current_map"]]["feature_types"]:
+        if feature_type["name"] == name:
+            magic.game_data["maps"][user["current_map"]]["feature_types"].remove(feature_type)
+
+            client.sendTarget(
+                    req["id"],
+                    type="acknowledge",
+                    key="remove.map.feature.type",
+                    payload={})
+            return True
+
+    client.sendTarget(
+            req["id"],
+            type="error",
+            key="remove.map.feature.type",
+            payload={
+                "msg": "Feature type with name \"{0}\" does not exist.".format(feature_type)})
+    return False
+
+
+def addMapFeatureType(client, req):
+    if "name" not in req["details"]:
+        client.sendTarget(
+                req["id"],
+                type="error",
+                key="add.map.feature.type",
+                payload={"msg": "Request details missing \"name\""})
+        return False
+    name = req["details"]["name"]
+
+    if "color" not in req["details"]:
+        client.sendTarget(
+                req["id"],
+                type="error",
+                key="add.map.feature.type",
+                payload={"msg": "Request details missing \"color\""})
+        return False
+    color = req["details"]["color"]
+
+    if "character" not in req["details"]:
+        client.sendTarget(
+                req["id"],
+                type="error",
+                key="add.map.feature.type",
+                payload={"msg": "Request details missing \"character\""})
+        return False
+    character = req["details"]["character"]
+
+    if "key" not in req["details"]:
+        client.sendTarget(
+                req["id"],
+                type="error",
+                key="add.map.feature.type",
+                payload={"msg": "Request details missing \"key\""})
+        return False
+    key = req["details"]["key"]
+
+    user = _getUserInfo(id=req["id"])
+    if not user:
+        client.sendTarget(
+            req["id"],
+            type="error",
+            key="add.map.feature.type",
+            payload={
+                "msg": "User with id \"{0}\" has not been registered.".format(req["id"])
+        })
+        return False
+
+    if user["current_map"] not in magic.game_data["maps"]:
+        client.sendTarget(
+            req["id"],
+            type="error",
+            key="add.map.feature.type",
+            payload={
+                "msg": "User \"{0}\" is on map \"{1}\", however this map could not be found.".format(user["username"], user["current_map"])
+        })
+        return False
+
+    magic.game_data["maps"][user["current_map"]]["feature_types"].append({
+        "name": name,
+        "character": character,
+        "color": color,
+        "key": key
+    })
+
+    client.sendTarget(
+            req["id"],
+            type="acknowledge",
+            key="add.map.feature.type",
+            payload={})
+
+    return True
+
+
+
 def addMapFeature(client, req):
     if "x" not in req["details"]:
         client.sendTarget(
@@ -714,6 +867,7 @@ def removeMapFeature(client, req):
                     payload={
                         "msg": "Feature does not exist at ({0}, {1})"
                              .format(x, y)})
+            return False
         else:
             client.sendTarget(
                 req["id"],
@@ -1391,6 +1545,7 @@ def save(client, req):
             payload={})
 
 
+
 ##########################
 # Util Functions         #
 ##########################
@@ -1421,12 +1576,15 @@ common_handlers = {
     "get.map.units": [getMapUnits],
 
     "get.map.fow": [getMapFow],
+
+    "get.map.feature.types": [getMapFeatureTypes]
 }
 
 gm_handlers = {
 
     "get.users": [getUsers],
     "move.user": [moveUser],
+
 
     "add.chat.message": [addChatMessage],
     "clear.chat": [clearChat],
@@ -1440,6 +1598,9 @@ gm_handlers = {
     "remove.map.note": [removeMapNote],
     "modify.map.note": [modifyMapNote],
     "get.map.notes": [getMapNotes],
+
+    "add.map.feature.type": [addMapFeatureType],
+    "remove.map.feature.type": [removeMapFeatureType],
 
     "add.map.feature": [addMapFeature],
     "remove.map.feature": [removeMapFeature],
