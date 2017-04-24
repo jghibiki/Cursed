@@ -5,134 +5,6 @@ var features = {
 };
 
 features.objects = [];
-features._objects = [
-    {
-        name: "Wall",
-        character: "\u2588",
-        color: "Brown",
-        key: "w"
-    },
-    {
-        name: "Table",
-        character: "T",
-        color: "Brown",
-        key: "T"
-    },
-    {
-        name: "Chair",
-        character: "c",
-        color: "Brown",
-        key: "c"
-    },
-    {
-        name: "Door",
-        character: "d",
-        color: "Brown",
-        key: "d"
-    },
-    {
-        name: "Up Stair",
-        character: "\u2191",
-        color: "Brown",
-        key: ">"
-    },
-    {
-        name: "Down Stair",
-        character: "\u2193",
-        color: "Brown",
-        key: "<"
-    },
-    {
-        name: "Lantern",
-        character: "%",
-        color: "Gold",
-        key: "%"
-    },
-    {
-        name: "Road",
-        character: "\u2588",
-        color: "Grey",
-        key: "r"
-    },
-    {
-        name: "Chest",
-        character: "#",
-        color: "White",
-        key: "#"
-    },
-    {
-        name: "Gate",
-        character: "G",
-        color: "Brown",
-        key: "G"
-    },
-    {
-        name: "Water",
-        character: "~",
-        color: "Light Blue",
-        key: "~"
-    },
-    {
-        name: "Tree",
-        character: "O",
-        color: "Brown",
-        key: "t"
-    },
-    {
-        name: "Bush",
-        character: "o",
-        color: "Dark Green",
-        key: "o"
-    },
-    {
-        name: "Grass",
-        character: ".",
-        color: "Dark Green",
-        key: "."
-    },
-    {
-        name: "Hill",
-        character: "^",
-        color: "White",
-        key: "^"
-    },
-    {
-        name: "Bed",
-        character: "b",
-        color: "Brown",
-        key: "b"
-    },
-    {
-        name: "Statue",
-        character: "&",
-        color: "White",
-        key: "&"
-    },
-    {
-        name: "Blood",
-        character: "\u2588",
-        color: "Dark Red",
-        key: "B"
-    },
-    {
-        name: "Fire",
-        character: "~",
-        color: "Orange",
-        key: "f"
-    },
-    {
-        name: "Snow",
-        character: "\u2588",
-        color: "White", 
-        key: "s"
-    },
-    {
-        name: "Boulder",
-        character: "O",
-        color: "Dark Grey",
-        key: "O"
-    }
-];
 
 
 features.init = function(){
@@ -148,6 +20,16 @@ features.init = function(){
 
     cursed.client.subscribe("add.map.feature.type", (data)=>{
         features.objects.push(data.details);
+        cursed.client.send({
+            type: "command",
+            key: "get.map"
+        });
+
+        /* update command window if build menu is showing */
+        if(cursed.command_window.mode === cursed.command_window.command_modes.build){
+            cursed.command_window.dirty = true;
+            cursed.command_window.draw();
+        }
     });
 
     cursed.client.subscribe("remove.map.feature.type", (data)=>{
@@ -157,6 +39,20 @@ features.init = function(){
                 break;
             }
         }
+
+        /* update command window if build menu is showing */
+        if(cursed.command_window.mode === cursed.command_window.command_modes.build){
+            cursed.command_window.dirty = true;
+            cursed.command_window.draw();
+        }
+
+        /* reload the map when a feature type is removed because all related features
+         * are pruned from the map
+         */
+        cursed.client.send({
+            type: "command",
+            key: "get.map"
+        });
     });
 
     cursed.client.registerInitHook(()=>{
@@ -227,4 +123,45 @@ features.get = function(name){
             return feature;
         }
     }
+    return {
+        "name": "Missing Feature Type: " + name,
+        "character": "?", 
+        "color": "Red"
+    }
+
 }
+
+features.packs = [
+    { 
+        name: "Fantasy",
+        types: [
+            { "name": "Wall",       "character": "\u2588",  "color": "Brown",       "key": "w" },
+            { "name": "Table",      "character": "T",       "color": "Brown",       "key": "T" },
+            { "name": "Chair",      "character": "c",       "color": "Brown",       "key": "c" },
+            { "name": "Door",       "character": "d",       "color": "Brown",       "key": "d" },
+            { "name": "Up Stair",   "character": "\u2191",  "color": "Brown",       "key":">" },
+            { "name": "Down Stair", "character": "\u2193",  "color": "Brown",       "key": "<" },
+            { "name": "Lantern",    "character": "%",       "color": "Gold",        "key": "%" },
+            { "name": "Road",       "character": "\u2588",  "color": "Grey",        "key": "r" },
+            { "name": "Chest",      "character": "#",       "color": "White",       "key": "#" },
+            { "name": "Gate",       "character": "G",       "color": "Brown",       "key": "G" },
+            { "name": "Water",      "character": "~",       "color": "Light Blue",  "key": "~" },
+            { "name": "Tree",       "character": "O",       "color": "Brown",       "key": "t" },
+            { "name": "Bush",       "character": "o",       "color": "Dark Green",  "key":"o" },
+            { "name": "Grass",      "character": ".",       "color": "Dark Green",  "key": "." },
+            { "name": "Hill",       "character": "^",       "color": "White",       "key": "^" },
+            { "name": "Bed",        "character": "b",       "color": "Brown",       "key": "b" },
+            { "name": "Statue",     "character": "&",       "color": "White",       "key":"&" },
+            { "name": "Blood",      "character": "\u2588",  "color": "Dark Red",    "key":"B" },
+            { "name": "Fire",       "character": "~",       "color": "Orange",      "key": "f"},
+            { "name": "Snow",       "character": "\u2588",  "color": "White",       "key":"s" },
+            { "name": "Boulder",    "character": "O",       "color": "Dark Grey",   "key": "O"}
+        ]
+    },
+    {
+        name: "test",
+        types: [
+            { "name": "Test", "character": "J", "color": "Gold", "key": "z" }
+        ]
+    }
+];

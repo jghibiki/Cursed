@@ -650,6 +650,7 @@ def removeMapFeatureType(client, req):
         if feature_type["name"] == name:
             magic.game_data["maps"][user["current_map"]]["feature_types"].remove(feature_type)
 
+
             client.sendTarget(
                     req["id"],
                     type="acknowledge",
@@ -662,7 +663,7 @@ def removeMapFeatureType(client, req):
             type="error",
             key="remove.map.feature.type",
             payload={
-                "msg": "Feature type with name \"{0}\" does not exist.".format(feature_type)})
+                "msg": "Feature type with name \"{0}\" does not exist.".format(name)})
     return False
 
 

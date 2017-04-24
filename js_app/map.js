@@ -160,6 +160,7 @@ map.init = function(){
         }
     });
 
+
     cursed.client.subscribe("add.map.fow", (data)=>{
         var new_fow = data.details;
         cursed.viewport.fow[new_fow.x][new_fow.y] = true;
@@ -234,8 +235,14 @@ map.handle_combo = function(buff){
     buff = buff.split(" ");
     
     if(buff[0] === "map" || buff[0] === "m" || buff[0] === "maps"){
+       
+        if(buff.length == 5 && (buff[1] === "add" || buff[1] === "a")){
+            var name = buff[2];
+            var height = parseInt(buff[3]);
+            var width = parseInt(buff[4]);
 
-        if(buff.length == 4 && (buff[1] === "move" || buff[1] === "m")){
+        }
+        else if(buff.length == 4 && (buff[1] === "move" || buff[1] === "m")){
             user_to_switch = buff[2];
             map_to_switch = buff[3];
 
@@ -301,6 +308,60 @@ map.handle_combo = function(buff){
                     }
                 }
             });
+        }
+        else if(buff.length > 3
+            && (buff[1] == "feature" || buff[1] === "f")
+            && (buff[2] == "pack" || buff[2] === "p")){
+    
+            if(buff[3] == "list" || buff[3] == "l"){
+
+            }
+            else if(buff[3] === "apply" || buff[3] === "a"){
+
+                var pack = null;
+
+                for(var i=0; i<cursed.features.packs.length; i++){
+                    if(buff[4].toUpperCase() == cursed.features.packs[i].name.toUpperCase()){
+                        pack = cursed.features.packs[i];
+                        break;
+                    }
+                }
+                if(pack !== null){
+                    
+                    var payloads = [];
+                    for(var feature_type of pack.types){
+                        payloads.push({
+                            "type": "command",
+                            "key": "add.map.feature.type",
+                            "details": feature_type
+                        });
+                    }
+
+                    cursed.client.sendBulk(payloads, true);
+                }
+            }
+            else if(buff[3] === "remove" || buff[3] === "r"){ /* Remove Feature Pack Types */
+                for(var i=0; i<cursed.features.packs.length; i++){
+                    if(buff[4].toUpperCase() == cursed.features.packs[i].name.toUpperCase()){
+                        pack = cursed.features.packs[i];
+                        break;
+                    }
+                }
+                if(pack !== null){
+                    var payloads = [];
+                    for(var feature_type of pack.types){
+                        payloads.push({
+                            "type": "command",
+                            "key": "remove.map.feature.type",
+                            "details": {
+                                "name": feature_type.name
+                            }
+                        });
+                    }
+
+                    cursed.client.sendBulk(payloads, true);
+                }
+            }
         }
         else if(buff.length === 4
             && (buff[1] === "feature" || buff[1] === "f")

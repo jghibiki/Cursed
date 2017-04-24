@@ -466,7 +466,7 @@ viewport.getCursorFocus = function(){
             var f = viewport.features[i];
             if(f.x == viewport.cursor_x &&
                f.y == viewport.cursor_y){
-                feature = f;
+                feature = cursed.features.get(f.type);
                 break;
             }
         }
@@ -517,7 +517,7 @@ viewport.getCursorFocus = function(){
             return text + " [" + bar + "]";
         }
         else if (feature !== null){
-            var text = feature.type;
+            var text = feature.name;
             return text;
         }
         else{
