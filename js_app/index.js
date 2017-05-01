@@ -54,7 +54,8 @@ function load(){
         {id: "chat", src: "./chat.js"},
         {id: "narrative", src: "./narrative.js"},
         {id: "roll", src: "./roll.js"},
-        {id: "initiative", src: "./initiative.js"}
+        {id: "initiative", src: "./initiative.js"},
+        {id: "feature_packs", src: "./feature_packs.json"}
     ]);
 }
 
@@ -200,6 +201,7 @@ function test(){
 
 function build_namespace() {
     cursed.features = features;
+    cursed.features.packs = queue.getResult("feature_packs").feature_packs;
     cursed.colors = colors;
     cursed.grid = grid;
     cursed.viewport = viewport;

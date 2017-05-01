@@ -314,7 +314,48 @@ map.handle_combo = function(buff){
             && (buff[2] == "pack" || buff[2] === "p")){
     
             if(buff[3] == "list" || buff[3] == "l"){
+                var el = $("#feature_pack_menu");
 
+                var ul = $("#feature_pack_menu_list");
+
+                ul.empty();
+
+
+                for(var pack of cursed.features.packs){
+                    var node = $("<li></li>")
+                        .append(
+                            $("<p>" + pack.name + "</p>")
+                        );
+
+                    var node_ul = $("<ul></ul>");
+                    for(var t of pack.types){
+                        node_ul.append($("<li/>").text(t.name));
+                    }
+
+                    node.append(node_ul);
+                    ul.append(node);
+                }
+
+                el.dialog({
+                    resizable: true,
+                    height: "auto",
+                    width: "75%",
+                    modal: true,
+                    open: function(){
+                        // pause keypress handling
+                        cursed.viewer.editor_open = true;               
+                        $("#feature_pack_menu").blur();
+                    },
+                    close: function(){
+                        // allow client to handle keypresses again
+                        cursed.viewer.editor_open = false;               
+                    },
+                    buttons: {
+                        "Close": function(){
+                            $(this).dialog("close");
+                        }
+                    }
+                });
             }
             else if(buff[3] === "apply" || buff[3] === "a"){
 

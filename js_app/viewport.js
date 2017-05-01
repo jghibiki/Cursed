@@ -179,7 +179,9 @@ viewport.handle = function(event){
          cursed.command_window.mode === cursed.command_window.command_modes.build ||
          cursed.command_window.mode === cursed.command_window.command_modes.fow ||
          cursed.command_window.mode === cursed.command_window.command_modes.initiative_unit_select ||
-         cursed.command_window.mode === cursed.command_window.command_modes.box_select) ){
+         cursed.command_window.mode === cursed.command_window.command_modes.box_select) &&
+        !(cursed.command_window.box && cursed.command_window.mode != cursed.command_window.command_modes.box_select)  // prevents user from moving around when box is still showing but box screen is exited
+    ){
     
         if(cursed.state.move_mode === "hjkl"){
             if(event.key === "j"){ viewport.cursor_down(); }
@@ -187,10 +189,12 @@ viewport.handle = function(event){
             else if(event.key === "h"){ viewport.cursor_left(); }
             else if(event.key === "l"){ viewport.cursor_right(); }
 
-            else if(event.key === "J"){ viewport.down(); }
-            else if(event.key === "K"){ viewport.up(); }
-            else if(event.key === "H"){ viewport.left(); }
-            else if(event.key === "L"){ viewport.right(); }
+            if(cursed.command_window.mode != cursed.command_window.command_modes.box_select){
+                if(event.key === "J"){ viewport.down(); }
+                else if(event.key === "K"){ viewport.up(); }
+                else if(event.key === "H"){ viewport.left(); }
+                else if(event.key === "L"){ viewport.right(); }
+            }
         }
         else if(cursed.state.move_mode === "ijkl"){
             if(event.key === "k"){ viewport.cursor_down(); }
@@ -198,10 +202,12 @@ viewport.handle = function(event){
             else if(event.key === "j"){ viewport.cursor_left(); }
             else if(event.key === "l"){ viewport.cursor_right(); }
 
-            else if(event.key === "K"){ viewport.down(); }
-            else if(event.key === "I"){ viewport.up(); }
-            else if(event.key === "J"){ viewport.left(); }
-            else if(event.key === "L"){ viewport.right(); }
+            if(cursed.command_window.mode != cursed.command_window.command_modes.box_select){
+                if(event.key === "K"){ viewport.down(); }
+                else if(event.key === "I"){ viewport.up(); }
+                else if(event.key === "J"){ viewport.left(); }
+                else if(event.key === "L"){ viewport.right(); }
+            }
         }
     }
         
@@ -427,7 +433,7 @@ viewport.right = function(){
 }
 
 
-viewport.updateBounds = function(y, x){
+viewport.updateBounds = function(x, y){
     viewport.v_height = y;
     viewport.v_width = x;
 }
@@ -464,15 +470,15 @@ viewport.getCursorFocus = function(){
         // Draw features
         while(i--){
             var f = viewport.features[i];
-            if(f.x == viewport.cursor_x &&
-               f.y == viewport.cursor_y){
+            if(f.x == viewport.cursor_x + viewport.v_x &&
+               f.y == viewport.cursor_y + viewport.v_y){
                 feature = cursed.features.get(f.type);
                 break;
             }
         }
     }
 
-    if( !(  cursed.state.role === "pc" && viewport.fow[viewport.cursor_y] !== undefined && viewport.fow[viewport.cursor_y][viewport.cursor_x] )){
+    if( !(  cursed.state.role === "pc" && viewport.fow[viewport.cursor_y + viewport.v_y] !== undefined && viewport.fow[viewport.cursor_y + viewport.v_y][viewport.cursor_x + viewport.v_x] )){
         
         if(unit !== null){
             var text = unit.name + " " + unit.current_health + "/" + unit.max_health;
