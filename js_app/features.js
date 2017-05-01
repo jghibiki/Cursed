@@ -1,117 +1,78 @@
 "use strict";
 
-var features = {};
+var features = {
+    
+};
 
-features.objects = [
-    {
-        name: "Wall",
-        character: "\u2588",
-        color: "Brown"
-    },
-    {
-        name: "Table",
-        character: "T",
-        color: "Brown"
-    },
-    {
-        name: "Chair",
-        character: "c",
-        color: "Brown"
-    },
-    {
-        name: "Door",
-        character: "d",
-        color: "Brown"
-    },
-    {
-        name: "Up Stair",
-        character: "\u2191",
-        color: "Brown"
-    },
-    {
-        name: "Down Stair",
-        character: "\u2193",
-        color: "Brown"
-    },
-    {
-        name: "Lantern",
-        character: "%",
-        color: "Gold"
-    },
-    {
-        name: "Road",
-        character: "\u2588",
-        color: "Grey"
-    },
-    {
-        name: "Chest",
-        character: "#",
-        color: "White"
-    },
-    {
-        name: "Gate",
-        character: "G",
-        color: "Brown"
-    },
-    {
-        name: "Water",
-        character: "~",
-        color: "Light Blue"
-    },
-    {
-        name: "Tree",
-        character: "O",
-        color: "Brown"
-    },
-    {
-        name: "Bush",
-        character: "o",
-        color: "Dark Green"
-    },
-    {
-        name: "Grass",
-        character: ".",
-        color: "Dark Green"
-    },
-    {
-        name: "Hill",
-        character: "^",
-        color: "White"
-    },
-    {
-        name: "Bed",
-        character: "b",
-        color: "Brown"
-    },
-    {
-        name: "Statue",
-        character: "&",
-        color: "White"
-    },
-    {
-        name: "Blood",
-        character: "\u2588",
-        color: "Dark Red"
-    },
-    {
-        name: "Fire",
-        character: "~",
-        color: "Orange"
-    },
-    {
-        name: "Snow",
-        character: "\u2588",
-        color: "White"
-    },
-    {
-        name: "Boulder",
-        character: "O",
-        color: "Dark Grey"
-    }
-];
+features.objects = [];
 
 
 features.init = function(){
+    cursed.client.subscribe("get.map.feature.types", (data)=>{
+        features.objects = data.payload;
+        cursed.map.loading.types  = false;
+        if(!cursed.map.is_loading()){
+            viewport.dirty = true;
+            viewport.clear();
+            viewport.draw();
+        }
+    });
+
+    cursed.client.subscribe("add.map.feature.type", (data)=>{
+        features.objects.push(data.details);
+        cursed.client.send({
+            type: "command",
+            key: "get.map"
+        });
+
+        /* update command window if build menu is showing */
+        if(cursed.command_window.mode === cursed.command_window.command_modes.build){
+            cursed.command_window.dirty = true;
+            cursed.command_window.draw();
+        }
+    });
+
+    cursed.client.subscribe("remove.map.feature.type", (data)=>{
+        for(var i=0; i<features.objects.length; i++){
+            if(features.objects[i].name == data.details.name){
+                features.objects.splice(i, 1);
+                break;
+            }
+        }
+
+        /* update command window if build menu is showing */
+        if(cursed.command_window.mode === cursed.command_window.command_modes.build){
+            cursed.command_window.dirty = true;
+            cursed.command_window.draw();
+        }
+
+        /* reload the map when a feature type is removed because all related features
+         * are pruned from the map
+         */
+        cursed.client.send({
+            type: "command",
+            key: "get.map"
+        });
+    });
+
+    cursed.client.registerInitHook(()=>{
+        cursed.client.send({
+            type: "command",
+            key: "get.map.feature.types"
+        });
+    });
+
+    cursed.modules.interactive.push(features);
+}
+
+features.handle = function(e){
+}
+
+features.handle_combo = function(buff){
+}
+
+features.handle_help = function(buff){
+
 }
 
 features.test = function(){
@@ -162,4 +123,12 @@ features.get = function(name){
             return feature;
         }
     }
+    return {
+        "name": "Missing Feature Type: " + name,
+        "character": "?", 
+        "color": "Red"
+    }
+
 }
+
+features.packs = [];

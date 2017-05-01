@@ -169,13 +169,19 @@ viewport.clear = function(){
     }
 }
 
+viewport.handle_help = function(buff){
+
+}
 
 viewport.handle = function(event){
     if(!cursed.viewer.handling && 
         (cursed.command_window.mode === cursed.command_window.command_modes.default ||
          cursed.command_window.mode === cursed.command_window.command_modes.build ||
          cursed.command_window.mode === cursed.command_window.command_modes.fow ||
-         cursed.command_window.mode === cursed.command_window.command_modes.box_select) ){
+         cursed.command_window.mode === cursed.command_window.command_modes.initiative_unit_select ||
+         cursed.command_window.mode === cursed.command_window.command_modes.box_select) &&
+        !(cursed.command_window.box && cursed.command_window.mode != cursed.command_window.command_modes.box_select)  // prevents user from moving around when box is still showing but box screen is exited
+    ){
     
         if(cursed.state.move_mode === "hjkl"){
             if(event.key === "j"){ viewport.cursor_down(); }
@@ -183,10 +189,12 @@ viewport.handle = function(event){
             else if(event.key === "h"){ viewport.cursor_left(); }
             else if(event.key === "l"){ viewport.cursor_right(); }
 
-            else if(event.key === "J"){ viewport.down(); }
-            else if(event.key === "K"){ viewport.up(); }
-            else if(event.key === "H"){ viewport.left(); }
-            else if(event.key === "L"){ viewport.right(); }
+            if(cursed.command_window.mode != cursed.command_window.command_modes.box_select){
+                if(event.key === "J"){ viewport.down(); }
+                else if(event.key === "K"){ viewport.up(); }
+                else if(event.key === "H"){ viewport.left(); }
+                else if(event.key === "L"){ viewport.right(); }
+            }
         }
         else if(cursed.state.move_mode === "ijkl"){
             if(event.key === "k"){ viewport.cursor_down(); }
@@ -194,10 +202,12 @@ viewport.handle = function(event){
             else if(event.key === "j"){ viewport.cursor_left(); }
             else if(event.key === "l"){ viewport.cursor_right(); }
 
-            else if(event.key === "K"){ viewport.down(); }
-            else if(event.key === "I"){ viewport.up(); }
-            else if(event.key === "J"){ viewport.left(); }
-            else if(event.key === "L"){ viewport.right(); }
+            if(cursed.command_window.mode != cursed.command_window.command_modes.box_select){
+                if(event.key === "K"){ viewport.down(); }
+                else if(event.key === "I"){ viewport.up(); }
+                else if(event.key === "J"){ viewport.left(); }
+                else if(event.key === "L"){ viewport.right(); }
+            }
         }
     }
         
@@ -287,7 +297,7 @@ viewport.cursor_up = function(){
 
 viewport.cursor_down = function(){
     cursed.viewer.handling = true;
-    setTimeout(()=>{cursed.viewer.handling = false;}, 200);
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
 
     if(viewport.cursor_y < viewport.height-1){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
@@ -307,7 +317,7 @@ viewport.cursor_down = function(){
 
 viewport.cursor_left = function(){
     cursed.viewer.handling = true;
-    setTimeout(()=>{cursed.viewer.handling = false;}, 200);
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
 
     if(viewport.cursor_x > 0){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
@@ -326,7 +336,7 @@ viewport.cursor_left = function(){
 
 viewport.cursor_right = function(){
     cursed.viewer.handling = true;
-    setTimeout(()=>{cursed.viewer.handling = false;}, 200);
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
 
     if(viewport.cursor_x < viewport.width-1){
         cursed.grid.text(viewport.y + viewport.cursor_y, viewport.x + viewport.cursor_x, " ", "Gold");
@@ -345,7 +355,7 @@ viewport.cursor_right = function(){
 
 viewport.up = function(){
     cursed.viewer.handling = true;
-    setTimeout(()=>{cursed.viewer.handling = false;}, 200);
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
 
     if(viewport.v_y > 2){
         viewport.v_y -= 2;
@@ -363,7 +373,7 @@ viewport.up = function(){
 
 viewport.down = function(){
     cursed.viewer.handling = true;
-    setTimeout(()=>{cursed.viewer.handling = false;}, 200);
+    setTimeout(()=>{cursed.viewer.handling = false;}, 100);
 
     if(viewport.v_y < ((viewport.v_height - viewport.height - 2))){
         viewport.v_y += 2;
@@ -423,60 +433,52 @@ viewport.right = function(){
 }
 
 
-viewport.updateBounds = function(y, x){
+viewport.updateBounds = function(x, y){
     viewport.v_height = y;
     viewport.v_width = x;
 }
 
 viewport.updateFeatures = function(features){
     viewport.features = features;
-    viewport.dirty = true;
-    viewport.clear();
-    viewport.draw();
+    //viewport.dirty = true;
+    //viewport.clear();
+    //viewport.draw();
 }
 
 viewport.updateFow = function(fow){
     viewport.fow = fow;
-    viewport.dirty = true;
-    viewport.clear();
-    viewport.draw();
+    //viewport.dirty = true;
+    //viewport.clear();
+    //viewport.draw();
 }
 
 viewport.updateUnits = function(units){
     viewport.units = units;
-    viewport.dirty = true;
-    viewport.clear();
-    viewport.draw();
+    //viewport.dirty = true;
+    //viewport.clear();
+    //viewport.draw();
 };
 
 viewport.getCursorFocus = function(){
-    var unit = null;
+    var unit = viewport.getCurrentUnit();
     var feature = null;
 
-    var i = viewport.units.length;
-    while(i--){
-        var u = viewport.units[i];
-        if(u.x == viewport.cursor_x &&
-           u.y == viewport.cursor_y){
-            unit = u;
-            break;
-        }
-    }
+
 
     if (unit === null){
         var i = viewport.features.length;
         // Draw features
         while(i--){
             var f = viewport.features[i];
-            if(f.x == viewport.cursor_x &&
-               f.y == viewport.cursor_y){
-                feature = f;
+            if(f.x == viewport.cursor_x + viewport.v_x &&
+               f.y == viewport.cursor_y + viewport.v_y){
+                feature = cursed.features.get(f.type);
                 break;
             }
         }
     }
 
-    if( !(  cursed.state.role === "pc" && viewport.fow[viewport.cursor_y] !== undefined && viewport.fow[viewport.cursor_y][viewport.cursor_x] )){
+    if( !(  cursed.state.role === "pc" && viewport.fow[viewport.cursor_y + viewport.v_y] !== undefined && viewport.fow[viewport.cursor_y + viewport.v_y][viewport.cursor_x + viewport.v_x] )){
         
         if(unit !== null){
             var text = unit.name + " " + unit.current_health + "/" + unit.max_health;
@@ -521,7 +523,7 @@ viewport.getCursorFocus = function(){
             return text + " [" + bar + "]";
         }
         else if (feature !== null){
-            var text = feature.type;
+            var text = feature.name;
             return text;
         }
         else{
@@ -535,8 +537,17 @@ viewport.getCurrentUnit = function(){
     var i = viewport.units.length;
     while(i--){
         var u = viewport.units[i];
-        if(u.x === viewport.cursor_x && u.y === viewport.cursor_y){
+        if(u.x === (viewport.cursor_x + viewport.v_x) && u.y === (viewport.cursor_y + viewport.v_y)){
             return u;
+        }
+    }
+    return null;
+}
+
+viewport.getUnit = function(id){
+    for(var i=0; i<viewport.units.length; i++){
+        if(viewport.units[i].id === id){
+            return viewport.units[i];
         }
     }
     return null;

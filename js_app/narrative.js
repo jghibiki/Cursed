@@ -68,7 +68,7 @@ narrative.init = function(){
 
 narrative.handle = function(event){
 
-    if(event.key === "n"){
+    if(event.key === "n" && command_window.mode === command_window.command_modes.default){
         narrative.show();
         narrative.list();
     }

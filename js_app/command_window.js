@@ -10,7 +10,9 @@ var command_window = {
         fow: 2,
         units: 3,
         unit_move: 4,
-        box_select: 5
+        box_select: 5,
+        initiative: 6,
+        initiative_unit_select: 7
     },
     
     //box select vars
@@ -127,6 +129,12 @@ command_window.draw = function(){
         }
         else if(command_window.mode === command_window.command_modes.unit_move){
             command_window.draw_unit_move_screen();
+        }
+        else if(command_window.mode === command_window.command_modes.initiative){
+            command_window.draw_initiative_screen();
+        }
+        else if(command_window.mode === command_window.command_modes.initiative_unit_select){
+            command_window.draw_initiative_unit_select_screen();
         }
 
         command_window.dirty = false;
@@ -280,6 +288,11 @@ command_window.handle = function(e){
             command_window.mode = command_window.command_modes.units;
             command_window.dirty = true;
             command_window.draw();
+        }else if(e.key === "!"){
+            command_window.mode = command_window.command_modes.initiative;
+            command_window.dirty = true;
+            command_window.draw();
+            cursed.initiative.show();
         }
     }
     else if(command_window.mode === command_window.command_modes.build){
@@ -300,41 +313,16 @@ command_window.handle = function(e){
             }
         }
 
-        var keybindings = [
-            { key: "w", type: "Wall" },
-            { key: "t", type: "Table" },
-            { key: "c", type: "Chair" },
-            { key: "d", type: "Door" },
-            { key: ">", type: "Up Stair" },
-            { key: "<", type: "Down Stair" },
-            { key: "%", type: "Lantern" },
-            { key: "r", type: "Road" },
-            { key: "G", type: "Gate" },
-            { key: "~", type: "Water" },
-            { key: "t", type: "Tree" },
-            { key: "o", type: "Bush" },
-            { key: ".", type: "Grass" },
-            { key: "^", type: "Hill" },
-            { key: "b", type: "Bed" },
-            { key: "&", type: "Statue" },
-            { key: "B", type: "Blood" },
-            { key: "f", type: "Fire" },
-            { key: "s", type: "Snow" },
-            { key: "O", type: "Boulder" }
-        ];
-
-        for(var binding of keybindings){
-            if(e.key === binding.key){
+        for(var feature of cursed.features.objects){
+            if(e.key === feature.key){
                 if(command_window.box){
-                    var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]);
-                    var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + 1;
+                    var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]) + viewport.v_x;
+                    var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + viewport.v_x + 1;
 
-                    var y_min = Math.min(command_window.box_xy_1[1], command_window.box_xy_2[1]);
-                    var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + 1;
+                    var y_min = Math.min(command_window.box_xy_1[1], command_window.box_xy_2[1]) + viewport.v_y;
+                    var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + viewport.v_y + 1;
 
                     var frames = [];
-
-                    var feature = cursed.features.get(binding.type);
 
                     for(var i=y_min; i < y_max; i++){
                         for(var j=x_min; j < x_max; j++){
@@ -366,10 +354,9 @@ command_window.handle = function(e){
 
                 }
                 else{
-                    var feature = cursed.features.get(binding.type);
                     var new_feature =  {
-                        x: cursed.viewport.cursor_x,
-                        y: cursed.viewport.cursor_y,
+                        x: cursed.viewport.cursor_x + cursed.viewport.v_x,
+                        y: cursed.viewport.cursor_y + cursed.viewport.v_y,
                         type: feature.name,
                         notes: ""
                     };
@@ -384,11 +371,11 @@ command_window.handle = function(e){
 
         if(e.key === "x"){
             if(command_window.box){
-                var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]);
-                var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + 1;
+                var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]) + viewport.v_x;
+                var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + viewport.v_x + 1;
 
-                var y_min = Math.min(command_window.box_xy_1[1], command_window.box_xy_2[1]);
-                var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + 1;
+                var y_min = Math.min(command_window.box_xy_1[1], command_window.box_xy_2[1]) + viewport.v_y;
+                var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + viewport.v_y + 1;
 
                 var frames = [];
 
@@ -423,8 +410,8 @@ command_window.handle = function(e){
                     type: "command",
                     key: "remove.map.feature",
                     details: {
-                        x: cursed.viewport.cursor_x,
-                        y: cursed.viewport.cursor_y,
+                        x: cursed.viewport.cursor_x + cursed.viewport.v_x,
+                        y: cursed.viewport.cursor_y + cursed.viewport.v_y,
                     }
                 }, true);
             }
@@ -975,6 +962,60 @@ command_window.handle = function(e){
             }
         }
     }
+    else if(command_window.mode === command_window.command_modes.initiative){
+        if(e.key === "Escape"){
+            command_window.mode = command_window.command_modes.default;
+            command_window.dirty = true;
+            command_window.draw();
+        }
+        else if(e.key === "s" && !cursed.initiative.encounter_started){
+            cursed.initiative.show();
+            command_window.mode = command_window.command_modes.initiative_unit_select;
+            command_window.dirty = true;
+            command_window.draw();
+        }
+        else if(e.key === "!"){
+            cursed.initiative.show();
+        }
+        else if(e.key === "p"){
+            cursed.initiative.selectPrevious();
+        }
+        else if(e.key === "n"){
+            cursed.initiative.selectNext();
+        }
+        else if(e.key === "b" && !cursed.initiative.encounter_started){
+            cursed.initiative.beginEncounter();
+            command_window.mode = command_window.command_modes.initiative;
+            command_window.dirty = true;
+            command_window.draw();
+        }
+        else if(e.key === "e" && cursed.initiative.encounter_started){
+            cursed.initiative.endEncounter();
+            command_window.mode = command_window.command_modes.initiative;
+            command_window.dirty = true;
+            command_window.draw();
+        }
+        else if(e.key === "<" && !cursed.initiative.encounter_started){
+            cursed.initiative.decreaseModifier();
+        }
+        else if(e.key === ">" && !cursed.initiative.encounter_started){
+            cursed.initiative.increaseModifier();
+        }
+    }
+    else if(command_window.mode === command_window.command_modes.initiative_unit_select){
+        if(e.key === "Escape"){
+            command_window.mode = command_window.command_modes.initiative;
+            command_window.dirty = true;
+            command_window.draw();
+            
+        }
+        else if(e.key === "a"){
+            cursed.initiative.addUnit();
+        }
+        else if(e.key === "r"){
+            cursed.initiative.removeUnit();
+        }
+    }
 }
 
 command_window.handle_combo = function(buf){
@@ -1001,6 +1042,7 @@ command_window.draw_gm_default_screen = function(){
     line = command_window.draw_key(line, "u", "Units");
     line = command_window.draw_key(line, "m", "Maps");
     line = command_window.draw_key(line, "u", "Users");
+    line = command_window.draw_key(line, "!", "Initiative");
 }
 
 command_window.draw_build_screen = function(){
@@ -1012,27 +1054,11 @@ command_window.draw_build_screen = function(){
         line = command_window.draw_title(0, "Build:");
     }
 
-    line = command_window.draw_key(line, "w", "Wall");
-    line = command_window.draw_key(line, "t", "Table");
-    line = command_window.draw_key(line, "c", "Chair");
-    line = command_window.draw_key(line, "d", "Door");
-    line = command_window.draw_key(line, ">", "Up Stair");
-    line = command_window.draw_key(line, "<", "Down Stair");
-    line = command_window.draw_key(line, "%", "Lantern");
-    line = command_window.draw_key(line, "r", "Road");
-    line = command_window.draw_key(line, "#", "Chest");
-    line = command_window.draw_key(line, "G", "Gate");
-    line = command_window.draw_key(line, "~", "Water");
-    line = command_window.draw_key(line, "t", "Tree");
-    line = command_window.draw_key(line, "o", "Bush");
-    line = command_window.draw_key(line, ".", "Grass");
-    line = command_window.draw_key(line, "^", "Hill");
-    line = command_window.draw_key(line, "b", "Bed");
-    line = command_window.draw_key(line, "&", "Statue");
-    line = command_window.draw_key(line, "B", "Blood");
-    line = command_window.draw_key(line, "f", "Fire");
-    line = command_window.draw_key(line, "s", "Snow");
-    line = command_window.draw_key(line, "O", "Boulder");
+    for(var feature of cursed.features.objects.sort((a, b)=>{
+        return a.name.localeCompare(b.name);
+    })){
+        line = command_window.draw_key(line, feature.key, feature.name);
+    }
 
     line = command_window.draw_key(line+1, "x", "Remove Object");
     line = command_window.draw_key(line, "space", "Select box corner");
@@ -1129,3 +1155,36 @@ command_window.draw_box_select_screen = function(){
     line = command_window.draw_key(line, "esc", "Cancel");
 }
 
+command_window.draw_initiative_screen = function(){
+    var line = command_window.draw_title(0, "Initiative:");
+    if(!cursed.initiative.encounter_started){
+        line = command_window.draw_key(line, "s", "Select/Unselect Units");
+    }
+    line = command_window.draw_key(line, "!", "Show encounter units");
+
+    if(!cursed.initiative.encounter_started){
+        line = command_window.draw_key(line, "b", "Begin Encounter");
+    }
+    else if(cursed.initiative.encounter_started){
+        line = command_window.draw_key(line, "e", "End Encounter");
+    }
+
+
+    line = command_window.draw_key(line+1, "n", "Next Unit");
+    line = command_window.draw_key(line, "p", "Previous Unit");
+
+    if(!cursed.initiative.encounter_started){
+        line = command_window.draw_key(line+1, "<", "Decrease Unit Modifier");
+        line = command_window.draw_key(line, ">", "Increase Unit Modifier");
+    }
+
+    line = command_window.draw_key(line+2, "esc", "Back");
+}
+
+command_window.draw_initiative_unit_select_screen = function(){
+    var line = command_window.draw_title(0, "Initiative Unit Select:");
+    line = command_window.draw_key(line, "a", "Select Unit");
+    line = command_window.draw_key(line, "r", "Unselect Unit");
+
+    line = command_window.draw_key(line+2, "esc", "Back");
+}

@@ -18,7 +18,8 @@ var cursed = {
         server_port: "",
         fow: "on",
         role: "pc",
-        move_mode: "hjkl"
+        move_mode: "hjkl",
+        initiative_die_sides: 20
     },
     viewer: {
         handling: false,
@@ -51,7 +52,10 @@ function load(){
         {id: "map", src: "./map.js"},
         {id: "users", src: "./users.js"},
         {id: "chat", src: "./chat.js"},
-        {id: "narrative", src: "./narrative.js"}
+        {id: "narrative", src: "./narrative.js"},
+        {id: "roll", src: "./roll.js"},
+        {id: "initiative", src: "./initiative.js"},
+        {id: "feature_packs", src: "./feature_packs.json"}
     ]);
 }
 
@@ -197,6 +201,7 @@ function test(){
 
 function build_namespace() {
     cursed.features = features;
+    cursed.features.packs = queue.getResult("feature_packs").feature_packs;
     cursed.colors = colors;
     cursed.grid = grid;
     cursed.viewport = viewport;
@@ -209,6 +214,8 @@ function build_namespace() {
     cursed.chat = chat;
     cursed.users = users;
     cursed.narrative = narrative;
+    cursed.roll = roll;
+    cursed.initiative = initiative;
 }
 
 function init_modules(){
@@ -224,6 +231,8 @@ function init_modules(){
     cursed.users.init();
     cursed.chat.init();
     cursed.narrative.init();
+    cursed.roll.init();
+    cursed.initiative.init();
 
     // do last
     cursed.client.init();
@@ -332,11 +341,19 @@ function handleKeypress(e){
                             });
 
                         }
+                        else if(split[0] === "help" && split.length > 1){
+                            var help_buff = split.splice(1, split.length).join(" ");
+                            e.preventDefault(); // prevents propogation of enter keypress to done
+                            for(var module of cursed.modules.interactive){
+                                module.handle_help(help_buff);
+                            }
+                        }
                         else{
                             // get buff minus the colon
                             for(var module of cursed.modules.interactive){
                                 module.handle_combo(buff);
                             }
+                            e.preventDefault();
                         }
                     
                     }
