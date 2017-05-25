@@ -621,10 +621,55 @@ command_window.handle = function(e){
             //$("#text").val(data.text);
             var el = $("#unit_menu");
             el.prop("title", "Add Unit");
+
+            var unitAddTempl = $("#unit_additional_fields_template");
+            unitAddTempl.empty();
+
+            unitAddTempl.append( $('<option>', {
+                value: null,
+                text: ""
+            }));
+            for(var type of cursed.state.config.custom_unit_fields){
+                unitAddTempl.append( $('<option>', {
+                    value: type.name,
+                    text: type.name
+                }));
+            }
+
+            var changeDelegate = (e) => {
+                var val = $("#unit_additional_fields_template").val();
+
+                var additionalDiv = $("#unit_additional_fields");
+                additionalDiv.empty();
+
+                var fields_type = null;
+                for(var type of cursed.state.config.custom_unit_fields){
+                    if (type.name == val){
+                        fields_type = type;
+                        break;
+                    }
+                }
+
+                if (fields_type !== null){
+                    for(var field of fields_type.fields){
+                        additionalDiv.append( $("<label>", {text: field.label + ":" }));
+                        additionalDiv.append( $("<textarea>", {
+                            id:  "unit_additional_field__" + field.label.replace(/\W/g, ''),
+                            placeholder: field.default,
+                            style: "margin-bottom:12px; padding: 0.4em; display:block; width: 500px;"
+                        }));
+                        additionalDiv.append( $("<br>") );
+                    }
+                }
+            };
+
+            unitAddTempl.change( changeDelegate );
+            unitAddTempl.trigger("change");
+
             el.dialog({
                 resizable: true,
-                height: "auto",
-                width: "20%",
+                width: "40%",
+                maxHeight: 500,
                 modal: true,
                 open: function(){
 
@@ -639,6 +684,7 @@ command_window.handle = function(e){
                     $("#max_health").val("");
                     $("#controller").val("");
                     $("#unit_type").val("");
+
                 },
                 close: function(){
                     // allow client to handle keypresses again
@@ -705,15 +751,50 @@ command_window.handle = function(e){
                             return;
                         }
 
+                        var template_type = $("#unit_additional_fields_template").val();
+                        var template_values = [];
+                        if(template_type !== null){
+                            var template = null;
+                            for(var temp of cursed.state.config.custom_unit_fields){
+                                if(temp.name === template_type){
+                                    template = temp;
+                                    break;
+                                }
+                            }
+
+                            var template_labels= template.fields.map((x) => { return x.label});
+
+                            for(var label of template_labels){
+                                var el = $("#unit_additional_field__" + label.replace(/\W/g,""))
+                                var val = el.val();
+
+                                if(val !== "" && val !== undefined && val !== null){
+                                    template_values.push({
+                                        "label": label,
+                                        "value": val
+                                    });
+                                }
+                                else{
+                                    template_values.push({
+                                        "label": label,
+                                        "value": el.attr("placeholder")
+                                    });
+
+                                }
+                            }
+                        }
+
                         var details = {
-                            x: cursed.viewport.cursor_x,
-                            y: cursed.viewport.cursor_y,
+                            x: cursed.viewport.cursor_x + cursed.viewport.v_x,
+                            y: cursed.viewport.cursor_y + cursed.viewport.v_y,
                             name: unit_name,
                             current_health: current_health,
                             max_health: max_health,
                             controller: controller,
                             type: type,
-                            id: Math.random().toString(36).substring(7)
+                            id: Math.random().toString(36).substring(7),
+                            template_type: template_type,
+                            template_values: template_values
                         }
 
                         cursed.client.send({
@@ -723,10 +804,12 @@ command_window.handle = function(e){
                         }, true);
 
                         cursed.viewer.editor_open = false;               
+                        $("#unit_additional_fields_template").off(); //unbind event listeners
                         $(this).dialog("close");
                     },
                     "Cancel": function(){
                         cursed.viewer.editor_open = false;               
+                        $("#unit_additional_fields_template").off(); //unbind event listeners
                         $(this).dialog("close");
                     }
                 }
@@ -744,10 +827,71 @@ command_window.handle = function(e){
             $("#controller").val(unit.controller);
             $("#unit_type").val(unit.type);
 
+
+            var unitAddTempl = $("#unit_additional_fields_template");
+            unitAddTempl.empty();
+
+            unitAddTempl.append( $('<option>', {
+                value: null,
+                text: ""
+            }));
+            for(var type of cursed.state.config.custom_unit_fields){
+                unitAddTempl.append( $('<option>', {
+                    value: type.name,
+                    text: type.name
+                }));
+            }
+            unitAddTempl.val(unit.template_type);
+
+            var additionalDiv = $("#unit_additional_fields");
+            additionalDiv.empty();
+
+            for(var field of unit.template_values){
+                additionalDiv.append( $("<label>", {text: field.label + ":" }));
+                var ta = $("<textarea>", {
+                    id:  "unit_additional_field__" + field.label.replace(/\W/g, ''),
+                    style: "margin-bottom:12px; padding: 0.4em; display:block; width: 500px;"
+                })
+                ta.val(field.value);
+                additionalDiv.append(ta);
+                additionalDiv.append( $("<br>") );
+            }
+
+            var changeDelegate = (e) => {
+                var val = $("#unit_additional_fields_template").val();
+
+                var additionalDiv = $("#unit_additional_fields");
+                additionalDiv.empty();
+
+                var fields_type = null;
+                for(var type of cursed.state.config.custom_unit_fields){
+                    if (type.name == val){
+                        fields_type = type;
+                        break;
+                    }
+                }
+
+                if (fields_type !== null){
+                    for(var field of fields_type.fields){
+                        additionalDiv.append( $("<label>", {text: field.label + ":" }));
+                        additionalDiv.append( $("<textarea>", {
+                            id:  "unit_additional_field__" + field.label.replace(/\W/g, ''),
+                            placeholder: field.default,
+                            style: "margin-bottom:12px; padding: 0.4em; display:block; width: 500px;"
+                        }));
+                        additionalDiv.append( $("<br>") );
+                    }
+                }
+            };
+
+            unitAddTempl.change( changeDelegate );
+            $('textarea').trigger('input');
+
             el.dialog({
                 resizable: true,
+                width: "40%",
+                maxHeight: 500,
                 height: "auto",
-                width: "20%",
                 modal: true,
                 open: function(){
 
@@ -822,12 +966,48 @@ command_window.handle = function(e){
                             return;
                         }
 
+                        var template_type = $("#unit_additional_fields_template").val();
+                        var template_values = [];
+                        if(template_type !== null){
+                            var template = null;
+                            for(var temp of cursed.state.config.custom_unit_fields){
+                                if(temp.name === template_type){
+                                    template = temp;
+                                    break;
+                                }
+                            }
+
+                            var template_labels= template.fields.map((x) => { return x.label});
+
+                            for(var label of template_labels){
+                                var el = $("#unit_additional_field__" + label.replace(/\W/g,""))
+                                var val = el.val();
+
+                                if(val !== "" && val !== undefined && val !== null){
+                                    template_values.push({
+                                        "label": label,
+                                        "value": val
+                                    });
+                                }
+                                else{
+                                    template_values.push({
+                                        "label": label,
+                                        "value": el.attr("placeholder")
+                                    });
+
+                                }
+                            }
+                        }
+
+
                         var unit = cursed.viewport.getCurrentUnit();
                         unit.name = unit_name;
                         unit.current_health = current_health;
                         unit.max_health = max_health;
                         unit.controller = controller;
                         unit.type = type;
+                        unit.template_type = template_type;
+                        unit.template_values = template_values;
 
                         cursed.client.send({
                             type: "command",
@@ -836,10 +1016,14 @@ command_window.handle = function(e){
                         }, true);
 
                         cursed.viewer.editor_open = false;               
+                        $("#unit_additional_fields_template").off(); //unbind event listeners
                         $(this).dialog("close");
                     },
                     "Cancel": function(){
                         cursed.viewer.editor_open = false;               
+
+                        $("#unit_additional_fields_template").off(); //unbind event listeners
+                        
                         $(this).dialog("close");
                     }
                 }
@@ -856,6 +1040,185 @@ command_window.handle = function(e){
                     id: unit.id
                 }
             }, true);
+        }
+        if(e.key === "i"){
+            var el = $("#import_unit_dialog");
+
+            var fileIn = $("#import_unit_input");
+
+            var fileInChangedCb = (e) => {
+                var file = e.target.files[0];
+                if (!file) { return; }
+
+                var reader = new FileReader();
+                reader.onload = function(e){
+                    var contents  = e.target.result;
+                    cursed.state.file_cache = JSON.parse(contents);
+                }
+
+                reader.readAsText(file)
+            }
+
+            fileIn.change(fileInChangedCb);
+
+            el.dialog({
+                resizable: true,
+                height: "auto",
+                width: "40%",
+                modal: true,
+                open: function(){
+
+                    // pause keypress handling
+                    cursed.viewer.editor_open = true;               
+
+                    //blur text box - prevents issue with keybind char getting caught
+                    $("#import_unit_input").blur();
+                },
+                close: function(){
+                    // allow client to handle keypresses again
+                    cursed.viewer.editor_open = false;               
+                },
+                buttons: {
+                    "Import": function(){
+
+                        if(cursed.state.file_cache){
+
+                            var exit = () => {
+                                cursed.viewer.editor_open = false;               
+                                $(this).dialog("close");
+                            }
+
+                            var imported_unit = cursed.state.file_cache;
+
+                            // sanity check for required properties
+                            if(!imported_unit.hasOwnProperty("name")){ exit(); return;}
+                            if(!imported_unit.hasOwnProperty("current_health")){ exit(); return;}
+                            if(!imported_unit.hasOwnProperty("max_health")){ exit(); return;}
+                            if(!imported_unit.hasOwnProperty("controller")){ exit(); return;}
+                            if(!imported_unit.hasOwnProperty("type")){ exit(); return;}
+                            if(!imported_unit.hasOwnProperty("id")){ exit(); return;}
+                            if(!imported_unit.hasOwnProperty("template_type")){ exit(); return;}
+                            if(!imported_unit.hasOwnProperty("template_values")){ exit(); return;}
+
+                            var found_unit = false;
+
+                            for(var unit of cursed.viewport.units){
+                                if(unit.id == imported_unit.id){
+                                    found_unit = true;
+                                    break;
+                                }
+                            }
+
+                            var id = null;
+                            if(found_unit){
+                                id = Math.random().toString(36).substring(7);
+                            }
+                            else{
+                               id = imported_unit.id;
+
+                            }
+
+
+                            //TODO: maybe do a check to make sure we have no other units with this id before adding it
+                            //TODO: Decide if, when a unit is imported that already exists if we should overwrite (remove
+                            //  the old and add the new) or give a new id to the new instance.
+                            var unit = {
+                                x: cursed.viewport.cursor_x + cursed.viewport.v_x,
+                                y: cursed.viewport.cursor_y + cursed.viewport.v_y,
+                                name: imported_unit.name,
+                                current_health: imported_unit.current_health,
+                                max_health: imported_unit.max_health,
+                                controller: imported_unit.controller,
+                                type: imported_unit.type,
+                                "id": id, 
+                                template_type: imported_unit.template_type,
+                                template_values: imported_unit.template_values
+                            }
+
+
+
+                            cursed.client.send({
+                                type: "command",
+                                key: "add.map.unit",
+                                details: unit
+                            }, true);
+
+                        }
+
+                        fileIn.unbind();
+
+                        cursed.viewer.editor_open = false;               
+                        $(this).dialog("close");
+                    },
+                    "Cancel": function(){
+                        cursed.viewer.editor_open = false;               
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        }
+
+        if(e.key === "E"){
+
+            var el = $("#export_unit_dialog");
+
+            var unit = cursed.viewport.getCurrentUnit();
+
+            el.empty()
+            el.append( $("<p>", { text: "Exporting " + unit.name }) );
+
+            el.dialog({
+                resizable: true,
+                height: "auto",
+                width: "40%",
+                modal: true,
+                open: function(){
+
+                    // pause keypress handling
+                    cursed.viewer.editor_open = true;               
+
+                    //blur text box - prevents issue with keybind char getting caught
+                    $("#import_unit_input").blur();
+                },
+                close: function(){
+                    // allow client to handle keypresses again
+                    cursed.viewer.editor_open = false;               
+                },
+                buttons: {
+                    "Export Locally (Download)": function(){
+
+                        var unit = cursed.viewport.getCurrentUnit();
+                        var text = JSON.stringify(unit);
+                        var file_name = unit.name.replace(" ", "_") + ".json";
+
+                        download(file_name, text);
+
+                        cursed.viewer.editor_open = false;               
+                        $(this).dialog("close");
+                    },
+                    "Export Remotely (Save to server)": function(){
+
+                        var unit = cursed.viewport.getCurrentUnit();
+
+                        cursed.client.send({
+                            type: "command",
+                            key: "export.map.unit",
+                            details: { id: unit.id }
+                        }, true);
+
+
+                        cursed.viewer.editor_open = false;               
+                        $(this).dialog("close");
+                    },
+                    "Cancel": function(){
+                        cursed.viewer.editor_open = false;               
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        }
+        if(e.key === "v"){
+            cursed.unit_inspector.show();
         }
     }
     else if(command_window.mode === command_window.command_modes.unit_move){
@@ -1109,21 +1472,28 @@ command_window.draw_units_screen = function(){
     var current_unit = cursed.viewport.getCurrentUnit();
     line = command_window.draw_title(0, "Units:");
     if(cursed.state.role === "gm"){
-        line = command_window.draw_key(line, "a", "Add Unit");
 
         if(current_unit !== null){
+            line = command_window.draw_key(line, "a", "Add Unit", "Dark Grey");
             line = command_window.draw_key(line, "r", "Remove Unit");
-            line = command_window.draw_key(line, "m", "Move Unit");
             line = command_window.draw_key(line, "e", "Edit Unit");
+            line = command_window.draw_key(line, "i", "Import Unit", "Dark Grey");
+            line = command_window.draw_key(line, "E", "Export Unit");
+            line = command_window.draw_key(line, "m", "Move Unit");
             line = command_window.draw_key(line, "+", "Increase Unit Health");
             line = command_window.draw_key(line, "-", "Decrease Unit Health");
+            line = command_window.draw_key(line, "v", "View Unit Details");
         }
         else {
+            line = command_window.draw_key(line, "a", "Add Unit");
             line = command_window.draw_key(line, "r", "Remove Unit", "Dark Grey");
-            line = command_window.draw_key(line, "m", "Move Unit", "Dark Grey");
             line = command_window.draw_key(line, "e", "Edit Unit", "Dark Grey");
+            line = command_window.draw_key(line, "i", "Import Unit");
+            line = command_window.draw_key(line, "E", "Export Unit", "Dark Grey");
+            line = command_window.draw_key(line, "m", "Move Unit", "Dark Grey");
             line = command_window.draw_key(line, "+", "Increase Unit Health", "Dark Grey");
             line = command_window.draw_key(line, "-", "Decrease Unit Health", "Dark Grey");
+            line = command_window.draw_key(line, "v", "View Unit Details", "Dark Grey");
         }
 
     }

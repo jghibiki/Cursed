@@ -1,9 +1,11 @@
 from autobahn.asyncio.websocket import WebSocketServerProtocol
 from autobahn.asyncio.websocket import WebSocketServerFactory
-import json
 import magic
 import os
 
+import json
+from jsoncomment import JsonComment
+jsonParser = JsonComment(json)
 
 class BroadcastServerProtocol(WebSocketServerProtocol):
 
@@ -11,7 +13,7 @@ class BroadcastServerProtocol(WebSocketServerProtocol):
         super(WebSocketServerProtocol, self).__init__(*args, **kwargs)
 
         with open("data.json", "r") as f:
-            self.map_data = json.load(f)
+            self.map_data = jsonParser.load(f)
 
         self.clients = []
 

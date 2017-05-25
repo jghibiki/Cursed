@@ -1,14 +1,18 @@
 import subscriptions
 import broadcast_server
+import random
 
 import json
-
-gm_password = "1111"
-password = "2222"
+from jsoncomment import JsonComment
+jsonParser = JsonComment(json)
 
 handlers = None
 users = []
 save = None
+
+with open("config.json", "r") as f:
+    config = jsonParser.load(f)
+
 
 game_data = {}
 # add at least the staging map
@@ -86,7 +90,7 @@ game_data["maps"]["__staging__"] = {
 
 
 with open("data.json", "r") as f:
-    game_data = json.load(f)
+    game_data = jsonParser.load(f)
 
 # click supported save
 #def save(ctx, map_obj):
@@ -107,10 +111,19 @@ def start_server(host, port, _gm_password, _password, save_loc):
     print("Server url: ws://{0}:{1}".format(host, port))
 
     global gm_password
-    gm_password = _gm_password
+    if _gm_password:
+        gm_password = _gm_password
+    else:
+        gm_password = "".join([ str(random.randint(0,9)) for x in range(4) ])
+    print("GM Password: " + gm_password)
 
     global password
-    password = _password
+    if _password:
+        password = _password
+    else:
+        password = "".join([ str(random.randint(0,9)) for x in range(4) ])
+    print("PC Password: " + password)
+
     broadcast_server.start_server(host, port)
 
 if __name__ == "__main__":

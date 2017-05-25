@@ -179,6 +179,7 @@ map.init = function(){
         map.load_map();
         map.get_maps();
     });
+
 }
 
 map.update = function(hashes){

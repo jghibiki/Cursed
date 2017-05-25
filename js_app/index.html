@@ -8,6 +8,7 @@
         <script src="third_party/jquery-3.1.1.min.js"></script>
         <script src="third_party/createjs-2015.11.26.min.js"></script>
         <script src="third_party/jquery-ui/jquery-ui.js"></script>
+        <script src="hacks.js"></script>
         <script src="index.js"></script>
     </head>
     <body onload="load()" style="background: #000">
@@ -82,10 +83,14 @@
 
         
         <!-- unit menu dialog -->
-        <div id="unit_menu" style="display:none; padding:2px; margin:2px; width: 400px;" title="">
-            <p id="validation">All fields are required.</p>
+        <div id="unit_menu" style="display:none; padding:2px; margin:2px" title="">
+            <p id="validation">Required fields are not all filled.</p>
             <form>
                 <fieldset style="padding:0; border:0; margin-top:25px; display:block">
+                    <b>Required Fields</b>
+                    <br>
+                    <br>
+
                     <label>Unit Name:</label>
                     <input id="unit_name" style="margin-bottom:12px; padding: .4em; display:block;"/>
 
@@ -104,8 +109,35 @@
                         <option value="enemy">Enemy Character</option>
                         <option value="neutral">Neutral Character</option>
                     </select>
+
+
+                    <br>
+                    <hr>
+                    <br>
+
+                    <b>Optional Fields</b>
+                    <br>
+                    <br>
+
+                    <label>Additional Fields Template</label>
+                    <select id="unit_additional_fields_template" style="margin-bottom:12px;  padding: .4em; display:block;">
+                    </select>
+
+                    <div id="unit_additional_fields">
+                    </div>
+
+                   
                 </fieldset>
             </form>
+        </div>
+
+        <!-- import unit dialog -->
+        <div id="import_unit_dialog" style="display:none" title="Import Unit">
+            <input type="file" id="import_unit_input">
+        </div>
+
+        <!-- export unit dialog -->
+        <div id="export_unit_dialog" style="display:none" title="Export Unit">
         </div>
     </body>
 </html>
