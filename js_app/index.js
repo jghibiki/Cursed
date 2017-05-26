@@ -57,6 +57,7 @@ function load(){
         {id: "narrative", src: "./narrative.js"},
         {id: "roll", src: "./roll.js"},
         {id: "unit_inspector", src: "./unit_inspector.js"},
+        {id: "notes", src: "./notes.js"},
         {id: "initiative", src: "./initiative.js"}
     ]);
 }
@@ -230,6 +231,7 @@ function build_namespace() {
     cursed.narrative = narrative;
     cursed.roll = roll;
     cursed.unit_inspector = unit_inspector;;
+    cursed.notes = notes;;
     cursed.initiative = initiative;
 }
 
@@ -248,6 +250,7 @@ function init_modules(){
     cursed.narrative.init();
     cursed.roll.init();
     cursed.unit_inspector.init();
+    cursed.notes.init();
     cursed.initiative.init();
 
     // do last
@@ -387,14 +390,14 @@ function handleKeypress(e){
                 }
             }
             else if(cursed.viewer.motion_buffer_count.length > 0){
-
+                // TODO: implement motion buffer (maybe) see (https://github.com/jghibiki/Cursed/issues/10)
             }
             else{
                 if(e.key === ":"){
                     cursed.viewer.combo_buffer = ":"; 
                     cursed.colon_line.set_buff(":");
                 }
-                else if (cursed.constants.NUMBERS.indexOf(e.key) >= 0){
+                else if (false && cursed.constants.NUMBERS.indexOf(e.key) >= 0){ //added false to short circuit
                     cursed.viewer.motion_buffer_count += e.key; 
                 }
                 else{

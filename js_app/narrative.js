@@ -35,18 +35,19 @@ narrative.init = function(){
     cursed.client.subscribe("get.narrative", (data)=>{
         var lines = [];
 
-        var text = data.payload.name + ":\n";
-        if(data.payload.text !== null){
-            text = data.payload.text
-        }
-        for(var line of text.split("\n")){
-            lines.push([
-                {
-                    text: line,
-                    color: "White"
-                }
-            ]);
-        }
+        var title_text = data.payload.name + ":\n";
+        lines.push([
+            {
+                text: title_text,
+                color: "Gold"
+            }
+        ],
+        [
+            {
+                text: data.payload.text,
+                color: "White"
+            }
+        ]);
 
         narrative.show();
         cursed.text_box.set(lines);
@@ -69,7 +70,6 @@ narrative.init = function(){
 narrative.handle = function(event){
 
     if(event.key === "n" && command_window.mode === command_window.command_modes.default){
-        narrative.show();
         narrative.list();
     }
 }
@@ -125,10 +125,16 @@ narrative.handle_combo = function(buf){
                     height: "auto",
                     width: "auto",
                     modal: true,
+                    open: function(){
+                        // pause keypress handling
+                        cursed.viewer.editor_open = true;               
+                    },
+                    close: function(){
+                        // allow client to handle keypresses again
+                        cursed.viewer.editor_open = false;               
+                    },
                     buttons: {
                         "Save": function(){
-                            $(this).dialog("close");
-                            cursed.viewer.editor_open = false;
 
                             data.text = $("#text").val();
                             cursed.client.send({
@@ -140,6 +146,8 @@ narrative.handle_combo = function(buf){
                                     text: data.text
                                 }
                             });
+
+                            $(this).dialog("close");
                         },
                         "Cancel": function(){
                             $(this).dialog("close");
