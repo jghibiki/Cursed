@@ -323,12 +323,15 @@ text_box.render_text = function(){
             }
 
 
-            var overflow_buff = part.text.replace(/[\n\r]+/g, '');
+            if(part.text.length > 0){
+                var overflow_buff = part.text.replace(/[\n\r]+/g, '');
+            }
+            else{ var overflow_buff = ""; }
             var buff = overflow_buff[0];
             overflow_buff = overflow_buff.slice(1, overflow_buff.length);
 
 
-            buff_loop: while(buff.length > 0 || overflow_buff.length > 0){
+            buff_loop: while(buff !== undefined && (buff.length > 0 || overflow_buff.length > 0)){
                 var text = new createjs.BitmapText(buff, cursed.ss);
                 text.letterSpacing = cursed.constants.font_spacing;
 

@@ -44,7 +44,10 @@ narrative.init = function(){
         ],
         [
             {
-                text: data.payload.text,
+                text: (
+                    data.payload.text !== null &&
+                    data.payload.text !== undefined
+                )?data.payload.text:" ",
                 color: "White"
             }
         ]);
