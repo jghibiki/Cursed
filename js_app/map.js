@@ -458,24 +458,28 @@ map.handle_combo = function(buff){
 
                         var feature_name = $("#feature_name");
                         name = feature_name.val();
+                        feature_name.val("");
                         if(name === "" || name === null || name === undefined){
                             return;
                         }
 
                         var feature_key = $("#feature_key");
                         key = feature_key.val();
+                        feature_key.val("");
                         if(key === "" || key === null || key === undefined){
                             return;
                         }
 
                         var feature_character = $("#feature_character");
                         character = feature_character.val();
+                        feature_character.val("");
                         if(character === "" || character === null || character === undefined){
                             return;
                         }
 
                         var feature_color = $("#feature_color");
                         color = feature_color.val();
+                        feature_color.val("");
                         if(color === "" || color === null || color === undefined){
                             return;
                         }
