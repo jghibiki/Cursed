@@ -1452,7 +1452,11 @@ def addNarrative(client, req):
     name = req["details"]["name"]
 
     if "chapter_no" not in req["details"]:
-        maximum = max([ el["chapter_no"] for el in magic.game_data["story"]])
+        nos = [ el["chapter_no"] for el in magic.game_data["story"]]
+        if len(nos) > 0:
+            maximum = max(nos)
+        else:
+            maximum = 0
         chapter_no = maximum + 1
     else:
         chapter_no = req["details"]["chapter_no"]
