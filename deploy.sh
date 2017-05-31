@@ -22,7 +22,7 @@ cd pages
 git checkout $TARGET_BRANCH || git checkout --orphan $TARGET_BRANCH
 cd ..
 
-rsync -r master/js_app/* pages/
+rsync -rv master/js_app/ pages/
 
 # Clean out existing contents
 #rm -rf out/**/* || exit 0
