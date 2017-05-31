@@ -121,7 +121,7 @@ viewport.draw = function(){
                        y < (viewport.v_y + viewport.height)){
 
                         diff[y - viewport.v_y][x - viewport.v_x] = "FOW";
-                        cursed.grid.text(y - viewport.v_y, x - viewport.v_x, "\u2588", "Dark Grey");
+                        cursed.grid.text(y - viewport.v_y, x - viewport.v_x, "\u2588", "Blue Grey");
                     }
                 }
             }
@@ -133,6 +133,17 @@ viewport.draw = function(){
                 if( viewport.last[i][j] === diff[i][j] ){
                     cursed.grid.text(viewport.y + i, viewport.x + j, " ", "Gold");
                 }
+            }
+        }
+
+        //draw notes
+        for(var note of cursed.notes.notes){
+            if(note.x >= viewport.v_x && 
+               note.y >= viewport.v_y &&
+               note.x < (viewport.v_x + viewport.width) &&
+               note.y < (viewport.v_y + viewport.height)){
+
+                cursed.grid.text(note.y - viewport.v_y, note.x - viewport.v_x, "!", "Red");
             }
         }
 
