@@ -18,6 +18,19 @@ notes.init = function(){
         notes.notes = data.payload;
     });
 
+
+    cursed.client.subscribe("modify.map.note", (data)=>{
+        for(var i=0; i<notes.notes.length; i++){
+            var note = notes.notes[i];
+            if(note.id === data.details.id){
+                notes.notes[i] = data.details; 
+                break;
+            }
+        }
+
+        if(notes.showing){ notes.list() }
+    });
+
     cursed.client.subscribe("add.map.note", (data)=>{
         notes.notes.push(data.details);
         notes.list();
@@ -39,6 +52,10 @@ notes.init = function(){
         notes.notes.splice(idx, 1);
 
         notes.list();
+        
+        //redraw to rm note
+        cursed.viewport.dirty = true; 
+        cursed.viewport.draw();
     });
 
     cursed.client.registerInitHook(()=>{
@@ -104,15 +121,25 @@ notes.list = function(){
     ];
 
 
-    for(var note of notes.notes){
+    if(notes.notes.length > 0){
+        for(var note of notes.notes){
+            lines.push([
+                {
+                    text: "- " + note.name + ": ",
+                    color: "Light Grey"
+                },
+                {
+                    text: note.text.substring(0, 100),
+                    color: "White"
+                }
+            ]);
+        }
+    }
+    else {
         lines.push([
             {
-                text: "- " + note.name + ": ",
-                color: "Light Grey"
-            },
-            {
-                text: note.text.substring(0, 20),
-                color: "White"
+                text: "No notes yet. Try ':notes add [note name]' to add a new note.",
+                color: "Dark Grey"
             }
         ]);
     }
@@ -128,8 +155,8 @@ notes.add = function(name){
         details: {
             "name": name,
             "text": "",
-            "x": viewport.cursor_x,
-            "y": viewport.cursor_y,
+            "x": viewport.cursor_x + viewport.v_x,
+            "y": viewport.cursor_y + viewport.v_y,
             "id": Math.random().toString(36).substring(7)
         }
     }, true);
@@ -160,11 +187,89 @@ notes.remove = function(name){
 }
 
 notes.edit = function(name){
+    var edit_note = null;
 
+    for(var note of notes.notes){
+        if(note.name === name){
+            edit_note= note;
+            break;
+        }
+    }
+
+    if(edit_note === null){
+        return;
+    }
+
+    $("#text").val(edit_note.text);
+    $("#dialog").dialog({
+        resizable: true,
+        height: "auto",
+        width: "auto",
+        modal: true,
+        open: function(){
+            // pause keypress handling
+            cursed.viewer.editor_open = true;               
+        },
+        close: function(){
+            // allow client to handle keypresses again
+            cursed.viewer.editor_open = false;               
+        },
+        buttons: {
+            "Save": function(){
+
+                var text = $("#text").val();
+                cursed.client.send({
+                    type: "command",
+                    key: "modify.map.note",
+                    details: {
+                        "id": edit_note.id,
+                        "name": edit_note.name,
+                        "text": text,
+                        "x": edit_note.x,
+                        "y": edit_note.y
+                    }
+                }, true);
+
+                $(this).dialog("close");
+            },
+            "Cancel": function(){
+                $(this).dialog("close");
+            }
+        }
+    });
 }
 
-notes.view= function(name){
+notes.view = function(name){
 
+    var view_note = null;
+
+    for(var note of notes.notes){
+        if(note.name === name){
+            view_note = note;
+            break;
+        }
+    }
+
+    if(view_note === null){
+        return;
+    }
+
+    notes.show();
+
+    cursed.text_box.set([
+        [
+            {
+                text: view_note.name + ": ",
+                color: "Gold"
+            }
+        ],
+        [
+            {
+                text: view_note.text,
+                color: "White"
+            }
+        ]
+    ]);
 }
 
 notes.load_notes = function(){

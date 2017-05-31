@@ -550,7 +550,7 @@ def modifyMapNote(client, req):
                 key="modify.map.note",
                 payload={"msg": "Request details missing \"text\""})
         return False
-    id = req["details"]["text"]
+    text = req["details"]["text"]
 
     if "id" not in req["details"]:
         client.sendTarget(
