@@ -1,0 +1,7 @@
+language: generic # don't install any environment
+
+script: bash ./deploy.sh
+env:
+  global:
+  - ENCRYPTION_LABEL: "bf2aa5ec98cf"
+  - COMMIT_AUTHOR_EMAIL: "jghibiki.games@gmail.com"
