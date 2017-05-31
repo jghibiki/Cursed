@@ -466,11 +466,11 @@ command_window.handle = function(e){
         }
         else if(e.key === "a"){
             if(command_window.box){
-                var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]);
-                var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + 1;
+                var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]) + viewport.v_x;
+                var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + viewport.v_x + 1;
 
-                var y_min = Math.min(command_window.box_xy_1[1], command_window.box_xy_2[1]);
-                var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + 1;
+                var y_min = Math.min(command_window.box_xy_1[1], command_window.box_xy_2[1]) + viewport.v_y;
+                var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + viewport.v_y + 1;
 
                 var frames = [];
 
@@ -513,11 +513,11 @@ command_window.handle = function(e){
         }
         else if(e.key === "r"){
             if(command_window.box){
-                var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]);
-                var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + 1;
+                var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]) + viewport.v_x;
+                var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + viewport.v_x + 1;
 
-                var y_min = Math.min(command_window.box_xy_1[1], command_window.box_xy_2[1]);
-                var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + 1;
+                var y_min = Math.min(command_window.box_xy_1[1], command_window.box_xy_2[1]) + viewport.v_y;
+                var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + viewport.v_y + 1;
 
                 var frames = [];
 
