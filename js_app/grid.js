@@ -11,6 +11,8 @@ grid.init = function(){
         "\u2588", // block character
         "\u2191", // up arrow character
         "\u2193", // down arrow character
+        "\u25A0", // square character
+        "\u25FB", // medium hollow square character
         "~", "^", "#", "!", "@", "&", ".", ":", "_", "/", 
         "|", "\\", "+", "-", "[", "]", "(", ")", "<", ">", 
         "=", "+", " ", "-", "#", "%", "*", ",", "?", ";", "'", "\"", "$", "`", "[", "]", "{", "}",

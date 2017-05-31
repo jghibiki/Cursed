@@ -531,6 +531,9 @@ viewport.getCursorFocus = function(){
         }
 
     }
+    else{
+        return "";
+    }
 }
 
 viewport.getCurrentUnit = function(){
