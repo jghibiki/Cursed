@@ -419,6 +419,15 @@ def addMapNote(client, req):
     x = req["details"]["x"] if "x" in req["details"] else None
     y = req["details"]["y"] if "y" in req["details"] else None
 
+    if "name" not in req["details"]:
+        client.sendTarget(
+                req["id"],
+                type="error",
+                key="add.map.notes",
+                payload={"msg": "Request details missing \"name\""})
+        return False
+    name = req["details"]["name"]
+
     if "text" not in req["details"]:
         client.sendTarget(
                 req["id"],
@@ -459,10 +468,11 @@ def addMapNote(client, req):
 
         return False
 
-    magic.game_data[user["current_map"]]["notes"].push({
+    magic.game_data["maps"][user["current_map"]]["notes"].append({
         "x": x,
         "y": y,
         "text": text,
+        "name": name,
         "id": id
     })
 
@@ -507,7 +517,7 @@ def removeMapNote(client, req):
 
         return False
 
-    notes = magic.game_data[user["current_map"]]["notes"]
+    notes = magic.game_data["maps"][user["current_map"]]["notes"]
     for note in notes:
         if note["id"] == id:
             notes.remove(note)
@@ -573,7 +583,7 @@ def modifyMapNote(client, req):
 
         return False
 
-    notes = magic.game_data[user["current_map"]]["notes"]
+    notes = magic.game_data["maps"][user["current_map"]]["notes"]
     for note in notes:
         if note["id"] == id:
             note["text"] = text
