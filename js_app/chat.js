@@ -40,8 +40,10 @@ chat.handle_help = function(buff){
 }
 
 chat.handle = function(e){
-    if(e.key === "c"){
-        chat.show();        
+    if(command_window.mode === command_window.command_modes.default){
+        if(e.key === "c"){
+            chat.show();        
+        }
     }
 };
 
