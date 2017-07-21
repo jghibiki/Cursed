@@ -3,3 +3,4 @@ Flask==0.10.1
 requests==2.12.1
 flask-cors
 jsoncomment
+autobahn
