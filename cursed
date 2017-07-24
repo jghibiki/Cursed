@@ -69,12 +69,27 @@ def init(ctx, campaign_title, campaign_description, overwrite):
         "chat": []
     }
 
+    default_config={
+        "custom_unit_fields": [],
+        "feature_packs": []
+    }
+
     campaign_exists = os.path.exists(ctx.obj["data_location"])
     if (campaign_exists and overwrite) or not campaign_exists:
-        save(ctx, default_campaign)
+        with open(ctx.obj["data_location"], "w") as f:
+            json.dump(default_campaign, f, indent=4)
         print("Campaign file created!")
     elif campaign_exists and not overwrite:
-        print("Campaign file already exists. Use --overwrite to overwrite existing file.")
+        print("Campaign file already exists. Use --overwrite to overwrite existing config and campaign files.")
+
+    config_exists = os.path.exists("config.json")
+    if(config_exists and overwrite) or not config_exists:
+        with open("config.json", "w") as f:
+            json.dump(default_config, f)
+
+        print("Config file create!")
+    elif config_exists and not overwrite:
+        print("Config file already exists. Use --overwrite to overwrite existing config and campaign files.")
 
 @click.command()
 @click.option("--port", default=9000, help="The port the server should run on.")

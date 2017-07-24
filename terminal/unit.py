@@ -1,4 +1,4 @@
-_import logging
+import logging
 import colors
 
 log = logging.getLogger('simple_example')

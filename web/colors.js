@@ -123,6 +123,13 @@ colors.objects = [
         g: 255, 
         b: 255,
         value: "#ffffff"
+    },
+    {
+        name: "Blue Grey",
+        r: 8, 
+        g: 43, 
+        b: 51,
+        value: "#122B33"
     }
 ];
 

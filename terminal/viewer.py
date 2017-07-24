@@ -31,6 +31,8 @@ class Viewer(InteractiveModule, VisibleModule):
         self._initial_draw = True
         self._mind_blown = False
 
+        self.loop = None
+        self.client = None
 
         curses.curs_set(0)
 
@@ -43,52 +45,64 @@ class Viewer(InteractiveModule, VisibleModule):
             if isinstance(mod, InitModule):
                 mod.update(self)
 
-        while True:
-            # hacks to fix terminal state
-            curses.curs_set(0)
+        while True: # to preserve old behavior where run keeps looping
+            self.tick()
 
-            # get ch
-            ch = self.screen.getch()
+    def tick(self):
+        # hacks to fix terminal state
+        curses.curs_set(0)
 
-            self.start = datetime.now()
+        # get ch
+        ch = self.screen.getch()
 
-            changes = False
+        self.start = datetime.now()
 
-            log.info("Calling update on client modules")
-            part_start = datetime.now()
-            for mod in self._submodules:
-                if isinstance(mod, ClientModule):
-                    changes = mod.update(self)
-            log.info("Elapsed: %s" % (datetime.now() - part_start))
+        changes = False
 
-            log.info("Calling handle")
-            part_start = datetime.now()
-            if ch is not -1:
-                self._handle(ch)
-            log.info("Elapsed %s" % (datetime.now() - part_start))
+        log.info("Calling update on client modules")
+        part_start = datetime.now()
+        for mod in self._submodules:
+            if isinstance(mod, ClientModule):
+                changes = mod.update(self)
+        log.info("Elapsed: %s" % (datetime.now() - part_start))
 
-            log.info("Calling draw")
-            part_start = datetime.now()
-            changes = self._draw() or changes
-            log.info("Elapsed %s" % (datetime.now() - part_start))
+        log.info("Calling handle")
+        part_start = datetime.now()
+        if ch is not -1:
+            self._handle(ch)
+        log.info("Elapsed %s" % (datetime.now() - part_start))
 
-
-            if self._mind_blown and changes:
-
-                curses.start_color()
-                curses.use_default_colors()
-                for i in range(1, curses.COLORS):
-                    color = random.randint(1, curses.COLORS-1)
-                    curses.init_pair(i + 1, color, -1)
-
-            # part of an ongoing expiriment to see if this helps with character repeat lag
-            curses.flushinp() # get rid of any characters waiting in buffer
-
-            end = datetime.now()
-            elapsed = end - self.start
-            log.info("Main loop duration: %s" % elapsed)
+        log.info("Calling draw")
+        part_start = datetime.now()
+        changes = self._draw() or changes
+        log.info("Elapsed %s" % (datetime.now() - part_start))
 
 
+        if self._mind_blown and changes:
+
+            curses.start_color()
+            curses.use_default_colors()
+            for i in range(1, curses.COLORS):
+                color = random.randint(1, curses.COLORS-1)
+                curses.init_pair(i + 1, color, -1)
+
+        # part of an ongoing expiriment to see if this helps with character repeat lag
+        curses.flushinp() # get rid of any characters waiting in buffer
+
+        end = datetime.now()
+        elapsed = end - self.start
+
+        log.info("Main loop duration: %s" % elapsed)
+
+        if self.loop:
+            self.loop.call_soon(self.tick)
+
+
+    def setLoop(self, loop):
+        self.loop = loop
+
+    def setClient(self, client):
+        self.client = client
 
 
     def _draw(self, force=False):

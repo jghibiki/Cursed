@@ -8,6 +8,10 @@ features.objects = [];
 
 
 features.init = function(){
+    cursed.client.subscribe("get.config", (data)=>{
+        features.packs = data.payload.feature_packs;
+    })
+
     cursed.client.subscribe("get.map.feature.types", (data)=>{
         features.objects = data.payload;
         cursed.map.loading.types  = false;

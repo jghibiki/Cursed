@@ -179,6 +179,7 @@ map.init = function(){
         map.load_map();
         map.get_maps();
     });
+
 }
 
 map.update = function(hashes){
@@ -236,15 +237,27 @@ map.handle_combo = function(buff){
     
     if(buff[0] === "map" || buff[0] === "m" || buff[0] === "maps"){
        
-        if(buff.length == 5 && (buff[1] === "add" || buff[1] === "a")){
-            var name = buff[2];
-            var height = parseInt(buff[3]);
-            var width = parseInt(buff[4]);
+        if(buff.length >= 5 && (buff[1] === "add" || buff[1] === "a")){
+            var height = parseInt(buff[2]);
+            var width = parseInt(buff[3]);
+            var name = buff.slice(4, buff.length).join(" ");
+
+            if(height > 0 && width > 0){
+                cursed.client.send({
+                    type: "command",
+                    key: "add.map",
+                    details: {
+                        "width": width,
+                        "height": height,
+                        "name": name
+                    }
+                });
+            }
 
         }
         else if(buff.length == 4 && (buff[1] === "move" || buff[1] === "m")){
             user_to_switch = buff[2];
-            map_to_switch = buff[3];
+            map_to_switch = buff.slice(3, buff.length).join(" ");
 
             var valid_map = false;
             for(var map_name of map.maps){
@@ -445,24 +458,28 @@ map.handle_combo = function(buff){
 
                         var feature_name = $("#feature_name");
                         name = feature_name.val();
+                        feature_name.val("");
                         if(name === "" || name === null || name === undefined){
                             return;
                         }
 
                         var feature_key = $("#feature_key");
                         key = feature_key.val();
+                        feature_key.val("");
                         if(key === "" || key === null || key === undefined){
                             return;
                         }
 
                         var feature_character = $("#feature_character");
                         character = feature_character.val();
+                        feature_character.val("");
                         if(character === "" || character === null || character === undefined){
                             return;
                         }
 
                         var feature_color = $("#feature_color");
                         color = feature_color.val();
+                        feature_color.val("");
                         if(color === "" || color === null || color === undefined){
                             return;
                         }

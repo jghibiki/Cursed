@@ -15,12 +15,17 @@ chat.init = function(){
 
     cursed.client.subscribe("get.chat", (data)=>{
         chat.raw_messages = data.payload
-        chat.get_messages(chat.raw_messages);        
+        chat.build_lines(chat.raw_messages);        
     });
 
     cursed.client.subscribe("add.chat.message", (data)=>{
         chat.raw_messages.push(data.details);
-        chat.get_messages(chat.raw_messages);        
+        chat.build_lines(chat.raw_messages);        
+    });
+
+    cursed.client.subscribe("clear.chat", (data)=>{
+        chat.raw_messages = [];
+        chat.build_lines(chat.raw_messages);
     });
 
     cursed.client.registerInitHook(()=>{
@@ -40,27 +45,36 @@ chat.handle_help = function(buff){
 }
 
 chat.handle = function(e){
-    if(e.key === "c"){
-        chat.show();        
+    if(command_window.mode === command_window.command_modes.default){
+        if(e.key === "c"){
+            chat.show();        
+        }
     }
 };
 
 chat.handle_combo = function(buff){
     buff = buff.split(" ");
     if( ( buff[0] === "chat" || buff[0] === "c" ) && buff.length > 1){
-        var data = {
-            sender: cursed.state.username,
-            recipient: null,
-            message: buff.slice(1).join(" "),
-            persona: null
-        };
-        cursed.client.send({
-            type: "command",
-            key: "add.chat.message",
-            details: data
-        }, true);
-        chat.show();
-
+        if(buff[1] === "clear"){
+            cursed.client.send({
+                type: "command",
+                key: "clear.chat"
+            }, true);
+        }
+        else{
+            var data = {
+                sender: cursed.state.username,
+                recipient: null,
+                message: buff.slice(1).join(" "),
+                persona: null
+            };
+            cursed.client.send({
+                type: "command",
+                key: "add.chat.message",
+                details: data
+            }, true);
+            chat.show();
+        }
     }
     else if( (buff[0] === "whisper" || buff[0] === "w") && buff.length > 2){
         var data = {
@@ -90,7 +104,6 @@ chat.handle_combo = function(buff){
         }, true);
         chat.show();
     }
-
 };
 
 chat.show = function(){
@@ -105,7 +118,7 @@ chat.hide = function(){
     chat.showing = false;
 };
 
-chat.get_messages = function(data){
+chat.build_lines = function(data){
 
     var gm_user = null;
     for(var user of cursed.users.users){

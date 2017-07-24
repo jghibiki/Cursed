@@ -19,7 +19,9 @@ var cursed = {
         fow: "on",
         role: "pc",
         move_mode: "hjkl",
-        initiative_die_sides: 20
+        initiative_die_sides: 20,
+        config: null, // loaded async from server
+        file_cache: null
     },
     viewer: {
         handling: false,
@@ -54,8 +56,9 @@ function load(){
         {id: "chat", src: "./chat.js"},
         {id: "narrative", src: "./narrative.js"},
         {id: "roll", src: "./roll.js"},
-        {id: "initiative", src: "./initiative.js"},
-        {id: "feature_packs", src: "./feature_packs.json"}
+        {id: "unit_inspector", src: "./unit_inspector.js"},
+        {id: "notes", src: "./notes.js"},
+        {id: "initiative", src: "./initiative.js"}
     ]);
 }
 
@@ -106,6 +109,19 @@ function init(){
 
         //save handler
         cursed.client.subscribe("save", ()=>{console.log("Game Saved");});
+
+        cursed.client.subscribe("get.config", (data)=>{
+            cursed.state.config = data.payload;
+        });
+
+        cursed.client.registerInitHook( ()=>{
+            cursed.client.send({
+                type: "command",
+                key: "get.config"
+            });
+        });
+
+
 
         init_modules();
         begin_draw();
@@ -201,7 +217,6 @@ function test(){
 
 function build_namespace() {
     cursed.features = features;
-    cursed.features.packs = queue.getResult("feature_packs").feature_packs;
     cursed.colors = colors;
     cursed.grid = grid;
     cursed.viewport = viewport;
@@ -215,6 +230,8 @@ function build_namespace() {
     cursed.users = users;
     cursed.narrative = narrative;
     cursed.roll = roll;
+    cursed.unit_inspector = unit_inspector;;
+    cursed.notes = notes;;
     cursed.initiative = initiative;
 }
 
@@ -232,6 +249,8 @@ function init_modules(){
     cursed.chat.init();
     cursed.narrative.init();
     cursed.roll.init();
+    cursed.unit_inspector.init();
+    cursed.notes.init();
     cursed.initiative.init();
 
     // do last
@@ -371,14 +390,14 @@ function handleKeypress(e){
                 }
             }
             else if(cursed.viewer.motion_buffer_count.length > 0){
-
+                // TODO: implement motion buffer (maybe) see (https://github.com/jghibiki/Cursed/issues/10)
             }
             else{
                 if(e.key === ":"){
                     cursed.viewer.combo_buffer = ":"; 
                     cursed.colon_line.set_buff(":");
                 }
-                else if (cursed.constants.NUMBERS.indexOf(e.key) >= 0){
+                else if (false && cursed.constants.NUMBERS.indexOf(e.key) >= 0){ //added false to short circuit
                     cursed.viewer.motion_buffer_count += e.key; 
                 }
                 else{

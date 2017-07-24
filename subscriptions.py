@@ -1,4 +1,15 @@
 import magic
+import os
+import json
+
+
+##########################
+# Config Operations      #
+##########################
+
+def getConfig(client, req):
+    client.sendTarget(req["id"], key="get.config", payload={"payload": magic.config})
+
 
 ##########################
 # User Operations        #
@@ -408,6 +419,15 @@ def addMapNote(client, req):
     x = req["details"]["x"] if "x" in req["details"] else None
     y = req["details"]["y"] if "y" in req["details"] else None
 
+    if "name" not in req["details"]:
+        client.sendTarget(
+                req["id"],
+                type="error",
+                key="add.map.notes",
+                payload={"msg": "Request details missing \"name\""})
+        return False
+    name = req["details"]["name"]
+
     if "text" not in req["details"]:
         client.sendTarget(
                 req["id"],
@@ -448,10 +468,11 @@ def addMapNote(client, req):
 
         return False
 
-    magic.game_data[user["current_map"]]["notes"].push({
+    magic.game_data["maps"][user["current_map"]]["notes"].append({
         "x": x,
         "y": y,
         "text": text,
+        "name": name,
         "id": id
     })
 
@@ -496,7 +517,7 @@ def removeMapNote(client, req):
 
         return False
 
-    notes = magic.game_data[user["current_map"]]["notes"]
+    notes = magic.game_data["maps"][user["current_map"]]["notes"]
     for note in notes:
         if note["id"] == id:
             notes.remove(note)
@@ -529,7 +550,7 @@ def modifyMapNote(client, req):
                 key="modify.map.note",
                 payload={"msg": "Request details missing \"text\""})
         return False
-    id = req["details"]["text"]
+    text = req["details"]["text"]
 
     if "id" not in req["details"]:
         client.sendTarget(
@@ -562,7 +583,7 @@ def modifyMapNote(client, req):
 
         return False
 
-    notes = magic.game_data[user["current_map"]]["notes"]
+    notes = magic.game_data["maps"][user["current_map"]]["notes"]
     for note in notes:
         if note["id"] == id:
             note["text"] = text
@@ -1050,6 +1071,66 @@ def getMapUnits(client, req):
     return True
 
 
+def exportMapUnit(client, req):
+    if "id" not in req["details"]:
+        client.sendTarget(
+                req["id"],
+                type="error",
+                key="export.map.unit",
+                payload={"msg": "Request details missing \"id\""})
+        return False
+    id = req["details"]["id"]
+
+    user = _getUserInfo(id=req["id"])
+    if not user:
+        client.sendTarget(
+            req["id"],
+            type="error",
+            key="export.map.unit",
+            payload={
+                "msg": "User with id \"{0}\" has not been registered.".format(req["id"])
+        })
+        return False
+
+    if user["current_map"] not in magic.game_data["maps"]:
+        client.sendTarget(
+            req["id"],
+            type="error",
+            key="export.map.unit",
+            payload={
+                "msg": "User \"{0}\" is on map \"{1}\", however this map could not be found.".format(user["username"], user["current_map"])
+        })
+
+        return False
+
+    unit_exp = None
+    for unit in magic.game_data["maps"][user["current_map"]]["units"]:
+        if unit["id"] == id:
+            unit_exp = unit
+            break
+
+    if not unit:
+        client.sendTarget(
+            req["id"],
+            type="error",
+            key="export.map.unit",
+            payload={
+                "msg": "Unit with id \"{0}\" could not be found. Export failed.".format(id)
+        })
+        return False
+
+    if not os.path.exists("exports"): #TODO make export dir configurable
+        os.makedirs("exports")
+
+    file_name = unit["name"].replace(" ", "_") + ".json"
+
+
+    with open("exports/" + file_name, mode='w') as f:
+        json.dump(unit_exp, f, indent=4)
+
+
+
+
 def addMapUnit(client, req):
     if "x" not in req["details"]:
         client.sendTarget(
@@ -1123,6 +1204,15 @@ def addMapUnit(client, req):
         return False
     _id = req["details"]["id"]
 
+    #optional params
+    template_type = None
+    if "template_type" in req["details"]:
+        template_type = req["details"]["template_type"]
+
+    template_values = []
+    if "template_values" in req["details"]:
+        template_values = req["details"]["template_values"]
+
     user = _getUserInfo(id=req["id"])
     if not user:
         client.sendTarget(
@@ -1154,7 +1244,9 @@ def addMapUnit(client, req):
         "current_health": current_health,
         "controller": controller,
         "type": _type,
-        "id": _id
+        "id": _id,
+        "template_type": template_type,
+        "template_values": template_values
     })
 
     client.sendTarget(
@@ -1235,7 +1327,17 @@ def modifyMapUnit(client, req):
                 key="modify.map.unit",
                 payload={"msg": "Request details missing \"id\""})
         return False
-    id = req["details"]["type"]
+    id = req["details"]["id"]
+
+    #optional params
+    template_type = None
+    if "template_type" in req["details"]:
+        template_type = req["details"]["template_type"]
+
+    template_values = []
+    if "template_values" in req["details"]:
+        template_values = req["details"]["template_values"]
+
 
     user = _getUserInfo(id=req["id"])
     if not user:
@@ -1269,6 +1371,8 @@ def modifyMapUnit(client, req):
             unit["current_health"] = current_health
             unit["controller"] = controller
             unit["type"] = type
+            unit["template_type"] = template_type
+            unit["template_values"] = template_values
 
             client.sendTarget(
                     req["id"],
@@ -1358,7 +1462,11 @@ def addNarrative(client, req):
     name = req["details"]["name"]
 
     if "chapter_no" not in req["details"]:
-        maximum = max([ el["chapter_no"] for el in magic.game_data["story"]])
+        nos = [ el["chapter_no"] for el in magic.game_data["story"]]
+        if len(nos) > 0:
+            maximum = max(nos)
+        else:
+            maximum = 0
         chapter_no = maximum + 1
     else:
         chapter_no = req["details"]["chapter_no"]
@@ -1568,6 +1676,8 @@ def _getUserInfo(id=None, username=None):
 ##########################
 
 common_handlers = {
+    "get.config": [getConfig],
+
     "get.map": [getMap],
 
     "register.user": [registerUser],
@@ -1585,7 +1695,6 @@ gm_handlers = {
 
     "get.users": [getUsers],
     "move.user": [moveUser],
-
 
     "add.chat.message": [addChatMessage],
     "clear.chat": [clearChat],
@@ -1612,6 +1721,7 @@ gm_handlers = {
     "add.map.unit": [addMapUnit],
     "remove.map.unit": [removeMapUnit],
     "modify.map.unit": [modifyMapUnit],
+    "export.map.unit": [exportMapUnit],
 
     "add.narrative": [addNarrative],
     "remove.narrative": [removeNarrative],
