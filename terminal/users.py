@@ -15,14 +15,15 @@ class Users(InteractiveModule, LiveModule, TextDisplayModule):
 
 
     def _update(self, viewer, hashes):
-        hash = hashes["users"]
+        pass
+        #hash = hashes["users"]
 
-        if hash != self._previous_hash:
-            self._get_users(viewer)
+        #if hash != self._previous_hash:
+        #    self._get_users(viewer)
 
-            m = viewer.get_submodule(Map)
-            if m._showing:
-                m.show_maps(viewer)
+        #    m = viewer.get_submodule(Map)
+        #    if m._showing:
+        #        m.show_maps(viewer)
 
 
     def _handle(self, viewer, ch):
