@@ -32,6 +32,7 @@ class Viewer(InteractiveModule, VisibleModule):
         self._mind_blown = False
 
         self.loop = None
+        self.client = None
 
         curses.curs_set(0)
 
@@ -94,12 +95,14 @@ class Viewer(InteractiveModule, VisibleModule):
         log.info("Main loop duration: %s" % elapsed)
 
         if self.loop:
-            self.loop.call_later(0.1, self.tick)
+            self.loop.call_soon(self.tick)
 
 
     def setLoop(self, loop):
         self.loop = loop
 
+    def setClient(self, client):
+        self.client = client
 
 
     def _draw(self, force=False):

@@ -1,6 +1,9 @@
 from autobahn.asyncio.websocket import WebSocketClientProtocol
 from autobahn.asyncio.websocket import WebSocketClientFactory
 
+import logging
+
+log = logging.getLogger('simple_example')
 
 class BroadcastClientProtocol(WebSocketClientProtocol):
 
@@ -13,7 +16,7 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
         self.factory.register(self)
 
     def onConnect(self, client):
-        print("Client connecting: {}".format(client.peer))
+        log.info("Client connecting: {}".format(client.peer))
         self.clients.append(client)
 
 
@@ -24,7 +27,7 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
 
         if("CURSED_MAGIC_DEBUG" in os.environ
             and os.environ["CURSED_MAGIC_DEBUG"]):
-            print(obj["type"], obj["key"] if "key" in obj else None)
+            log.info(obj["type"], obj["key"] if "key" in obj else None)
 
 
         success = False #don't allow a broadcast on a bad handle
@@ -87,10 +90,6 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
     def broadcast(self, payload):
         self.send(payload, type="broadcast")
 
-    def sendTarget(self, target, type="broadcast_target", key="", payload={}):
-        payload["targets"] = [target]
-        self.send(payload, type, key=key, isResponse=True)
-
     def send(self, payload, type=None, key=None, isResponse=False):
         if type is not None:
             payload["type"] = type
@@ -102,14 +101,14 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
 
         if("CURSED_MAGIC_DEBUG" in os.environ
             and os.environ["CURSED_MAGIC_DEBUG"]):
-            print(payload["type"], payload["key"] if "key" in payload else None)
+            log.info(payload["type"], payload["key"] if "key" in payload else None)
 
         payload = json.dumps(payload, ensure_ascii=False).encode("utf8")
 
         if type == "broadcast":
             if("CURSED_MAGIC_DEBUG" in os.environ
                 and os.environ["CURSED_MAGIC_DEBUG"]):
-                print("broadcasting")
+                log.info("broadcasting")
             self.factory.broadcast(payload)
         else:
             self.sendMessage(payload)
@@ -121,21 +120,26 @@ class MagicBroadcastClientFactory(WebSocketClientFactory):
 
     def __init__(self):
         WebSocketClientFactory.__init__(self)
-        self.clients = []
+        self.client = None
 
 
-    def register(self, client):
-        if client not in self.clients:
-            self.clients.append(client)
+    def _registerClient(self, client):
+        self.client = client
 
-    def unregister(self, client):
-        if client in self.clients:
-            self.clients.remove(client)
+    def _unregisterClient(self, client):
+        self.client = None
 
-    def broadcast(self, payload):
-        for c in self.clients:
-            c.sendMessage(payload)
+    def send(self, payload):
+        if self.client:
+            self.client.sendMessage(payload)
+        else:
+            log.warn("Attempted to send when no client connection has been established.")
 
+    def broadcast(self, payload): #TODO determine how broadcast will be different then send from a client perspective - should just be a param in the payload
+        if self.client:
+            self.client.sendMessage(payload)
+        else:
+            log.warn("Attempted to send when no client connection has been established.")
 
 
 def start_client(host, port, viewer):
@@ -152,7 +156,8 @@ def start_client(host, port, viewer):
     loop = asyncio.get_event_loop()
 
     viewer.setLoop(loop)
-    loop.call_later(0.1, viewer.tick)
+    viewer.setClient(factory)
+    loop.call_soon(viewer.tick)
 
     coro = loop.create_connection(factory, host, port)
     server = loop.run_until_complete(coro)
