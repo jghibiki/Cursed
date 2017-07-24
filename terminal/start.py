@@ -1,6 +1,7 @@
 import curses
 import logging
 import os
+import broadcast_client
 
 log = logging.getLogger('simple_example')
 
@@ -94,7 +95,9 @@ def entry_point(scr):
 
     log.debug("running viewer")
     client.init(viewer)
-    viewer.run()
+    #viewer.run()
+
+    broadcast_client.start_client("127.0.0.1", 9000, viewer)
 
 os.environ.setdefault('ESCDELAY', '5')
 curses.wrapper(entry_point)
