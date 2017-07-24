@@ -706,8 +706,8 @@ command_window.handle = function(e){
                         }
 
                         var details = {
-                            x: cursed.viewport.cursor_x,
-                            y: cursed.viewport.cursor_y,
+                            x: cursed.viewport.cursor_x + cursed.viewport.v_x,
+                            y: cursed.viewport.cursor_y + cursed.viewport.v_y,
                             name: unit_name,
                             current_health: current_health,
                             max_health: max_health,
