@@ -40,33 +40,33 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
             self._registerClient(obj["id"])
             success = True
 
-#        elif(obj["type"] == "command" and obj["key"] != "bulk"):
-#            if(obj["key"] in magic.subscriptions.common_handlers):
-#                if(obj["password"] == magic.gm_password
-#                    or obj["password"] == magic.password):
-#                    for handler in magic.subscriptions.common_handlers[obj["key"]]:
-#                        success = handler(self, obj) or success
-#
-#            if(obj["key"] in magic.subscriptions.gm_handlers):
-#                if obj["password"] == magic.gm_password:
-#                    for handler in magic.subscriptions.gm_handlers[obj["key"]]:
-#                        success = handler(self, obj) or success
-#
+        elif(obj["type"] == "command" and obj["key"] != "bulk"):
+            if(obj["key"] in magic.subscriptions.common_handlers):
+                if(obj["password"] == magic.gm_password
+                    or obj["password"] == magic.password):
+                    for handler in self.factory._get_subscribers(obj["key"]):
+                        success = handler(self, obj) or success
+
+            if(obj["key"] in magic.subscriptions.gm_handlers):
+                if obj["password"] == magic.gm_password:
+                    for handler in self.factory._get_subscribers(obj["key"]):
+                        success = handler(self, obj) or success
+
         elif(obj["type"] == "command" and obj["key"] == "bulk"):
             if "frames" in obj:
                 pass
-#                success = True
-#                for frame in obj["frames"]:
-#                    if(frame["key"] in magic.subscriptions.common_handlers):
-#                        if(obj["password"] == magic.gm_password
-#                            or obj["password"] == magic.password):
-#                            for handler in magic.subscriptions.common_handlers[frame["key"]]:
-#                                handler(self, frame)
-#
-#                    if(frame["key"] in magic.subscriptions.gm_handlers):
-#                        if obj["password"] == magic.gm_password:
-#                            for handler in magic.subscriptions.gm_handlers[frame["key"]]:
-#                                handler(self, frame)
+                success = True
+                for frame in obj["frames"]:
+                    if(frame["key"] in magic.subscriptions.common_handlers):
+                        if(obj["password"] == magic.gm_password
+                            or obj["password"] == magic.password):
+                            for handler in self.factory._get_subscribers(obj["key"]):
+                                handler(self, frame)
+
+                    if(frame["key"] in magic.subscriptions.gm_handlers):
+                        if obj["password"] == magic.gm_password:
+                            for handler in self.factory._get_subscribers(obj["key"]):
+                                handler(self, frame)
             else:
                 client.sendTarget(
                         req["id"],
@@ -130,6 +130,8 @@ class MagicBroadcastClientFactory(WebSocketClientFactory):
         WebSocketClientFactory.__init__(self)
         self.client = None
 
+        self.subscriptions = {}
+
 
     def _registerClient(self, client):
         self.client = client
@@ -154,6 +156,26 @@ class MagicBroadcastClientFactory(WebSocketClientFactory):
             self.client.ping()
         else:
             log.warn("Attempted to send ping when no client connection has been established.")
+
+    def subscribe(self, channel, callback):
+        if channel not in self.subscriptions:
+            log.warn("Invalid channel name \"{}\". Subscription failed.".format(channel))
+        else:
+            self.subscriptions[channel].append(callback)
+
+    def unsubscribe(self, channel, callback):
+        if channel not in self.subscriptions:
+            log.warn("Invalid channel name \"{}\". Unsubscribe failed.".format(channel))
+        else:
+            for cb in self.subscriptions[channel]:
+                if cb == callback:
+                    self.subscriptions[channel].remove(cb)
+
+    def _get_subscribers(self, channel):
+        if channel not in self.subscriptions:
+            log.error("Attempted to handle undefined subscription type: {}".format(channel))
+            return None
+        return self.subscriptions[channel]
 
 
 def start_client(host, port, viewer):
