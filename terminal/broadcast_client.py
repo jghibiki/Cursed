@@ -1,9 +1,11 @@
 from autobahn.asyncio.websocket import WebSocketClientProtocol
 from autobahn.asyncio.websocket import WebSocketClientFactory
 
-import logging
+import log
+import os
+import json
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 class BroadcastClientProtocol(WebSocketClientProtocol):
 
@@ -13,10 +15,11 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
         self.clients = []
 
     def onOpen(self):
-        self.factory.register(self)
+        log.info("Server connection open")
+        self.factory._registerClient(self)
 
     def onConnect(self, client):
-        log.info("Client connecting: {}".format(client.peer))
+        log.info("Server connecting: {}".format(client.peer))
         self.clients.append(client)
 
 
@@ -25,19 +28,16 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
         # deserialize json
         obj = json.loads(payload.decode("utf8"))
 
-        if("CURSED_MAGIC_DEBUG" in os.environ
-            and os.environ["CURSED_MAGIC_DEBUG"]):
-            log.info(obj["type"], obj["key"] if "key" in obj else None)
+        log.debug((obj["type"], obj["key"] if "key" in obj else None))
 
 
         success = False #don't allow a broadcast on a bad handle
 
-        if(obj["type"] == "ping"):
-            self.send({"type": "pong"})
-            success = True
+        if(obj["type"] == "pong"):
+            log.debug("Pong!");
 
         elif(obj["type"] == "register"):
-            self.register(obj["id"])
+            self._registerClient(obj["id"])
             success = True
 
 #        elif(obj["type"] == "command" and obj["key"] != "bulk"):
@@ -82,7 +82,11 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
 
     def connectionLost(self, reason):
         WebSocketClientProtocol.connectionLost(self, reason)
-        self.factory.unregister(self)
+        self.factory._unregisterClient(self)
+        log.warn("Connection lost. Reason: {}".format(reason))
+
+    def onClose(self, wasClean, code, reason):
+        log.warn("Connection closed. Reason: {}".format(reason))
 
     def register(self, id):
         self.clients.append(id)
@@ -101,7 +105,7 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
 
         if("CURSED_MAGIC_DEBUG" in os.environ
             and os.environ["CURSED_MAGIC_DEBUG"]):
-            log.info(payload["type"], payload["key"] if "key" in payload else None)
+            log.info((payload["type"], payload["key"] if "key" in payload else None))
 
         payload = json.dumps(payload, ensure_ascii=False).encode("utf8")
 
@@ -112,6 +116,10 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
             self.factory.broadcast(payload)
         else:
             self.sendMessage(payload)
+
+    def ping(self):
+        log.debug("Ping!")
+        self.send({"type": "ping"})
 
 
 class MagicBroadcastClientFactory(WebSocketClientFactory):
@@ -141,6 +149,12 @@ class MagicBroadcastClientFactory(WebSocketClientFactory):
         else:
             log.warn("Attempted to send when no client connection has been established.")
 
+    def ping(self):
+        if self.client:
+            self.client.ping()
+        else:
+            log.warn("Attempted to send ping when no client connection has been established.")
+
 
 def start_client(host, port, viewer):
 
@@ -167,5 +181,4 @@ def start_client(host, port, viewer):
     except KeyboardInterrupt:
        pass
     finally:
-       server.close()
        loop.close()

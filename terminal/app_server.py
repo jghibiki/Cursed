@@ -5,7 +5,7 @@ import json
 import hashlib
 import random
 import authentication
-import logging
+import log
 from uuid import uuid4
 from authentication import requires_auth, requires_gm_auth
 

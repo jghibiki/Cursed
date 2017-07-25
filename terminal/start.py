@@ -1,9 +1,9 @@
 import curses
-import logging
+import log
 import os
 import broadcast_client
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 def entry_point(scr):
 

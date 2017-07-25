@@ -5,10 +5,10 @@ from viewport import Viewport
 from colon_line import ColonLine
 from state import State
 from client import Client
-import logging
+import log
 import curses
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 class GM(InteractiveModule, UserModule):
 

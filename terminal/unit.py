@@ -1,7 +1,7 @@
-import logging
+import log
 import colors
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 class Unit:
 

@@ -1,6 +1,6 @@
 from functools import wraps
 from flask import request, Response
-import logging
+import log
 
 log = logging.getLogger('simple_example')
 

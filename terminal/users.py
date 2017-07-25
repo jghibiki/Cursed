@@ -2,9 +2,9 @@ from interactive import  InteractiveModule, LiveModule, TextDisplayModule
 from text_box import TextBox
 from client import Client
 from map import Map
-import logging
+import log
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 class Users(InteractiveModule, LiveModule, TextDisplayModule):
     def __init__(self):

@@ -1,12 +1,12 @@
 import curses
 import locale
 import colors
-import logging
+import log
 
 locale.setlocale(locale.LC_ALL, '')
 code = locale.getpreferredencoding()
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 types_id = 0
 types = []

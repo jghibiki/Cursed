@@ -3,11 +3,11 @@ import curses.textpad
 import curses.ascii
 import os
 from interactive import *
-import logging
+import log
 import random
 from datetime import datetime
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 NUMBERS = [ ord("0"), ord("1"), ord("2"), ord("3"), ord("4"), ord("5"), ord("6"), ord("7"), ord("8"), ord("9") ]
 VIM_DIRECTIONS = [ ord("j"), ord("k"), ord("h"), ord("l"), ord("J"), ord("K"), ord("H"), ord("L")]
@@ -49,6 +49,8 @@ class Viewer(InteractiveModule, VisibleModule):
             self.tick()
 
     def tick(self):
+        self.client.ping()
+
         # hacks to fix terminal state
         curses.curs_set(0)
 

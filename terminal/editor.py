@@ -9,10 +9,9 @@ from screen import Screen
 from status_line import StatusLine
 from client import Client
 import math
-import logging
+import log
 
-log = logging.getLogger('simple_example')
-
+log = log.logger
 
 class Editor(VisibleModule, InteractiveModule):
 

@@ -2,7 +2,7 @@ from interactive import ServerModule
 from socket_server import Server as ThreadedJsonServer
 from viewport import Viewport
 import queue
-import logging
+import log
 
 log = logging.getLogger('simple_example')
 

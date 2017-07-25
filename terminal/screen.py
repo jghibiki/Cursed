@@ -2,10 +2,10 @@ from interactive import VisibleModule
 from viewport import Viewport
 from viewer import ViewerConstants
 import curses
-import logging
+import log
 import math
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 class Screen(VisibleModule):
     def __init__(self, screen):

@@ -4,9 +4,9 @@ from text_box import TextBox
 import random
 import json
 import curses
-import logging
+import log
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 class InitiativeTracker(InteractiveModule, TextDisplayModule):
 

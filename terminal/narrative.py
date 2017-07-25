@@ -2,13 +2,13 @@ from interactive import VisibleModule, InteractiveModule, TextDisplayModule
 from viewer import ViewerConstants
 from client import Client
 from text_box import TextBox
-import logging
+import log
 import curses
 import math
 import sys, tempfile, os
 import subprocess
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 
 class Narrative(InteractiveModule, TextDisplayModule):

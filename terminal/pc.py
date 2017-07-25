@@ -5,9 +5,9 @@ from viewport import Viewport
 from state import State
 from colon_line import ColonLine
 from text_box import TextBox
-import logging
+import log
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 class PC(InteractiveModule, UserModule):
     def __init__(self):

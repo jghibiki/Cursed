@@ -3,10 +3,10 @@ from viewer import ViewerConstants
 from state import State
 import colors
 import curses
-import logging
+import log
 import math
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 
 class ColonLine(VisibleModule):

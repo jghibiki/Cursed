@@ -2,7 +2,7 @@ from interactive import ClientModule, LiveModule, InitModule
 from viewport import Viewport
 from state import State
 import requests
-import logging
+import log
 import json
 import hashlib
 
@@ -10,7 +10,7 @@ import hashlib
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 class Client(ClientModule, InitModule):
     def __init__(self, password, host="127.0.0.1", port=8080):
@@ -55,23 +55,24 @@ class Client(ClientModule, InitModule):
 
 
     def make_request(self, url, payload=None):
-        if not payload:
-            log.debug("make_request GET %s" % url)
-            r = requests.get(self._base_url + url, auth=(self._username, self._password), verify=False)
-        else:
-            log.debug("make_request POST %s %s" % (url, payload))
-            r = requests.post(self._base_url + url,
-                              auth=(self._username, self._password),
-                              headers={'content-type': 'application/json'},
-                              data=json.dumps(payload), verify=False)
+        #if not payload:
+        #    log.debug("make_request GET %s" % url)
+        #    r = requests.get(self._base_url + url, auth=(self._username, self._password), verify=False)
+        #else:
+        #    log.debug("make_request POST %s %s" % (url, payload))
+        #    r = requests.post(self._base_url + url,
+        #                      auth=(self._username, self._password),
+        #                      headers={'content-type': 'application/json'},
+        #                      data=json.dumps(payload), verify=False)
 
-        if r.status_code is not 200: # TODO: fix naiive checl
-            log.warn("make_request http error: %s %s %s" % (url, r.status_code, r.text))
+        #if r.status_code is not 200: # TODO: fix naiive checl
+        #    log.warn("make_request http error: %s %s %s" % (url, r.status_code, r.text))
 
-        # try to get json
-        try:
-            raw_data = r.json()
-            return raw_data
-        except:
-            return None
+        ## try to get json
+        #try:
+        #    raw_data = r.json()
+        #    return raw_data
+        #except:
+        #    return None
 
+        return None

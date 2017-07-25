@@ -5,7 +5,7 @@ from client import Client
 from state import State
 import colors
 import json
-import logging
+import log
 import curses
 import math
 import os
@@ -15,7 +15,7 @@ import tempfile
 import keybindings
 import features
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 class CommandMode:
     default = 0

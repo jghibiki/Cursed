@@ -5,10 +5,10 @@ from state import State
 from colon_line import ColonLine
 from text_box import TextBox
 from users import Users
-import logging
+import log
 
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 class Chat(InteractiveModule, LiveModule, TextDisplayModule):
 

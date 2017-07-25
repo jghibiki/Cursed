@@ -3,10 +3,10 @@ from client import Client
 from viewport import Viewport
 from unit import Unit
 from text_box import TextBox
-import logging
+import log
 import re
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 class Map(LiveModule, InteractiveModule, TextDisplayModule):
     def __init__(self):

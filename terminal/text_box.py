@@ -3,12 +3,12 @@ from viewer import ViewerConstants
 from client import Client
 from state import State
 import colors
-import logging
+import log
 import math
 import curses
 
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 class TextBox(VisibleModule, InteractiveModule):
 
@@ -208,7 +208,7 @@ class TextBox(VisibleModule, InteractiveModule):
 
 
 
-            #self._paged_text = []
+            self._paged_text = []
             #for line in self._text.splitlines():
             #    splits = [ line[i:i+self._max_text_w] for i in range(0, len(line), self._max_text_w) ]
             #    self._paged_text = self._paged_text + (splits if splits else [""])

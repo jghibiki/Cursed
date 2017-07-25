@@ -5,10 +5,10 @@ from status_line import StatusLine
 import colors
 import features
 import curses
-import logging
+import log
 import math
 
-log = logging.getLogger('simple_example')
+log = log.logger
 
 # TODO: Implement save method
 
