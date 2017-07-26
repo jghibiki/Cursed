@@ -55,7 +55,7 @@ class Viewer(InteractiveModule, VisibleModule):
 
     def tick(self):
         if not self.client_connected:
-            self.loop.call_soon(self.tick)
+            self.loop.call_later(0.4, self.tick)
             return
 
         self.client.ping()

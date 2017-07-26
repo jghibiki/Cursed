@@ -7,6 +7,10 @@ log = log.logger
 
 def entry_point(scr):
 
+    curses.start_color()
+    curses.use_default_colors()
+    curses.init_color(0, 0, 0, 0)
+
     username = "jghibiki"
     password = "1111"
     host = "localhost"
