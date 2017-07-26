@@ -10,22 +10,42 @@ log = log.logger
 
 class Map(LiveModule, InteractiveModule, TextDisplayModule):
     def __init__(self):
-        self._previous_map_hash = "bad_hash"
-        self._previous_fow_hash = "bad_hash"
-        self._previous_unit_hash = "bad_hash"
-        self._previous_note_hash = "bad_hash"
         self._showing = False
         self._maps = []
 
     def _register_hooks(self, client):
         client.subscribe("get.map", self._hook_get_map)
+        client.subscribe("get.map.units", self._hook_get_map_units)
+        client.subscribe("get.map.fow", self._hook_get_map_fow)
+
+        def initial_data_pull():
+            client.send({"type": "command", "key": "get.map"})
+            client.send({"type": "command", "key": "get.map.fow"})
+            client.send({"type": "command", "key": "get.map.units"})
+
+        client.register_connect_hook(initial_data_pull)
 
     def _hook_get_map(self, response):
-        pass
+        viewer, vp = self._get_submodules([Viewport])
+        data = response["payload"]
+        vp.update_features(data["features"])
+        vp.update_screen(data["max_y"], data["max_y"])
+
+    def _hook_get_map_fow(self, response):
+        viewer, vp = self._get_submodules([Viewport])
+        vp.update_fow(response["payload"])
+
+    def _hook_get_map_units(self, response):
+        viewer, vp = self._get_submodules([Viewport])
+        units = [ Unit(unit) for unit in response["payload"] ]
+        vp.update_units(units)
+
 
     def _update(self, viewer, hashes):
         vp = viewer.get_submodule(Viewport)
         client = viewer.get_submodule(Client)
+
+
 
         #new_hash = hashes["map"]
         #updates = False
@@ -215,3 +235,13 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
                     }])
 
         tb.set(lines)
+
+    def _get_submodules(self, classes=[]):
+        import viewer
+        viewer = viewer.Viewer.instance
+        instances = [viewer]
+        for cls in classes:
+            instances.append(viewer.get_submodule(cls))
+        return instances
+
+

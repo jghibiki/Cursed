@@ -106,7 +106,19 @@ class MagicBroadcastClientFactory(WebSocketClientFactory):
 
         self.subscriptions = {
             "get.map": [],
-            "get.chat": []
+
+            "get.map.fow": [],
+
+            "get.map.units": [],
+            "add.map.unit": [],
+            "remove.map.unit": [],
+            "modify.map.unit": [],
+            "export.map.unit": [],
+
+            "get.chat": [],
+            "add.chat.message": []
+
+
         }
         self.connect_hooks = []
 

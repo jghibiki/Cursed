@@ -1,6 +1,5 @@
 from interactive import VisibleModule, InteractiveModule, TextDisplayModule
 from viewer import ViewerConstants
-from client import Client
 from state import State
 import colors
 import log

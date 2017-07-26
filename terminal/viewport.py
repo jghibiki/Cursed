@@ -94,24 +94,28 @@ class Viewport(VisibleModule, FeatureModule, SavableModule, InteractiveModule):
 
         if ch == ord("+") or ch == ord("="):
 
-            from client import Client
-            c = viewer.get_submodule(Client)
-
             unit = self.get_current_unit()
             if unit:
                 unit.current_health += 1
 
-                c.make_request("/unit/update", payload=unit.toDict())
+                self.client.send({
+                    "type": "command",
+                    "key": "modify.map.unit",
+                    "details": unit.toDict()
+                })
+
 
         elif ch == ord("-"):
-            from client import Client
-            c = viewer.get_submodule(Client)
-
             unit = self.get_current_unit()
             if unit:
                 unit.current_health -= 1
 
-                c.make_request("/unit/update", payload=unit.toDict())
+                self.client.send({
+                    "type": "command",
+                    "key": "modify.map.unit",
+                    "details": unit.toDict()
+                })
+
 
 
     def _handle_help(self, viewer, buf):

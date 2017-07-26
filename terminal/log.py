@@ -15,9 +15,9 @@ class LogWriter:
 
         LogWriter.loggers[logger_name] = self
 
-    def write(self, message):
-        if message != "\n":
-            self.logger.log(self.default_level, message)
+    def write(self, buf):
+        for line in buf.rstrip().splitlines():
+            self.logger.log(self.default_level, line.rstrip())
 
     def log(self, message, level=None):
         lvl = level if level is not None else self.default_level
@@ -40,3 +40,5 @@ class LogWriter:
 
 
 logger = LogWriter("cursed_log", "default.log", log_level=logging.INFO)
+
+sys.stderr = logger
