@@ -3,6 +3,8 @@ from client import Client
 from viewport import Viewport
 from unit import Unit
 from text_box import TextBox
+from utils import get_submodules
+
 import log
 import re
 
@@ -17,6 +19,7 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
         client.subscribe("get.map", self._hook_get_map)
         client.subscribe("get.map.units", self._hook_get_map_units)
         client.subscribe("get.map.fow", self._hook_get_map_fow)
+        client.subscribe("list.maps", self._hook_list_maps)
 
         def initial_data_pull():
             client.send({"type": "command", "key": "get.map"})
@@ -26,17 +29,17 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
         client.register_connect_hook(initial_data_pull)
 
     def _hook_get_map(self, response):
-        viewer, vp = self._get_submodules([Viewport])
+        viewer, vp = get_submodules([Viewport])
         data = response["payload"]
         vp.update_features(data["features"])
         vp.update_screen(data["max_y"], data["max_y"])
 
     def _hook_get_map_fow(self, response):
-        viewer, vp = self._get_submodules([Viewport])
+        viewer, vp = get_submodules([Viewport])
         vp.update_fow(response["payload"])
 
     def _hook_get_map_units(self, response):
-        viewer, vp = self._get_submodules([Viewport])
+        viewer, vp = get_submodules([Viewport])
         units = [ Unit(unit) for unit in response["payload"] ]
         vp.update_units(units)
 
@@ -140,10 +143,10 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
 
             elif len(split) == 4 and (split[1] == "move" or split[1] == "m"):
                 from users import Users
-                users = viewer.get_submodule(Users)
+                viewer, users = get_submodules(Users)
 
                 regex = split[2]
-                map_to_switch = split [3]
+                map_to_switch = split[3]
 
                 valid_map = False
                 for map_name in self._maps:
@@ -166,10 +169,14 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
                     client = viewer.get_submodule(Client)
 
                     for username in usernames:
-
-                        data = client.make_request("/map", payload={
-                            "username": username,
-                            "map_name": map_to_switch
+                        v = get_submodules()
+                        v.client.send({
+                            "type": "command",
+                            "key": "move.user",
+                            "details": {
+                                "username": username,
+                                "map_name": map_to_switch
+                            }
                         })
 
             elif len(split) == 5 and (split[1] == "new" or split[1] == "n"):
@@ -190,32 +197,33 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
                     "height": height
                 })
 
-
-
-
-
     def _show(self, viewer):
-        self._showing = True
         viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
-        self.show_maps(viewer)
+        self._showing = True
+        self.list_maps()
 
     def _hide(self, viewer):
         self._showing = False
 
-    def get_maps(self, viewer):
+    def _hook_list_maps(self, response):
+        self._maps = response["payload"]
 
-        client = viewer.get_submodule(Client)
+        if self._showing:
+            self.show_maps()
 
-        data = client.make_request("/map")
-        self._maps = sorted(data["maps"])
+    def list_maps(self):
+        viewer = get_submodules()
+        data = viewer.client.send({
+            "type": "command",
+            "key": "list.maps"
+        })
 
-    def show_maps(self, viewer):
-        tb = viewer.get_submodule(TextBox)
 
-        self.get_maps(viewer)
+    def show_maps(self):
+        log.info("Showing maps")
 
         from users import Users
-        users = viewer.get_submodule(Users)
+        viewer, tb, users = get_submodules([TextBox, Users])
 
         lines = [ [{
             "text": "Maps:",
@@ -236,12 +244,5 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
 
         tb.set(lines)
 
-    def _get_submodules(self, classes=[]):
-        import viewer
-        viewer = viewer.Viewer.instance
-        instances = [viewer]
-        for cls in classes:
-            instances.append(viewer.get_submodule(cls))
-        return instances
 
 

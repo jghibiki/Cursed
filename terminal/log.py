@@ -41,4 +41,3 @@ class LogWriter:
 
 logger = LogWriter("cursed_log", "default.log", log_level=logging.INFO)
 
-sys.stderr = logger

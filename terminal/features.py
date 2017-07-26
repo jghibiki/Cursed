@@ -16,7 +16,6 @@ def new_feature(feature_type, x, y):
             "y": y,
             "x": x,
             "type": feature_type["name"],
-            "notes": ""
     }
 
 def get_feature_type(name):
@@ -36,19 +35,12 @@ def draw(viewer, screen, feature, x, y, h, w):
         feature_type = get_feature_type(feature["type"])
 
         if role == "gm":
-            if feature["notes"] == "":
-                screen.addstr(
-                        feature["y"],
-                        feature["x"],
-                        feature_type["character"],
-                        curses.color_pair(feature_type["color_id"]))
-            else:
-                screen.addstr(
-                        feature["y"],
-                        feature["x"],
-                        feature_type["character"],
-                        curses.color_pair(feature_type["color_id"])
-                        | curses.A_REVERSE)
+            screen.addstr(
+                    feature["y"],
+                    feature["x"],
+                    feature_type["character"],
+                    curses.color_pair(feature_type["color_id"])
+                    | curses.A_REVERSE)
         elif role == "pc":
             screen.addstr(
                     feature["y"],
