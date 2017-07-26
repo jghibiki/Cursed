@@ -69,3 +69,5 @@ class Users(InteractiveModule, LiveModule, TextDisplayModule):
         self.users = data["users"]
 
 
+    def _register_hooks(self, client):
+        pass

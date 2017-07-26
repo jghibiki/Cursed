@@ -19,14 +19,7 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
 
     def _update(self, viewer, hashes):
         if self._showing:
-            hash = hashes["chat"]
-
-            if hash != self._previous_hash:
-                state = viewer.get_submodule(State)
-                tb = viewer.get_submodule(TextBox)
-                username = state.get_state("username")
-                text = self._get_messages(viewer, username)
-                tb.set(text)
+            pass #TODO determine relevence of _update
 
     def _handle(self, viewer, ch):
         pass
@@ -44,16 +37,19 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
             viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
 
             if username:
-                c = viewer.get_submodule(Client)
-                data = c.make_request("/chat", payload={
-                    "sender": username,
-                    "recipient": None,
-                    "message": ' '.join(buff[1:]),
-                    "persona": None
+                viewer.client.send({
+                    "type": "command",
+                    "key": "add.chat.message",
+                    "details": {
+                        "sender": username,
+                        "persona": None,
+                        "message": ' '.join(buff[1:]),
+                        "recipient": None
+                    }
                 })
 
-                text = self._get_messages(viewer, username)
-                tb.set(text)
+
+                viewer.client.send({"type": "command", "key": "get.chat"})
             else:
                 cl = viewer.get_submodule(ColonLine)
                 cl.set_msg("No username set. Set one with :set username <username>")
@@ -64,16 +60,18 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
             viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
 
             if username:
-                c = viewer.get_submodule(Client)
-                data = c.make_request("/chat", payload={
-                    "sender": username,
-                    "recipient": buff[1],
-                    "message": ' '.join(buff[2:]),
-                    "persona": None
+                viewer.client.send({
+                    "type": "command",
+                    "key": "add.chat.message",
+                    "details": {
+                        "sender": username,
+                        "persona": None,
+                        "message": ' '.join(buff[2:]),
+                        "recipient": buf[1]
+                    }
                 })
 
-                lines = self._get_messages(viewer, username)
-                tb.set(lines)
+                viewer.client.send({"type": "command", "key": "get.chat"})
 
             else:
                 cl = viewer.get_submodule(ColonLine)
@@ -85,16 +83,17 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
             viewer.apply_to_submodules(TextDisplayModule, lambda x: x._hide(viewer))
 
             if username:
-                c = viewer.get_submodule(Client)
-                data = c.make_request("/chat", payload={
-                    "sender": username,
-                    "persona": buff[1],
-                    "message": ' '.join(buff[2:]),
-                    "recipient": None
-                })
 
-                lines = self._get_messages(viewer, username)
-                tb.set(lines)
+                viewer.client.send({
+                    "type": "command",
+                    "key": "add.chat.message",
+                    "details": {
+                        "sender": username,
+                        "persona": buff[1],
+                        "message": ' '.join(buff[2:]),
+                        "recipient": None
+                    }
+                })
 
             else:
                 cl = viewer.get_submodule(ColonLine)
@@ -112,20 +111,23 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
             self._showing = True
             c = viewer.get_submodule(Client)
             tb = viewer.get_submodule(TextBox)
-            lines = self._get_messages(viewer, username)
-            tb.set(lines)
+            viewer.client.send({"type": "command", "key": "get.chat"})
 
         else:
             cl = viewer.get_submodule(ColonLine)
             cl.set_msg("No username set. Set one with :set username <username>")
 
 
-    def _get_messages(self, viewer, username):
+    def _hook_get_chat(self, response):
+        import viewer
+        viewer = viewer.Viewer.instance
         tb = viewer.get_submodule(TextBox)
-        c = viewer.get_submodule(Client)
         u = viewer.get_submodule(Users)
-        data = c.make_request("/chat/%s" % username)
+        state = viewer.get_submodule(State)
+        username = state.get_state("username")
+        log.info("updating_chat")
 
+        messages = response["payload"]
 
         gm_user = None
         for user in u.users:
@@ -139,7 +141,7 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
             "color": "Gold"
             }] ]
 
-        for message in data["messages"]:
+        for message in messages:
             if message["recipient"] is not None:
                 line = [
                     {
@@ -199,12 +201,15 @@ class Chat(InteractiveModule, LiveModule, TextDisplayModule):
                         }
                     ]
 
-
             lines.append(line)
-
-        return lines
-
+        tb.set(lines)
 
 
     def _hide(self, viewer):
         self._showing = False
+
+
+    def _register_hooks(self, client):
+        import viewer
+        viewer = viewer.Viewer.instance
+        viewer.client.subscribe("get.chat", self._hook_get_chat)

@@ -4,6 +4,8 @@ from autobahn.asyncio.websocket import WebSocketClientFactory
 import log
 import os
 import json
+import random
+import string
 
 log = log.logger
 
@@ -13,10 +15,13 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
         super(WebSocketClientProtocol, self).__init__(*args, **kwargs)
 
         self.clients = []
+        self.id = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(7))
 
     def onOpen(self):
         log.info("Server connection open")
         self.factory._registerClient(self)
+        for cb in self.factory.connect_hooks:
+            cb()
 
     def onConnect(self, client):
         log.info("Server connecting: {}".format(client.peer))
@@ -28,57 +33,23 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
         # deserialize json
         obj = json.loads(payload.decode("utf8"))
 
-        log.debug((obj["type"], obj["key"] if "key" in obj else None))
+        if obj["type"] != "pong":
+            log.info(("Incoming Message: ", obj["type"], obj["key"] if "key" in obj else None))
 
-
-        success = False #don't allow a broadcast on a bad handle
 
         if(obj["type"] == "pong"):
             log.debug("Pong!");
 
-        elif(obj["type"] == "register"):
-            self._registerClient(obj["id"])
-            success = True
-
-        elif(obj["type"] == "command" and obj["key"] != "bulk"):
-            if(obj["key"] in magic.subscriptions.common_handlers):
-                if(obj["password"] == magic.gm_password
-                    or obj["password"] == magic.password):
-                    for handler in self.factory._get_subscribers(obj["key"]):
-                        success = handler(self, obj) or success
-
-            if(obj["key"] in magic.subscriptions.gm_handlers):
-                if obj["password"] == magic.gm_password:
-                    for handler in self.factory._get_subscribers(obj["key"]):
-                        success = handler(self, obj) or success
+        elif(obj["type"] == "broadcast_target" and obj["key"] != "bulk"):
+            log.info("Handling: " + obj["key"])
+            for handler in self.factory._get_subscribers(obj["key"]):
+                handler(obj)
 
         elif(obj["type"] == "command" and obj["key"] == "bulk"):
             if "frames" in obj:
-                pass
-                success = True
                 for frame in obj["frames"]:
-                    if(frame["key"] in magic.subscriptions.common_handlers):
-                        if(obj["password"] == magic.gm_password
-                            or obj["password"] == magic.password):
-                            for handler in self.factory._get_subscribers(obj["key"]):
-                                handler(self, frame)
-
-                    if(frame["key"] in magic.subscriptions.gm_handlers):
-                        if obj["password"] == magic.gm_password:
-                            for handler in self.factory._get_subscribers(obj["key"]):
-                                handler(self, frame)
-            else:
-                client.sendTarget(
-                        req["id"],
-                        type="error",
-                        key="modify.map.fow",
-                        payload={"msg": "Request details missing \"x\""})
-
-        # if broadcast == true broadcast to all
-        if("broadcast" in obj
-            and obj["broadcast"]
-            and success):
-            self.broadcast(obj)
+                    for handler in self.factory._get_subscribers(obj["key"]):
+                        handler(frame)
 
     def connectionLost(self, reason):
         WebSocketClientProtocol.connectionLost(self, reason)
@@ -103,9 +74,12 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
 
         payload["is_response"] = isResponse
 
+        payload["password"] = "1111" #TODO add a better way to set password
+        payload["id"] = self.id
+
         if("CURSED_MAGIC_DEBUG" in os.environ
             and os.environ["CURSED_MAGIC_DEBUG"]):
-            log.info((payload["type"], payload["key"] if "key" in payload else None))
+            log.info(("Sending message: ", payload["type"], payload["key"] if "key" in payload else None))
 
         payload = json.dumps(payload, ensure_ascii=False).encode("utf8")
 
@@ -130,7 +104,11 @@ class MagicBroadcastClientFactory(WebSocketClientFactory):
         WebSocketClientFactory.__init__(self)
         self.client = None
 
-        self.subscriptions = {}
+        self.subscriptions = {
+            "get.map": [],
+            "get.chat": []
+        }
+        self.connect_hooks = []
 
 
     def _registerClient(self, client):
@@ -141,13 +119,7 @@ class MagicBroadcastClientFactory(WebSocketClientFactory):
 
     def send(self, payload):
         if self.client:
-            self.client.sendMessage(payload)
-        else:
-            log.warn("Attempted to send when no client connection has been established.")
-
-    def broadcast(self, payload): #TODO determine how broadcast will be different then send from a client perspective - should just be a param in the payload
-        if self.client:
-            self.client.sendMessage(payload)
+            self.client.send(payload)
         else:
             log.warn("Attempted to send when no client connection has been established.")
 
@@ -155,7 +127,7 @@ class MagicBroadcastClientFactory(WebSocketClientFactory):
         if self.client:
             self.client.ping()
         else:
-            log.warn("Attempted to send ping when no client connection has been established.")
+            log.debug("Attempted to send ping when no client connection has been established.")
 
     def subscribe(self, channel, callback):
         if channel not in self.subscriptions:
@@ -170,6 +142,9 @@ class MagicBroadcastClientFactory(WebSocketClientFactory):
             for cb in self.subscriptions[channel]:
                 if cb == callback:
                     self.subscriptions[channel].remove(cb)
+
+    def register_connect_hook(self, callback):
+        self.connect_hooks.append(callback)
 
     def _get_subscribers(self, channel):
         if channel not in self.subscriptions:

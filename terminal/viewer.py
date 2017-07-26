@@ -15,6 +15,8 @@ WSAD_DIRECTIONS = [ ord("w"), ord("s"), ord("a"), ord("d"), ord("W"), ord("S"), 
 
 class Viewer(InteractiveModule, VisibleModule):
 
+    instance = None
+
     def __init__(self, screen):
 
         self.screen = screen
@@ -33,8 +35,11 @@ class Viewer(InteractiveModule, VisibleModule):
 
         self.loop = None
         self.client = None
+        self.client_connected = False
 
         curses.curs_set(0)
+
+        Viewer.instance = self
 
 
     def run(self):
@@ -49,6 +54,10 @@ class Viewer(InteractiveModule, VisibleModule):
             self.tick()
 
     def tick(self):
+        if not self.client_connected:
+            self.loop.call_soon(self.tick)
+            return
+
         self.client.ping()
 
         # hacks to fix terminal state
@@ -61,23 +70,23 @@ class Viewer(InteractiveModule, VisibleModule):
 
         changes = False
 
-        log.info("Calling update on client modules")
+        log.debug("Calling update on client modules")
         part_start = datetime.now()
         for mod in self._submodules:
             if isinstance(mod, ClientModule):
                 changes = mod.update(self)
-        log.info("Elapsed: %s" % (datetime.now() - part_start))
+        log.debug("Elapsed: %s" % (datetime.now() - part_start))
 
-        log.info("Calling handle")
+        log.debug("Calling handle")
         part_start = datetime.now()
         if ch is not -1:
             self._handle(ch)
-        log.info("Elapsed %s" % (datetime.now() - part_start))
+        log.debug("Elapsed %s" % (datetime.now() - part_start))
 
-        log.info("Calling draw")
+        log.debug("Calling draw")
         part_start = datetime.now()
         changes = self._draw() or changes
-        log.info("Elapsed %s" % (datetime.now() - part_start))
+        log.debug("Elapsed %s" % (datetime.now() - part_start))
 
 
         if self._mind_blown and changes:
@@ -105,6 +114,32 @@ class Viewer(InteractiveModule, VisibleModule):
 
     def setClient(self, client):
         self.client = client
+
+        def client_connected_cb():
+            self.client_connected = True
+
+        self.client.register_connect_hook(client_connected_cb)
+        self.client.register_connect_hook(self.register_user)
+
+        self.registerHooks()
+
+
+    def register_user(self):
+        log.info("Registering user with server.")
+        self.client.send({
+            "type": "command",
+            "key": "register.user",
+            "details": {
+                "username": "jghibiki",
+                "current_map": "__staging__"
+            }
+        })
+
+    def registerHooks(self):
+        for module in self._submodules:
+            if isinstance(module, LiveModule):
+                module._register_hooks(self.client)
+
 
 
     def _draw(self, force=False):

@@ -17,6 +17,12 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
         self._showing = False
         self._maps = []
 
+    def _register_hooks(self, client):
+        client.subscribe("get.map", self._hook_get_map)
+
+    def _hook_get_map(self, response):
+        pass
+
     def _update(self, viewer, hashes):
         vp = viewer.get_submodule(Viewport)
         client = viewer.get_submodule(Client)

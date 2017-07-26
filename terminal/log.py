@@ -39,4 +39,4 @@ class LogWriter:
         return LogWriter.loggers[logger_name]
 
 
-logger = LogWriter("cursed_log", "default.log", log_level=logging.DEBUG)
+logger = LogWriter("cursed_log", "default.log", log_level=logging.INFO)

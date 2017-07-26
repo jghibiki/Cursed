@@ -15,6 +15,9 @@ class InteractiveModule:
         raise Exception("_handle_como has not been implemented.")
 
 class LiveModule:
+    def _register_hooks(self, client):
+        raise Exception(self.__class__.__name__ + "._register_hooks has not been implemented.")
+
     def _update(self, viewer):
         raise Exception("_update has not been implemented.")
 

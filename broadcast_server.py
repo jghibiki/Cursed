@@ -57,7 +57,7 @@ class BroadcastServerProtocol(WebSocketServerProtocol):
                     for handler in magic.subscriptions.gm_handlers[obj["key"]]:
                         success = handler(self, obj) or success
 
-        elif(obj["type"] == "command" and obj["key"] == "bulk"):
+        elif(obj["type"] == "commanr" and obj["key"] == "bulk"):
             if "frames" in obj:
                 success = True
                 for frame in obj["frames"]:
@@ -109,7 +109,10 @@ class BroadcastServerProtocol(WebSocketServerProtocol):
 
         if("CURSED_MAGIC_DEBUG" in os.environ
             and os.environ["CURSED_MAGIC_DEBUG"]):
-            print(payload["type"], payload["key"] if "key" in payload else None)
+            if payload["type"] == "error":
+                print(payload["type"], payload["msg"])
+            else:
+                print(payload["type"], payload["key"] if "key" in payload else None)
 
         payload = json.dumps(payload, ensure_ascii=False).encode("utf8")
 
