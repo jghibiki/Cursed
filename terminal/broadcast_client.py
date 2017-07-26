@@ -107,6 +107,7 @@ class MagicBroadcastClientFactory(WebSocketClientFactory):
         self.subscriptions = {
             "list.maps": [],
 
+            "add.map": [],
             "get.map": [],
 
             "get.map.fow": [],
