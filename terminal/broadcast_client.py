@@ -40,7 +40,7 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
         if(obj["type"] == "pong"):
             log.debug("Pong!");
 
-        elif(obj["type"] == "broadcast_target" and obj["key"] != "bulk"):
+        elif((obj["type"] == "broadcast_target" or obj["type"] == "broadcast") and obj["key"] != "bulk"):
             log.info("Handling: " + obj["key"])
             for handler in self.factory._get_subscribers(obj["key"]):
                 handler(obj)
@@ -111,6 +111,8 @@ class MagicBroadcastClientFactory(WebSocketClientFactory):
             "get.map": [],
 
             "get.map.fow": [],
+            "remove.map.fow": [],
+            "add.map.fow": [],
 
             "get.map.units": [],
             "add.map.unit": [],
@@ -121,7 +123,9 @@ class MagicBroadcastClientFactory(WebSocketClientFactory):
             "get.chat": [],
             "add.chat.message": [],
 
-            "get.users": []
+            "get.users": [],
+
+            "get.config": []
 
         }
         self.connect_hooks = []

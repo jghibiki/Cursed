@@ -65,7 +65,7 @@ class Viewport(VisibleModule, FeatureModule, SavableModule, InteractiveModule):
                 for x in range(0, self.w-2):
                     for y in range(0, self.h-2):
                         if self._fow[x][y]:
-                            self._screen.addstr(y, x, "▒", colors.get("Dark Grey"))
+                            self._screen.addstr(y+1, x+1, "▒", colors.get("Dark Grey"))
 
             if self.box_xy != None:
                 x_min = min(self.box_xy[0], self.cursor_x)
@@ -247,8 +247,17 @@ class Viewport(VisibleModule, FeatureModule, SavableModule, InteractiveModule):
         if len(feature_dicts):
             self._dirty = True
 
-    def update_fow(self, new_fow):
+    def set_fow(self, new_fow):
         self._fow = new_fow
+        self._dirty = True
+
+    def add_fow(self, point):
+        self._fow[point["x"]][point["y"]] = True
+        self._dirty = True
+
+    def remove_fow(self, point):
+        log.info(("point", point))
+        self._fow[point["x"]][point["y"]] = False
         self._dirty = True
 
     def update_units(self, units):

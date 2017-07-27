@@ -466,11 +466,11 @@ command_window.handle = function(e){
         }
         else if(e.key === "a"){
             if(command_window.box){
-                var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]) + viewport.v_x;
-                var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + viewport.v_x + 1;
+                var x_min = Math.min(command_window.box_xy_1[0] + viewport.v_x, command_window.box_xy_2[0]) + viewport.v_x;
+                var x_max = Math.max(command_window.box_xy_1[0] + viewport.v_x, command_window.box_xy_2[0]) + viewport.v_x + 1;
 
-                var y_min = Math.min(command_window.box_xy_1[1], command_window.box_xy_2[1]) + viewport.v_y;
-                var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + viewport.v_y + 1;
+                var y_min = Math.min(command_window.box_xy_1[1] + viewport.v_y, command_window.box_xy_2[1]) + viewport.v_y;
+                var y_max = Math.max(command_window.box_xy_1[1] + viewport.v_y, command_window.box_xy_2[1]) + viewport.v_y + 1;
 
                 var frames = [];
 
@@ -505,19 +505,19 @@ command_window.handle = function(e){
                     type: "command",
                     key: "add.map.fow",
                     details: {
-                        x: cursed.viewport.cursor_x,
-                        y: cursed.viewport.cursor_y,
+                        x: cursed.viewport.cursor_x + viewport.v_x,
+                        y: cursed.viewport.cursor_y + viewport.v_y,
                     }
                 }, true);
             }
         }
         else if(e.key === "r"){
             if(command_window.box){
-                var x_min = Math.min(command_window.box_xy_1[0], command_window.box_xy_2[0]) + viewport.v_x;
-                var x_max = Math.max(command_window.box_xy_1[0], command_window.box_xy_2[0]) + viewport.v_x + 1;
+                var x_min = Math.min(command_window.box_xy_1[0] + viewport.v_x, command_window.box_xy_2[0]) + viewport.v_x;
+                var x_max = Math.max(command_window.box_xy_1[0] + viewport.v_x, command_window.box_xy_2[0]) + viewport.v_x + 1;
 
-                var y_min = Math.min(command_window.box_xy_1[1], command_window.box_xy_2[1]) + viewport.v_y;
-                var y_max = Math.max(command_window.box_xy_1[1], command_window.box_xy_2[1]) + viewport.v_y + 1;
+                var y_min = Math.min(command_window.box_xy_1[1] + viewport.v_y, command_window.box_xy_2[1]) + viewport.v_y;
+                var y_max = Math.max(command_window.box_xy_1[1] + viewport.v_y, command_window.box_xy_2[1]) + viewport.v_y + 1;
 
                 var frames = [];
 
@@ -552,8 +552,8 @@ command_window.handle = function(e){
                     type: "command",
                     key: "remove.map.fow",
                     details: {
-                        x: cursed.viewport.cursor_x,
-                        y: cursed.viewport.cursor_y,
+                        x: cursed.viewport.cursor_x + viewport.v_x,
+                        y: cursed.viewport.cursor_y + viewport.v_y,
                     }
                 }, true);
             }

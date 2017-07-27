@@ -22,13 +22,13 @@ class Unit:
         username = state.get_state("username")
 
         if self.controller == username and role != "gm":
-            screen.addstr(self.y, self.x, "@", colors.get("Light Blue"))
+            screen.addstr(self.y+1, self.x+1, "@", colors.get("Light Blue"))
         elif self.type == "pc":
-            screen.addstr(self.y, self.x, "@", colors.get("Light Green"))
+            screen.addstr(self.y+1, self.x+1, "@", colors.get("Light Green"))
         elif self.type == "enemy":
-            screen.addstr(self.y, self.x, "@", colors.get("Light Red"))
+            screen.addstr(self.y+1, self.x+1, "@", colors.get("Light Red"))
         elif self.type == "neutral" or self.type == "":
-            screen.addstr(self.y, self.x, "@", colors.get("Light Grey"))
+            screen.addstr(self.y+1, self.x+1, "@", colors.get("Light Grey"))
 
 
 

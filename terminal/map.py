@@ -21,6 +21,9 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
         client.subscribe("get.map.fow", self._hook_get_map_fow)
         client.subscribe("list.maps", self._hook_list_maps)
 
+        client.subscribe("remove.map.fow", self._hook_remove_map_fow)
+        client.subscribe("add.map.fow", self._hook_add_map_fow)
+
         def initial_data_pull():
             client.send({"type": "command", "key": "get.map"})
             client.send({"type": "command", "key": "get.map.fow"})
@@ -35,13 +38,23 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
         vp.update_screen(data["max_y"], data["max_y"])
 
     def _hook_get_map_fow(self, response):
+        log.info("removing map fow")
         viewer, vp = get_submodules([Viewport])
-        vp.update_fow(response["payload"])
+        vp.set_fow(response["payload"])
+
+    def _hook_remove_map_fow(self, response):
+        viewer, vp = get_submodules(Viewport)
+        vp.remove_fow(response["details"])
+
+    def _hook_add_map_fow(self, response):
+        viewer, vp = get_submodules(Viewport)
+        vp.add_fow(response["details"])
 
     def _hook_get_map_units(self, response):
         viewer, vp = get_submodules([Viewport])
         units = [ Unit(unit) for unit in response["payload"] ]
         vp.update_units(units)
+
 
 
     def _update(self, viewer, hashes):

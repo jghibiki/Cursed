@@ -36,6 +36,7 @@ class Viewer(InteractiveModule, VisibleModule):
         self.loop = None
         self.client = None
         self.client_connected = False
+        self.client_inited = False
 
         curses.curs_set(0)
 
@@ -54,7 +55,7 @@ class Viewer(InteractiveModule, VisibleModule):
             self.tick()
 
     def tick(self):
-        if not self.client_connected:
+        if not self.client_connected or not self.client_inited:
             self.loop.call_later(0.4, self.tick)
             return
 
@@ -116,15 +117,22 @@ class Viewer(InteractiveModule, VisibleModule):
         self.client = client
 
         def client_connected_cb():
+            log.info("Client Connection Established")
             self.client_connected = True
 
+        def init_finished_cb():
+            log.info("Client init messaging completed.")
+            self.client_inited = True
+
         self.client.register_connect_hook(client_connected_cb)
-        self.client.register_connect_hook(self.register_user)
+        self.client.register_connect_hook(self._register_user)
+        self.client.register_connect_hook(self._get_config)
+        self.client.register_connect_hook(init_finished_cb)
 
         self.registerHooks()
 
 
-    def register_user(self):
+    def _register_user(self):
         log.info("Registering user with server.")
         self.client.send({
             "type": "command",
@@ -135,7 +143,22 @@ class Viewer(InteractiveModule, VisibleModule):
             }
         })
 
+    def _get_config(self):
+        log.info("Requesting config")
+        self.client.send({
+            "type": "command",
+            "key": "get.config"
+        })
+
+    def _hook_get_config(self, response):
+        self.config = response["payload"]
+        log.info(self.config)
+
+
     def registerHooks(self):
+
+        self.client.subscribe("get.config", self._hook_get_config)
+
         for module in self._submodules:
             if isinstance(module, LiveModule):
                 module._register_hooks(self.client)

@@ -36,15 +36,15 @@ def draw(viewer, screen, feature, x, y, h, w):
 
         if role == "gm":
             screen.addstr(
-                    feature["y"],
-                    feature["x"],
+                    feature["y"]+1,
+                    feature["x"]+1,
                     feature_type["character"],
                     curses.color_pair(feature_type["color_id"])
                     | curses.A_REVERSE)
         elif role == "pc":
             screen.addstr(
-                    feature["y"],
-                    feature["x"],
+                    feature["y"]+1,
+                    feature["x"]+1,
                     feature_type["character"],
                     curses.color_pair(feature_type["color_id"]))
         #except:
