@@ -1,8 +1,3 @@
-from interactive import VisibleModule, InteractiveModule, TextDisplayModule
-from viewer import ViewerConstants
-from viewport import Viewport
-from client import Client
-from state import State
 import colors
 import json
 import log
@@ -11,6 +6,15 @@ import math
 import os
 import subprocess
 import tempfile
+
+from interactive import VisibleModule, InteractiveModule, TextDisplayModule
+from viewer import ViewerConstants
+from viewport import Viewport
+from client import Client
+from state import State
+
+from utils import get_submodules
+
 
 import keybindings
 import features
@@ -501,33 +505,45 @@ class CommandWindow(VisibleModule, InteractiveModule):
 
             elif ch == ord("a"):
                 if self._box:
-                    vp = viewer.get_submodule(Viewport)
-                    c = viewer.get_submodule(Client)
-
+                    v, vp = get_submodules(Viewport)
                     x_min = min(self._box_xy[0], self._box_xy2[0])
                     x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
 
                     y_min = min(self._box_xy[1], self._box_xy2[1])
                     y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
 
-                    payload = [ {"x": x, "y": y } for x in range(x_min, x_max) for y in range(y_min, y_max) ]
-                    c.make_request("/fow/bulk/add", payload={"fow": payload})
+                    payload = []
+                    for y in range(y_min, y_max):
+                        for x in range(x_min, x_max):
+                            payload.append({
+                                "type": "command",
+                                "key": "add.map.fow",
+                                "details":{
+                                    "x": x-1,
+                                    "y": y-1
+                                }
+                            })
+                            vp.add_fow({"x":x-1, "y":y-1})
+                    v.client.sendBulk(payload, True)
                     self._box = False
                     vp.box_xy = None
                     vp._dirty = True
 
                 else:
-                    vp = viewer.get_submodule(Viewport)
-                    c = viewer.get_submodule(Client)
-                    c.make_request("/fow/add", payload={
-                        "x": vp.cursor_x,
-                        "y": vp.cursor_y
+                    v, vp = get_submodules(Viewport)
+                    vp.add_fow({"x":vp.cursor_x-1, "y":vp.cursor_y-1})
+                    v.client.send({
+                        "type": "command",
+                        "key": "add.map.fow",
+                        "details": {
+                            "x": vp.cursor_x-1,
+                            "y": vp.cursor_y-1
+                        }
                     })
 
             elif ch == ord("r"):
                 if self._box:
-                    vp = viewer.get_submodule(Viewport)
-                    c = viewer.get_submodule(Client)
+                    v, vp = get_submodules(Viewport)
 
                     x_min = min(self._box_xy[0], self._box_xy2[0])
                     x_max = max(self._box_xy[0], self._box_xy2[0]) + 1
@@ -535,18 +551,33 @@ class CommandWindow(VisibleModule, InteractiveModule):
                     y_min = min(self._box_xy[1], self._box_xy2[1])
                     y_max = max(self._box_xy[1], self._box_xy2[1]) + 1
 
-                    payload = [ {"x": x, "y": y } for x in range(x_min, x_max) for y in range(y_min, y_max) ]
-                    c.make_request("/fow/bulk/rm", payload={"fow": payload})
+                    payload = []
+                    for y in range(y_min, y_max):
+                        for x in range(x_min, x_max):
+                            payload.append({
+                                "type": "command",
+                                "key": "remove.map.fow",
+                                "details":{
+                                    "x": x -1,
+                                    "y": y -1
+                                }
+                            })
+                            vp.remove_fow({"x":x-1, "y":y-1})
+                    v.client.sendBulk(payload, True)
                     self._box = False
                     vp.box_xy = None
                     vp._dirty = True
 
                 else:
-                    vp = viewer.get_submodule(Viewport)
-                    c = viewer.get_submodule(Client)
-                    c.make_request("/fow/rm", payload={
-                        "x": vp.cursor_x,
-                        "y": vp.cursor_y
+                    v, vp = get_submodules(Viewport)
+                    vp.remove_fow({"x":vp.cursor_x-1, "y":vp.cursor_y-1})
+                    v.client.send({
+                        "type": "command",
+                        "key": "remove.map.fow",
+                        "details": {
+                            "x": vp.cursor_x-1,
+                            "y": vp.cursor_y-1
+                        }
                     })
 
             if not self._box:

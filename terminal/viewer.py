@@ -59,7 +59,7 @@ class Viewer(InteractiveModule, VisibleModule):
             self.loop.call_later(0.4, self.tick)
             return
 
-        self.client.ping()
+        #self.client.ping()
 
         # hacks to fix terminal state
         curses.curs_set(0)

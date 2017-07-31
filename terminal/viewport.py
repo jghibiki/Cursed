@@ -256,7 +256,6 @@ class Viewport(VisibleModule, FeatureModule, SavableModule, InteractiveModule):
         self._dirty = True
 
     def remove_fow(self, point):
-        log.info(("point", point))
         self._fow[point["x"]][point["y"]] = False
         self._dirty = True
 

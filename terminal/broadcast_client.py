@@ -36,9 +36,11 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
         if obj["type"] != "pong":
             log.info(("Incoming Message: ", obj["type"], obj["key"] if "key" in obj else None))
 
-
         if(obj["type"] == "pong"):
             log.debug("Pong!");
+
+        elif obj["type"] == "error":
+            log.error("Communication Error: {}".format(obj["msg"]))
 
         elif((obj["type"] == "broadcast_target" or obj["type"] == "broadcast") and obj["key"] != "bulk"):
             log.info("Handling: " + obj["key"])
@@ -65,31 +67,36 @@ class BroadcastClientProtocol(WebSocketClientProtocol):
     def broadcast(self, payload):
         self.send(payload, type="broadcast")
 
-    def send(self, payload, type=None, key=None, isResponse=False):
-        if type is not None:
-            payload["type"] = type
 
-        if key is not None:
-            payload["key"] = key
-
-        payload["is_response"] = isResponse
-
+    def prepairSend(self, payload, broadcast=False):
         payload["password"] = "1111" #TODO add a better way to set password
         payload["id"] = self.id
 
-        if("CURSED_MAGIC_DEBUG" in os.environ
-            and os.environ["CURSED_MAGIC_DEBUG"]):
-            log.info(("Sending message: ", payload["type"], payload["key"] if "key" in payload else None))
+        payload["broadcast"] = broadcast
 
+        log.info(("Sending message: ", payload["type"], payload["key"] if "key" in payload else None))
+        return payload
+
+
+    def sendBulk(self, payloads, broadcast=False):
+        prepared_payloads = []
+
+        for load in payloads:
+            prepared_payloads.append(
+                    self.prepairSend(load) )
+
+        payload = {
+            "type": "command",
+            "key" : "bulk",
+            "frames": prepared_payloads
+        }
+        self.send(payload, broadcast)
+
+    def send(self, payload,broadcast=False):
+        payload = self.prepairSend(payload, broadcast)
         payload = json.dumps(payload, ensure_ascii=False).encode("utf8")
+        self.sendMessage(payload)
 
-        if type == "broadcast":
-            if("CURSED_MAGIC_DEBUG" in os.environ
-                and os.environ["CURSED_MAGIC_DEBUG"]):
-                log.info("broadcasting")
-            self.factory.broadcast(payload)
-        else:
-            self.sendMessage(payload)
 
     def ping(self):
         log.debug("Ping!")
@@ -137,9 +144,15 @@ class MagicBroadcastClientFactory(WebSocketClientFactory):
     def _unregisterClient(self, client):
         self.client = None
 
-    def send(self, payload):
+    def send(self, payload, broadcast=False):
         if self.client:
-            self.client.send(payload)
+            self.client.send(payload, broadcast)
+        else:
+            log.warn("Attempted to send when no client connection has been established.")
+
+    def sendBulk(self, payload, broadcast=False):
+        if self.client:
+            self.client.sendBulk(payload, broadcast)
         else:
             log.warn("Attempted to send when no client connection has been established.")
 

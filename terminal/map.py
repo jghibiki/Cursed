@@ -18,11 +18,12 @@ class Map(LiveModule, InteractiveModule, TextDisplayModule):
     def _register_hooks(self, client):
         client.subscribe("get.map", self._hook_get_map)
         client.subscribe("get.map.units", self._hook_get_map_units)
-        client.subscribe("get.map.fow", self._hook_get_map_fow)
-        client.subscribe("list.maps", self._hook_list_maps)
 
-        client.subscribe("remove.map.fow", self._hook_remove_map_fow)
+        client.subscribe("get.map.fow", self._hook_get_map_fow)
         client.subscribe("add.map.fow", self._hook_add_map_fow)
+        client.subscribe("remove.map.fow", self._hook_remove_map_fow)
+
+        client.subscribe("list.maps", self._hook_list_maps)
 
         def initial_data_pull():
             client.send({"type": "command", "key": "get.map"})
