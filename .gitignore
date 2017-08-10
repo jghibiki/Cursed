@@ -1,3 +1,5 @@
 __pycache__/*
 *.log
 data.json
+__pycache__/
+*.txt
