@@ -1,6 +1,6 @@
 click==6.6
 Flask==1.0
-requests==2.12.1
+requests==2.20.0
 flask-cors
 jsoncomment
 autobahn
